@@ -1,0 +1,120 @@
+local PANEL = {}
+
+function PANEL:Init()
+  local org, l = LocalPlayer():orgs_Org()
+  self:SetSize( 400, 385 )
+  self:SetTitle( 'Change group type' )
+  self:AnimateShow()
+
+  l = self:NewLine()
+  l:Dock( TOP, {d=10} )
+  self.TypeLabel =  l:AddLabel( 'Change to', 'orgs.Medium', C_WHITE )
+  self.TypeLabel:Dock( LEFT )
+  self.TypeLabel:SetContentAlignment( 8 )
+  --self.TypeLabel:SetWide( 90 )
+
+  self.Type = l:Add( 'orgs.ComboBox' )
+  self.Type:Dock( LEFT, {l=15} )
+  self.Type:SetSize( 150, 25 )
+  self.Type.OnSelect = function( p, id )
+    local tp = orgs.Types[p.Value]
+    self.Price:SetText( orgs.FormatCurrency( tp.Price ), nil,
+      orgs.CanAfford( LocalPlayer(), tp.Price ) and C_WHITE or C_RED )
+    self.WalletWarning.l:SetVisible( not orgs.CanAfford( LocalPlayer(), tp.Price ) )
+
+    self.MembersRequired:SetText( tp.MembersRequired, nil,
+      org.Members < tp.MembersRequired and C_RED or C_WHITE )
+    if org.Members < tp.MembersRequired then
+      self.MembersRequired:SetText( self.MembersRequired:GetText()
+        ..' - you have too few members!' )
+    end
+
+    self.MaxMembers:SetText( tp.MaxMembers, nil,
+      org.Members > tp.MaxMembers and C_RED or C_WHITE )
+    if org.Members > tp.MaxMembers then
+      self.MaxMembers:SetText( self.MaxMembers:GetText()
+        ..' - you have too many members!' )
+    end
+
+    self.MaxBalance:SetText( tp.MaxBalance, nil,
+      org.Members > tp.MaxBalance and C_RED or C_WHITE )
+    if org.Members > tp.MaxBalance then
+      self.MaxBalance:SetText( self.MaxMembers:GetText()
+        ..' - you have too much money in your bank, it will be lost!' )
+    end
+
+    self.MaxBalance:SetText( orgs.FormatCurrency( tp.MaxBalance ), nil,
+      org.Balance > tp.MaxBalance and C_RED or C_WHITE )
+    self.BankWarning.l:SetVisible( org.Balance > tp.MaxBalance )
+
+    self.Tax:SetText( tp.Tax *100 ..'%')
+
+    self.CanAlly:SetText( tp.CanAlly and 'Yes' or 'No', nil,
+      true and C_WHITE or C_RED ) -- TODO: Check alliances once implemeneted
+
+    self.CanHide:SetText( tp.CanHide and 'Yes' or 'No', nil,
+      true and C_WHITE or C_RED ) -- TODO: Check hiding once implemeneted
+
+    self.Body:InvalidateLayout()
+  end
+
+  for k, tp in pairs( orgs.Types ) do
+    if k == LocalPlayer():orgs_Org().Type then continue end
+    self.Type:AddOption( tp.Name, k, tp.Price )
+  end
+
+  for k, v in pairs( {{'Price','Cost to change'}, {'WalletWarning'},
+    {'MembersRequired','Members required'}, {'MaxMembers','Member limit'},
+    {'MaxBalance','Maximum bank balance'}, {'BankWarning'}, {'Tax','Salary tax'},
+    {'CanAlly','Can ally'}, {'CanHide','Can hide from public'}} ) do
+
+    l = self:NewLine()
+    if v[2] then
+      self[v[1] ..'Label'] = l:AddLabel( v[2] ..':', 'orgs.MediumLight', C_WHITE )
+      self[v[1] ..'Label']:Dock( LEFT, {l=10} )
+      self[v[1] ..'Label']:SetContentAlignment( 9 )
+    end
+    self[v[1]] = l:AddLabel( '', 'orgs.Small', C_WHITE )
+    self[v[1]]:Dock( LEFT, {l=5} )
+    self[v[1]]:SetContentAlignment( 4 )
+    self[v[1]]:SetWide( 500 )
+    self[v[1]].l = l
+  end
+  self.WalletWarning:SetText( 'You don\'t have enough money in your wallet to pay!', nil, C_RED )
+  self.WalletWarning.l:Dock( TOP, {u=0} )
+  self.WalletWarning.l:Hide()
+
+  self.BankWarning:SetText( 'You have too much money in the bank - some will be lost!', nil, C_RED )
+  self.BankWarning.l:Dock( TOP, {u=0} )
+  self.BankWarning.l:Hide()
+
+  self.Type:Select( 1 )
+
+  self.Confirm = self.Body:Add( 'DButton' )
+  self.Confirm:BGR( C_DARKBLUE, C_BLUE )
+  self.Confirm:Dock( BOTTOM, {l=150,r=150} )
+  self.Confirm:SetTall( 30 )
+  self.Confirm:SetText( 'Confirm', 'orgs.Medium', C_WHITE )
+  self.Confirm.DoClick = function( p )
+    local tp = self.Type.Value
+    netmsg.Send( 'orgs.Menu.Manage.Edit', {Type= self.Type.Value} )( function( tab )
+      if tab[1] then
+        orgs.Menu:SetError( 'Failed to upgrade group - '.. orgs.ModifyFails[tab[1]] )
+        return
+      end
+      orgs.Menu:SetMsg( 'The group type is now '.. orgs.Types[tp].Name )
+      self:AnimateHide()
+    end )
+  end
+end
+
+function PANEL:NewLine()
+
+  local l = self.Body:Add( 'DPanel' )
+  l:Dock( TOP, {u=5}, {l=10,r=10} )
+  l:BGR( C_NONE )
+
+  return l
+end
+
+vgui.Register( 'orgs.Menu.Manage_Upgrade', PANEL, 'orgs.Popup' )

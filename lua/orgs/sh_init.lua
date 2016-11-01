@@ -53,6 +53,14 @@ Enum( orgs, 'PERM_', {
 
 include 'CONFIG.lua'
 
+Msg( string.rep( '\n', 3 ) )
+orgs.Log( false, 'Loading Organisations...' )
+
+if game.SinglePlayer() then
+  orgs.LogError( false, 'Organisations cannot run in a single-player game!' )
+  return
+end
+
 orgs.AddMoney = function() end
 orgs.CanAfford = function() end
 

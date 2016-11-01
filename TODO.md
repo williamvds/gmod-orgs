@@ -4,9 +4,8 @@
 - [ ] Stop polluting global table
 - [ ] Add tooltips to panels where it makes sense
 - [ ] Give players chat log when something happens to them
-- [x] Enforce config max number of ranks
 - [ ] Don't share group balance with all players, only members (create rank property?)
-- [ ] More graceful handling of singleplayer warning & provider failure
+- [ ] More graceful handling of provider failure
 
 ### Features to implement
 - [ ] upgrade: remove allegiances if necessary, warning if group is hidden

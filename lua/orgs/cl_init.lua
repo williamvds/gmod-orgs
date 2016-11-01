@@ -1,16 +1,15 @@
-local rgb = Color -- TODO: Change back to Color
-C_DARKGRAY   = rgb( 34, 34, 34 )
-C_GRAY       = rgb( 51, 51, 51 )
-C_LIGHTGRAY  = rgb( 127, 140, 141 )
-C_DARKBLUE   = rgb( 54, 120, 172 )
-C_BLUE       = rgb( 74, 140, 192 )
-C_LIGHTGREEN = rgb( 41, 235, 82 )
-C_GREEN      = rgb(0, 203, 0)
-C_DARKGREEN  = rgb( 0, 40, 0 )
-C_RED        = rgb( 228, 42, 46 )
-C_DARKRED    = rgb( 207, 28, 27 )
-C_WHITE      = rgb( 238, 238, 238 )
-C_NONE       = rgb( 0, 0, 0, 0 )
+C_DARKGRAY   = Color( 34, 34, 34 )
+C_GRAY       = Color( 51, 51, 51 )
+C_LIGHTGRAY  = Color( 127, 140, 141 )
+C_DARKBLUE   = Color( 54, 120, 172 )
+C_BLUE       = Color( 74, 140, 192 )
+C_LIGHTGREEN = Color( 41, 235, 82 )
+C_GREEN      = Color( 0, 203, 0 )
+C_DARKGREEN  = Color( 0, 40, 0 )
+C_RED        = Color( 228, 42, 46 )
+C_DARKRED    = Color( 207, 28, 27 )
+C_WHITE      = Color( 238, 238, 238 )
+C_NONE       = Color( 0, 0, 0, 0 )
 
 surface.CreateFont( 'orgs.Menu', {
   font      = 'Roboto-Medium',

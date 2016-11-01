@@ -34,7 +34,7 @@ orgs.MaxRanks           = 20   -- Maximum number of ranks any group can have
 orgs.PrimaryCol    = Color( 52, 152, 219 )
 orgs.TextCol       = Color( 245, 245, 245 )
 orgs.HighlightCol  = Color( 46, 204, 113 )
-orgs.ErrorCol      = Color( 231, 76, 60 )
+orgs.ErrorCol      = Color( 228, 42, 46 )
 
 --[[ Default ranks, follow the existing structure
 Permission numbers:

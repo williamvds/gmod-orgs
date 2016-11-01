@@ -4,6 +4,9 @@ if not file.Exists( 'orgs/providers/'.. orgs.Provider ..'.lua', 'LUA' ) then
 end
 
 orgs._Provider = orgs._Provider or include( 'providers/'.. orgs.Provider ..'.lua' )
+if not orgs._Provider or ( orgs._Provider and orgs._Provider.Failed ) then
+  orgs._Provider = include 'providers/sqlite.lua'
+end
 
 local function getID( var )
   return isentity( var ) and var:SteamID64() or var

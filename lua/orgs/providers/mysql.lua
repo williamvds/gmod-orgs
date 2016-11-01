@@ -7,7 +7,16 @@ local port = 3306
 -- End of config
 
 local PROVIDER = { Name= 'MySQL' }
-if not mysqloo then require( 'mysqloo' ) end
+if not mysqloo then
+  local res = pcall( require, 'mysqloo' )
+
+  if not res then
+    orgs.LogError( false, 'Failed to load mysqloo - make sure it\'s installed!\n'
+      ..'See https://facepunch.com/showthread.php?t=1515853 for more information' )
+    PROVIDER.Failed = true
+    return
+  end
+end
 
 -- TODO: keep db as local variable only
 PROVIDER.db = PROVIDER.db or mysqloo.connect( host, user, pass, database, port )

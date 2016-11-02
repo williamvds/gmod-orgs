@@ -6,7 +6,18 @@ local function iscolor( tab )
   return tab.r and tab.g and tab.b and tab.a
 end
 
-function safeTable( tab, clean )
+-- Should only be passed netmsg tables (without metatable)
+local function findSubTables( tab )
+  for k, v in pairs( tab ) do
+    if istable(v) and not iscolor(v) and not isvector(v)
+    and ( (SERVER and not v.__tabID) or CLIENT ) then
+      v.__filter = tab.__subFilter
+      netmsg.NetworkTable( v, (tab.__tabID and tab.__tabID ..'.' or '') .. k )
+    end
+  end
+end
+
+function netmsg.safeTable( tab, clean )
   local newTab = {}
   table.Merge( newTab, getmetatable( tab ) and tab.__tab or tab )  -- Prevents copying metatable
 
@@ -18,21 +29,10 @@ function safeTable( tab, clean )
 
   for k, v in pairs( newTab ) do
     if isfunction( v ) then newTab[k] = nil end
-    if istable( v ) then newTab[k] = safeTable( getmetatable(v) and v.__tab or v ) end
+    if istable( v ) then newTab[k] = netmsg.safeTable( getmetatable(v) and v.__tab or v ) end
   end
 
   return newTab
-end
-
--- Should only be passed netmsg tables (without metatable)
-local function findSubTables( tab )
-  for k, v in pairs( tab ) do
-    if istable(v) and not iscolor(v) and not isvector(v)
-    and ( (SERVER and not v.__tabID) or CLIENT ) then
-      v.__filter = tab.__subFilter
-      netmsg.NetworkTable( v, (tab.__tabID and tab.__tabID ..'.' or '') .. k )
-    end
-  end
 end
 
 function netmsg.Receive( name, func )
@@ -98,30 +98,33 @@ if SERVER then
 
   netmsg.METATABLE = {
     __newindex = function( self, key, value )
+      local oldValue = rawget( netmsg.Tables[self.__tabID], key )
+      if value == nil and istable( oldValue ) and oldValue.__tabID then
+        for k, v in pairs( netmsg.Tables ) do
+          if string.StartWith( k, oldValue.__tabID ..'.' ) then netmsg.Tables[k] = nil end
+        end
+        netmsg.Tables[oldValue.__tabID] = nil
+      end
+
       rawset( netmsg.Tables[self.__tabID], key, value )
       if isfunction( value ) then rawset( self, key, value ) return end
-
-      --if not self.__tabID then return end
 
       if istable( value ) and not iscolor( value ) and not isvector( v ) then
         -- Subtables need to be networked, and be given the parent's filter
         value.__filter = self.__subFilter
-
         netmsg.NetworkTable( value, self.__tabID ..'.'.. key, nil, self.__tabID, key )
+        return
+      end
 
-      elseif value then
+      if self.__filter and string.sub( key, 0, 2 ) ~= '__' then
         -- Perform filtering for each player
         for _, ply in pairs( player.GetAll() ) do
-          local v = value
-          if self.__filter and string.sub( key, 0, 2 ) ~= '__' then
-            v = self:__filter( ply, key, value )
-          end
-          if not v then continue end
+          local v = self:__filter( ply, key, value )
           netmsg.Send( 'netmsg.SyncKey', { id= self.__tabID, k= key, v= v }, ply )
         end
 
-      else netmsg.Send( 'netmsg.RemoveKey', { id= self.__tabID, k= key } ) end
-      -- TODO: check filter for RemoveKey?
+      else netmsg.Send( 'netmsg.SyncKey', { id= self.__tabID, k= key, v= value } ) end
+
     end,
     __index = function( self, key )
       local id = rawget( self, '__tabID' )
@@ -222,20 +225,21 @@ if SERVER then
     end
 
     if tab.__filter then
+      local safeTab = netmsg.safeTable( tab, true )
       for k, ply in pairs( plys and (istable(plys) and plys or {plys}) or player.GetAll() ) do
-        sendTab, safeTab = safeTable( tab ),  safeTable( tab, true )
+        local sendTab = netmsg.safeTable( tab )
         for k, v in pairs( safeTab ) do
           if tab.__filter then sendTab[k] = tab:__filter( ply, k, v ) end
         end
 
         netmsg.Send( 'netmsg.SyncTable', parent
-          and {tab= safeTable(sendTab), p= parent, k= key, __hasParent= true}
-          or safeTable(sendTab), ply )
+          and {tab= netmsg.safeTable(sendTab), p= parent, k= key, __hasParent= true}
+          or netmsg.safeTable(sendTab), ply )
       end
 
     else netmsg.Send( 'netmsg.SyncTable', parent
-      and {tab= safeTable(tab), p= parent, k= key, __hasParent= true}
-      or safeTable(tab), plys ) end
+      and {tab= netmsg.safeTable( tab ), p= parent, k= key, __hasParent= true}
+      or netmsg.safeTable( tab ), plys ) end
   end
 
 end
@@ -257,8 +261,13 @@ if CLIENT then
   end
 
   netmsg.Receive( 'netmsg.SyncKey', function( tab )
-    if not tab.id then return end -- TODO: Look into some tables being sent with no id
     if not netmsg.Tables[ tab.id ] then netmsg.Tables[ tab.id ] = {} end
+
+    if tab.v == nil then
+      local v = netmsg.Tables[ tab.id ][ tab.k ]
+      if istable( v ) and v.__tabID then netmsg.Tables[ v.__tabID ] = nil end
+    end
+
     netmsg.Tables[ tab.id ][ tab.k ] = tab.v
 
     if netmsg.Tables[ tab.id ].__onKeySync then
@@ -266,24 +275,22 @@ if CLIENT then
     end
   end )
 
-  netmsg.Receive( 'netmsg.RemoveKey', function( tab )
-    local v = netmsg.Tables[ tab.id ][ tab.k ]
-    --if istable( v ) and v.__tabID then netmsg.Tables[ tab.__tabID ] = nil end
-    netmsg.Tables[ tab.id ][ tab.k ] = nil
-    if netmsg.Tables[ tab.id ].__onKeySync then netmsg.Tables[ tab.id ]:__onKeySync( tab.k ) end
-  end )
-
   netmsg.Receive( 'netmsg.SyncTable', function( tab )
     local id = tab.__hasParent and tab.tab.__tabID or tab.__tabID
 
-    if netmsg.Tables[ id ] then
-      for k, v in pairs( netmsg.Tables[ id ] ) do
+    if netmsg.Tables[id] then
+      for k, v in pairs( netmsg.Tables[id] ) do
         if isfunction( v ) then tab[k] = v end
       end
+      table.Empty( netmsg.Tables[id] )
 
-    else netmsg.Tables[ id ] = {} end
+    else netmsg.Tables[id] = {} end
 
-    table.CopyFromTo( tab.__hasParent and tab.tab or tab, netmsg.Tables[ id ] )
+    for k, v in pairs( netmsg.Tables ) do
+      if string.StartWith( k, id ..'.' ) then netmsg.Tables[k] = nil end
+    end
+
+    table.CopyFromTo( tab.__hasParent and tab.tab or tab, netmsg.Tables[id] )
     if tab.__hasParent then netmsg.Tables[tab.p][tab.k] = netmsg.Tables[id] end
 
     if tab.p and netmsg.Tables[ tab.p ].__onKeySync then

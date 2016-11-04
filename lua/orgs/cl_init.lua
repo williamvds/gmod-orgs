@@ -1,15 +1,15 @@
-C_DARKGRAY   = Color( 34, 34, 34 )
-C_GRAY       = Color( 51, 51, 51 )
-C_LIGHTGRAY  = Color( 127, 140, 141 )
-C_DARKBLUE   = Color( 54, 120, 172 )
-C_BLUE       = Color( 74, 140, 192 )
-C_LIGHTGREEN = Color( 41, 235, 82 )
-C_GREEN      = Color( 0, 203, 0 )
-C_DARKGREEN  = Color( 0, 40, 0 )
-C_RED        = Color( 228, 42, 46 )
-C_DARKRED    = Color( 207, 28, 27 )
-C_WHITE      = Color( 238, 238, 238 )
-C_NONE       = Color( 0, 0, 0, 0 )
+orgs.C_DARKGRAY   = Color( 34, 34, 34 )
+orgs.C_GRAY       = Color( 51, 51, 51 )
+orgs.C_LIGHTGRAY  = Color( 127, 140, 141 )
+orgs.C_DARKBLUE   = Color( 54, 120, 172 )
+orgs.C_BLUE       = Color( 74, 140, 192 )
+orgs.C_LIGHTGREEN = Color( 41, 235, 82 )
+orgs.C_GREEN      = Color( 0, 203, 0 )
+orgs.C_DARKGREEN  = Color( 0, 40, 0 )
+orgs.C_RED        = Color( 228, 42, 46 )
+orgs.C_DARKRED    = Color( 207, 28, 27 )
+orgs.C_WHITE      = Color( 238, 238, 238 )
+orgs.C_NONE       = Color( 0, 0, 0, 0 )
 
 surface.CreateFont( 'orgs.Menu', {
   font      = 'Roboto-Medium',
@@ -127,15 +127,7 @@ orgs.PermCheckboxes = {
   {'Events',   'View events'},
 }
 
-function DrawText( txt, f, x, y, c, a )
-  local a = a or TEXT_ALIGN_LEFT
-  draw.DrawText( txt, f, x +1, y +1, Color( 0, 0, 0, c.a *( 250/255 ) ), a )
-  draw.DrawText( txt, f, x +2, y +2, Color( 0, 0, 0, c.a *( 50/255 ) ), a )
-  draw.DrawText( txt, f, x, y, c, a )
-
-end
-
-function DrawRect( x, y, w, h, col )
+function orgs.DrawRect( x, y, w, h, col )
   surface.SetDrawColor( col )
   surface.DrawRect( x, y, w, h )
 end
@@ -180,7 +172,7 @@ netmsg.Receive( 'orgs.ChatLog', function( tab ) orgs.ChatLog( unpack( tab ) ) en
 -- hook.Add( 'PreDrawHalos', 'orgs.MemberHalos', function()
 --   if not LocalPlayer():orgs_Org() then return end
 --
---   for k, ply in pairs( safeTable(orgs.Members, true) ) do
+--   for k, ply in pairs( netmsg.safeTable(orgs.Members, true) ) do
 --     ply = player.GetBySteamID64( ply.SteamID )
 --     if not ply or ply == LocalPlayer() then continue end
 --
@@ -200,7 +192,7 @@ netmsg.Receive( 'orgs.ChatLog', function( tab ) orgs.ChatLog( unpack( tab ) ) en
 -- hook.Add( 'PreDrawHalos', 'orgs.MemberHalos', function()
 --   if not LocalPlayer():orgs_Org() then return end
 --
---   for k, ply in pairs( safeTable(orgs.Members, true) ) do
+--   for k, ply in pairs( netmsg.safeTable(orgs.Members, true) ) do
 --     ply = player.GetBySteamID64( ply.SteamID )
 --     if not ply or ply == LocalPlayer() then continue end
 --
@@ -238,7 +230,7 @@ netmsg.Receive( 'orgs.ChatLog', function( tab ) orgs.ChatLog( unpack( tab ) ) en
 --
 --             cam.Start2D()
 --               surface.SetDrawColor( entry.Color )
---               surface.DrawRect( 0, 0, ScrW(), ScrH() )
+--               surface.orgs.DrawRect( 0, 0, ScrW(), ScrH() )
 --             cam.End2D()
 --
 --             render.SetStencilTestMask( 0 )

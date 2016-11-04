@@ -5,20 +5,20 @@ function COMBOBOX:Init()
   self.Options = {}
 
   self:SetFont( 'orgs.Medium' )
-  self:SetTextColor( C_DARKGRAY )
-  self:SetText('')
+  self:SetTextColor( orgs.C_DARKGRAY )
+  self:SetText( '' )
   self:SetContentAlignment( 4 )
   self:SetTextInset( 4, 0 )
   self.Paint = function( p, w, h )
-    DrawRect( 0, 0, w, h, self.Color or C_WHITE )
+    orgs.DrawRect( 0, 0, w, h, self.Color or orgs.C_WHITE )
   end
 
   self.Arrow = self:Add( 'DPanel' )
   self.Arrow:SetMouseInputEnabled( false )
-  self.Arrow:Dock( RIGHT, {r=8, u=10} )
+  self.Arrow:orgs_Dock( RIGHT, {r=8, u=10} )
   self.Arrow:SetSize( 10, 10 )
   self.Arrow.Paint = function( p, w, h )
-    surface.SetDrawColor( p:GetParent().AltColor or C_DARKGRAY )
+    surface.SetDrawColor( p:GetParent().AltColor or orgs.C_DARKGRAY )
     draw.NoTexture()
     surface.DrawPoly{
       {x=0, y=0}, {x=10, y=0}, {x=5, y=5}
@@ -31,7 +31,7 @@ function COMBOBOX:ShowList()
 
   self.List = self:Add( 'DScrollPanel' )
   self.List:SetWide( self:GetWide() )
-  --self.List.VBar.Paint = self.List.VBar:BGR( C_WHITE )
+  --self.List.VBar.Paint = self.List.VBar:orgs_BGR( orgs.C_WHITE )
 
   self.List.Think = function()
 
@@ -50,8 +50,8 @@ function COMBOBOX:ShowList()
   table.SortByMember( tab, 2, true )
 
   for id, opt in ipairs( tab ) do
-    local label = self.List:AddLabel( opt[1], 'orgs.Medium', C_DARKGRAY )
-    label:BGR( C_WHITE, C_LIGHTGRAY )
+    local label = self.List:orgs_AddLabel( opt[1], 'orgs.Medium', orgs.C_DARKGRAY )
+    label:orgs_BGR( orgs.C_WHITE, orgs.C_LIGHTGRAY )
     label:SetContentAlignment( 4 )
     label:SetTextInset( 4, 0 )
     label.DoClick = function() self:Select( opt[3] ) end
@@ -71,7 +71,7 @@ end
 function COMBOBOX:Select( id )
   if IsValid( self.List ) then self.List:Remove() end
 
-  self:SetText( self.Options[id].Label )
+  self:orgs_SetText( self.Options[id].Label )
   self.Value = self.Options[id].Value
 
   if self.OnSelect then self:OnSelect( id ) end

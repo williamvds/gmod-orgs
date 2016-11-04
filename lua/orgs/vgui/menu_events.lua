@@ -2,11 +2,11 @@ local PANEL = {}
 
 function PANEL:Init()
   self.Lines = {}
-  self:Dock( FILL, {l=-1,r=-3} )
+  self:orgs_Dock( FILL, {l=-1,r=-3} )
   self:SetHeaderHeight( 25 )
   self:SetDataHeight( 19 )
   self:SortByColumn( 1, true )
-  self:BGR( C_NONE )
+  self:orgs_BGR( orgs.C_NONE )
   self.oldAddLine = vgui.GetControlTable( 'DListView' ).AddLine
 
   for k, v in pairs( {
@@ -15,11 +15,11 @@ function PANEL:Init()
   } ) do
     c = self:AddColumn( v.txt )
     if v.w then c:SetFixedWidth( v.w ) end
-    c.Header:SetText( nil, 'orgs.Medium', C_WHITE )
-    c.Header:BGR( C_DARKBLUE )
+    c.Header:orgs_SetText( nil, 'orgs.Medium', orgs.C_WHITE )
+    c.Header:orgs_BGR( orgs.C_DARKBLUE )
   end
 
-  self.NoEvents = self:AddLabel( 'There are no events visible to you',
+  self.NoEvents = self:orgs_AddLabel( 'There are no events visible to you',
     'orgs.Medium' )
   self.NoEvents:Dock( FILL )
   self.NoEvents:SetContentAlignment( 5 )
@@ -40,13 +40,13 @@ function PANEL:AddLine( event )
   l.Event = event
 
   l.Paint = function( p, w, h )
-    local col = C_NONE
-    if p:IsSelected() then col = C_LIGHTGRAY end
-    DrawRect( 0, 0, w, h, col )
+    local col = orgs.C_NONE
+    if p:IsSelected() then col = orgs.C_LIGHTGRAY end
+    orgs.DrawRect( 0, 0, w, h, col )
   end
 
   for k, c in pairs( l.Columns ) do
-    c:SetText( nil, 'orgs.Tiny', C_WHITE )
+    c:orgs_SetText( nil, 'orgs.Tiny', orgs.C_WHITE )
   end
 
   l.Columns[1]:SetContentAlignment( 6 )
@@ -55,11 +55,11 @@ function PANEL:AddLine( event )
   l:SetColumnText( 1, os.date( '%I:%M %p %d/%m/%y', event.Time ):gsub('/0', '/'):gsub('^0', '') )
 
   local rt = l:Add( 'RichText' )
-  rt:Dock( FILL, {r=8} )
+  rt:orgs_Dock( FILL, {r=8} )
   rt.ApplySchemeSettings = function() end
   rt.PerformLayout = function( p )
     p:SetFontInternal( 'orgs.Tiny' )
-    p:SetFGColor( C_WHITE )
+    p:SetFGColor( orgs.C_WHITE )
   end
   rt:SetVerticalScrollbarEnabled( false )
   rt:SetMouseInputEnabled( false )
@@ -75,7 +75,7 @@ function PANEL:AddLine( event )
   l.Columns[2] = rt
   l:SetSortValue( 2, tonumber( event.ActionBy ) or 0 )
 
-  l:BGR( C_NONE, C_DARKGRAY )
+  l:orgs_BGR( orgs.C_NONE, orgs.C_DARKGRAY )
   self.Lines[event.EventID] = l
   self.doLayout = true
 
@@ -87,7 +87,7 @@ function PANEL:OnRowRightClick( line )
   if not event then return end
 
   self.Popup = DermaMenu( self )
-  self.Popup:BGR( C_WHITE )
+  self.Popup:orgs_BGR( orgs.C_WHITE )
 
   if event.ActionBy then
     self.Popup:AddOption( 'Actor: View Steam profile', function()
@@ -116,9 +116,9 @@ function PANEL:OnRowRightClick( line )
 
   for k, opt in pairs( self.Popup:GetCanvas():GetChildren() ) do
     if opt.ThisClass ~= 'DMenuOption' then continue end
-    opt:SetText( nil, 'orgs.Small', C_DARKGRAY )
+    opt:orgs_SetText( nil, 'orgs.Small', orgs.C_DARKGRAY )
     opt:SetTextInset( 10, 0 )
-    opt:BGR( C_NONE )
+    opt:orgs_BGR( orgs.C_NONE )
   end
 
   self.Popup:Open()
@@ -151,7 +151,7 @@ end
 function PANEL:OnRequestResize() end
 
 function PANEL:Update()
-  local events = safeTable( orgs.Events, true )
+  local events = netmsg.safeTable( orgs.Events, true )
 
   self.NoEvents:SetVisible( table.Count( events ) < 1 )
   self.pnlCanvas:SetVisible( table.Count( events ) > 0 )

@@ -1,17 +1,17 @@
 local HEADER = { Base = 'Panel' }
 
 function HEADER:Init()
-  self:Dock( TOP, nil, {r=5, l=5, d=5} )
+  self:orgs_Dock( TOP, nil, {r=5, l=5, d=5} )
 
-  self.Title = self:AddLabel( 'Title', 'orgs.Medium', C_WHITE )
-  self.Title:Dock( FILL, {l=5, r=self:GetParent():GetCloseWide()+5}, nil, true )
+  self.Title = self:orgs_AddLabel( 'Title', 'orgs.Medium', orgs.C_WHITE )
+  self.Title:orgs_Dock( FILL, {l=5, r=self:GetParent():GetCloseWide()+5}, nil, true )
   self.Title:SetContentAlignment(4)
   self.Title:SetAutoStretchVertical( true )
 
   self.Close = self:Add( 'DButton' )
-  self.Close:SetText( '×', 'orgs.SmallLight', C_WHITE )
+  self.Close:orgs_SetText( '×', 'orgs.SmallLight', orgs.C_WHITE )
   self.Close:SetContentAlignment(8)
-  self.Close:BGR( C_DARKRED, C_RED )
+  self.Close:orgs_BGR( orgs.C_DARKRED, orgs.C_RED )
   self.Close.DoClick = function() self:GetParent():AnimateHide() end
   self.Close:SetSize( self:GetParent():GetCloseWide(), 20 )
 
@@ -23,7 +23,7 @@ function HEADER:PerformLayout()
 end
 
 function HEADER:Paint( w, h )
-  DrawRect( 0, 0, w, h, self:GetParent():GetHeaderColor() )
+  orgs.DrawRect( 0, 0, w, h, self:GetParent():GetHeaderColor() )
 end
 
 function HEADER:Think()
@@ -65,12 +65,12 @@ AccessorFunc( FRAME, 'b_remove_on_close', 'RemoveOnHide', FORCE_BOOL )
 AccessorFunc( FRAME, 'n_close_button_wide', 'CloseWide', FORCE_NUMBER )
 
 function FRAME:Init()
-  self:Dock( nil, nil, {r=5, l=5, d=5} )
+  self:orgs_Dock( nil, nil, {r=5, l=5, d=5} )
 
   self._createdTime = SysTime()
 
-  self:SetColor( C_DARKGRAY )
-  self:SetHeaderColor( C_NONE )
+  self:SetColor( orgs.C_DARKGRAY )
+  self:SetHeaderColor( orgs.C_NONE )
   self:SetCloseWide( 40 )
   self:SetSize( 150, 100 )
 
@@ -78,14 +78,14 @@ function FRAME:Init()
 end
 
 function FRAME:Paint( w, h )
-  DrawRect( 0, 0, w, h, self:GetColor() )
+  orgs.DrawRect( 0, 0, w, h, self:GetColor() )
   if self:GetBackgroundBlur() then
     Derma_DrawBackgroundBlur( self, self._createdTime )
   end
 end
 
 function FRAME:SetTitle( txt, font, color )
-  self.Header.Title:SetText( txt, font, color, true )
+  self.Header.Title:orgs_SetText( txt, font, color, true )
   self.Header:SizeToChildren( true, true )
 end
 

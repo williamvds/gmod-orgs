@@ -196,7 +196,7 @@ orgs.updatePlayer = function( ply, tab, ply2, done )
         ActionValue= tab.RankID } )
     end
 
-    local oldTab = orgs.Members[steamID] and safeTable( orgs.Members[steamID], true ) or {}
+    local oldTab = orgs.Members[steamID] and netmsg.safeTable( orgs.Members[steamID], true ) or {}
 
     if table.Count( oldTab ) < 1 then
       tab.Nick = IsValid( ply ) and ply:Nick() or '???'
@@ -289,6 +289,11 @@ end
 --[[ Organisations ]]
 orgs.addOrg = function( tab, ply, done )
   local steamID = getID( ply )
+
+  if not tab.Name or ( tab.Name and string.len( tab.Name ) > orgs.MaxNameLength ) then
+    return 1
+  end
+
   orgs._Provider.addOrg( tab, function( orgID, err )
     if err then return end
 
@@ -364,7 +369,7 @@ orgs.addRank = function( orgID, tab, ply, done )
   end
 
   local n = 0
-  for k, rank in pairs( safeTable( orgs.Ranks, true ) ) do
+  for k, rank in pairs( netmsg.safeTable( orgs.Ranks, true ) ) do
     if rank.OrgID == orgID then n = n +1 end
   end
   if n >= orgs.MaxRanks then
@@ -372,7 +377,7 @@ orgs.addRank = function( orgID, tab, ply, done )
     return 3
   end
 
-  for k, rank in pairs( safeTable( orgs.Ranks, true ) ) do
+  for k, rank in pairs( netmsg.safeTable( orgs.Ranks, true ) ) do
     if rank.OrgID == orgID and rank.Name == tab.Name then
       -- Group already has rank with that name
       return 4
@@ -472,7 +477,7 @@ orgs.removeRank = function( rankID, ply, done )
   end
 
   -- Reset members of deleted to the default rank
-  for k, mem in pairs( safeTable( orgs.Members, true ) ) do
+  for k, mem in pairs( netmsg.safeTable( orgs.Members, true ) ) do
     if mem.RankID ~= rankID then continue end
     orgs.updatePlayer( mem.SteamID, {RankID= orgs.List[orgID].DefaultRank}, steamID )
   end
@@ -561,7 +566,7 @@ orgs.updateOrg = function( orgID, tab, ply, done )
   end
 
   if (tab.Name and tab.Name ~= NULL) or (tab.Tag and tab.Tag ~= NULL) then
-    for k, v in pairs( safeTable( orgs.List, true ) ) do
+    for k, v in pairs( netmsg.safeTable( orgs.List, true ) ) do
       if v.OrgID == org.OrgID then continue end
       -- If name is duplicated
       if tab.Name and tab.Name ~= NULL and v.Name:lower() == tab.Name:lower() then return 12 end

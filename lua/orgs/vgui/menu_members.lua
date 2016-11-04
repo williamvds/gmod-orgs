@@ -27,11 +27,11 @@ function PANEL:Init()
   self.oldAddLine = vgui.GetControlTable( 'DListView' ).AddLine
   -- Negative margin to fix the last column having wrong width
   -- and to fix apparent 1px horizontal padding on lines
-  self:Dock( FILL, {l=-1,r=-3} )
+  self:orgs_Dock( FILL, {l=-1,r=-3} )
   self:SetHeaderHeight( 25 )
   self:SetDataHeight( 24 )
   self:SetMultiSelect( false )
-  self:BGR( C_GRAY )
+  self:orgs_BGR( orgs.C_GRAY )
 
   local c
   for k, v in pairs( {
@@ -42,8 +42,8 @@ function PANEL:Init()
   } ) do
     c = self:AddColumn( v.txt )
     if v.w then c:SetFixedWidth( v.w ) end
-    c.Header:SetText( nil, 'orgs.Medium', C_WHITE )
-    c.Header:BGR( C_DARKBLUE )
+    c.Header:orgs_SetText( nil, 'orgs.Medium', orgs.C_WHITE )
+    c.Header:orgs_BGR( orgs.C_DARKBLUE )
   end
 
 end
@@ -57,12 +57,12 @@ function PANEL:AddLine( ply, ... )
   l.Player = ply
 
   l.Paint = function( self, w, h )
-    local col = C_NONE
-    if self:IsSelected() then col = C_LIGHTGRAY end
-    DrawRect( 0, 0, w, h, col )
+    local col = orgs.C_NONE
+    if self:IsSelected() then col = orgs.C_LIGHTGRAY end
+    orgs.DrawRect( 0, 0, w, h, col )
   end
 
-  l.Columns[1].Color = player.GetBySteamID64( ply ) and C_LIGHTGREEN or C_RED
+  l.Columns[1].Color = player.GetBySteamID64( ply ) and orgs.C_LIGHTGREEN or orgs.C_RED
   l.Columns[1].PaintOver = function( self, w, h )
     surface.SetDrawColor( self.Color )
     draw.NoTexture()
@@ -74,7 +74,7 @@ function PANEL:AddLine( ply, ... )
   end
 
   for k, c in pairs( l.Columns ) do
-    c:SetText( nil, 'orgs.SmallLight', C_WHITE )
+    c:orgs_SetText( nil, 'orgs.SmallLight', orgs.C_WHITE )
     c:SetContentAlignment(5)
   end
 
@@ -92,7 +92,7 @@ function PANEL:OnRowRightClick( id, line )
   end
 
   self.Popup = DermaMenu( self )
-  self.Popup:BGR( C_WHITE )
+  self.Popup:orgs_BGR( orgs.C_WHITE )
 
   self.Popup:AddOption( 'View Steam profile', function()
     gui.OpenURL( 'https://steamcommunity.com/profiles/'.. line.Player )
@@ -121,9 +121,9 @@ function PANEL:OnRowRightClick( id, line )
 
   for k, opt in pairs( self.Popup:GetCanvas():GetChildren() ) do
     if opt.ThisClass ~= 'DMenuOption' then continue end
-    opt:SetText( nil, 'orgs.Small', C_DARKGRAY )
+    opt:orgs_SetText( nil, 'orgs.Small', orgs.C_DARKGRAY )
     opt:SetTextInset( 10, 0 )
-    opt:BGR( C_NONE )
+    opt:orgs_BGR( orgs.C_NONE )
   end
 
   self.Popup:Open()
@@ -142,7 +142,7 @@ function PANEL:Update( org )
     l:SetColumnText( 4, member.Salary and orgs.FormatCurrency( member.Salary ) or 'none' )
   end
 
-  for k, ply in pairs( safeTable( orgs.Members, true ) ) do
+  for k, ply in pairs( netmsg.safeTable( orgs.Members, true ) ) do
     if self.Players[ k ] then continue end
     local rank = orgs.Ranks[ply.RankID]
     self:AddLine( ply.SteamID, ply.Nick, {rank.Name, rank.Immunity},
@@ -168,13 +168,13 @@ function PANEL:Init()
 
   l = self:NewLine()
 
-  self.RankLabel = l:AddLabel( 'Rank', 'orgs.Medium', C_WHITE, true )
-  self.RankLabel:Dock( LEFT, {l=20} )
+  self.RankLabel = l:orgs_AddLabel( 'Rank', 'orgs.Medium', orgs.C_WHITE, true )
+  self.RankLabel:orgs_Dock( LEFT, {l=20} )
   self.RankLabel:SetWide( 50 )
   self.RankLabel:SetContentAlignment( 6 )
 
   self.Rank = l:Add( 'orgs.ComboBox' )
-  self.Rank:Dock( LEFT, {l=15} )
+  self.Rank:orgs_Dock( LEFT, {l=15} )
   self.Rank:SetSize( 175, 25 )
   self.Rank.OnSelect = function( p, id )
     for k, v in pairs( orgs.PermCheckboxes ) do
@@ -188,27 +188,27 @@ function PANEL:Init()
 
   l = self:NewLine()
 
-  self.SalaryLabel = l:AddLabel( 'Salary', 'orgs.Medium', C_WHITE, true )
-  self.SalaryLabel:Dock( LEFT, {l=20} )
+  self.SalaryLabel = l:orgs_AddLabel( 'Salary', 'orgs.Medium', orgs.C_WHITE, true )
+  self.SalaryLabel:orgs_Dock( LEFT, {l=20} )
   self.SalaryLabel:SetWide( 50 )
   self.SalaryLabel:SetContentAlignment( 6 )
 
   self.Salary = l:Add( 'DTextEntry' )
-  self.Salary:Dock( LEFT, {l=15} )
+  self.Salary:orgs_Dock( LEFT, {l=15} )
   self.Salary:SetSize( 150, 25 )
   self.Salary:SetFont( 'orgs.Medium' )
   self.Salary:SetNumeric( true )
   self.Salary.Paint = function( p, w, h )
-    DrawRect( 0, 0, w, h, C_WHITE )
-    p:DrawTextEntryText( C_DARKGRAY, C_GRAY, C_GRAY )
+    orgs.DrawRect( 0, 0, w, h, orgs.C_WHITE )
+    p:DrawTextEntryText( orgs.C_DARKGRAY, orgs.C_GRAY, orgs.C_GRAY )
   end
   self.Salary:SetText( self.Player.Salary )
 
   l = self:NewLine()
 
   self.PermsLabel = l:Add( 'DLabel' )
-  self.PermsLabel:SetText( 'Permissions', 'orgs.Medium', C_WHITE )
-  self.PermsLabel:Dock( LEFT, {l=-15}, nil, true )
+  self.PermsLabel:orgs_SetText( 'Permissions', 'orgs.Medium', orgs.C_WHITE )
+  self.PermsLabel:orgs_Dock( LEFT, {l=-15}, nil, true )
 
   l = self:NewLine()
   for k, v in pairs( orgs.PermCheckboxes ) do
@@ -216,8 +216,8 @@ function PANEL:Init()
     self[v[1]] = l:Add( 'DCheckBoxLabel' )
     local box = self[v[1]]
     box:Dock( k %2 ~= 0 and LEFT or RIGHT )
-    box.Label:SetText( v[2], 'orgs.Small', C_WHITE )
-    box.Label:Dock( LEFT, {l=20} )
+    box.Label:orgs_SetText( v[2], 'orgs.Small', orgs.C_WHITE )
+    box.Label:orgs_Dock( LEFT, {l=20} )
     box.Label:SetContentAlignment(4)
     if k %2 ~= 0 then box:SizeToContents()
     else box:SetWide( 130 ) end
@@ -226,7 +226,7 @@ function PANEL:Init()
   end
 
   local id = 1
-  for k, rank in pairs( safeTable( orgs.Ranks, true ) ) do
+  for k, rank in pairs( netmsg.safeTable( orgs.Ranks, true ) ) do
     if rank.Immunity > LocalPlayer():orgs_Rank().Immunity then continue end
     self.Rank:AddOption( rank.Name, rank.RankID, rank.Immunity )
     if rank.RankID == self.Player.RankID then self.Rank:Select( id ) end
@@ -234,10 +234,10 @@ function PANEL:Init()
   end
 
   self.Save = self.Body:Add( 'DButton' )
-  self.Save:BGR( C_DARKBLUE, C_BLUE )
-  self.Save:Dock( BOTTOM, {l=150,r=150} )
+  self.Save:orgs_BGR( orgs.C_DARKBLUE, orgs.C_BLUE )
+  self.Save:orgs_Dock( BOTTOM, {l=150,r=150} )
   self.Save:SetTall( 30 )
-  self.Save:SetText( 'Save', 'orgs.Medium', C_WHITE )
+  self.Save:orgs_SetText( 'Save', 'orgs.Medium', orgs.C_WHITE )
   self.Save.DoClick = function( p )
     local perms, tab = {}, {}
 
@@ -282,8 +282,8 @@ end
 function PANEL:NewLine()
 
   local l = self.Body:Add( 'DPanel' )
-  l:Dock( TOP, {u=10}, {l=25,r=25} )
-  l:BGR( C_NONE )
+  l:orgs_Dock( TOP, {u=10}, {l=25,r=25} )
+  l:orgs_BGR( orgs.C_NONE )
 
   return l
 end

@@ -2,13 +2,13 @@ local PANEL = {}
 
 function PANEL:Init()
 
-  self.NoBulletin = self:AddLabel( [[No bulletin is currently set]],
+  self.NoBulletin = self:orgs_AddLabel( [[No bulletin is currently set]],
     'orgs.Large' )
   self.NoBulletin:Dock( FILL )
   self.NoBulletin:SetContentAlignment( 5 )
 
   self.Text = self:Add( 'DTextEntry' )
-  self.Text:SetText( '', 'orgs.SmallLight', C_WHITE )
+  self.Text:orgs_SetText( '', 'orgs.SmallLight', orgs.C_WHITE )
   self.Text:SetVerticalScrollbarEnabled( true )
   self.Text:SetDrawBackground( false )
   self.Text:SetSkin( 'orgs.blankTextBox' )
@@ -16,16 +16,16 @@ function PANEL:Init()
   self.Text:SetWrap( true )
   self.Text:SetCursor( 'arrow' )
   self.Text.Paint = function( p, w, h )
-    DrawRect( 0, 0, w, h, p.Editing and C_WHITE or C_NONE )
-    p:DrawTextEntryText( p.Editing and C_DARKGRAY or C_WHITE, C_GRAY, C_GRAY )
+    orgs.DrawRect( 0, 0, w, h, p.Editing and orgs.C_WHITE or orgs.C_NONE )
+    p:DrawTextEntryText( p.Editing and orgs.C_DARKGRAY or orgs.C_WHITE, orgs.C_GRAY, orgs.C_GRAY )
   end
   self.Text.AllowInput = function( p )
     return not p.Editing or p:GetText():len() +1 > orgs.MaxBulletinLength
   end -- Don't ask me why it's true to prevent input
 
   self.Edit = self:Add( 'DButton' )
-  self.Edit:SetText( 'Edit', 'orgs.Medium', C_WHITE, true )
-  self.Edit:BGR( C_DARKBLUE, C_BLUE )
+  self.Edit:orgs_SetText( 'Edit', 'orgs.Medium', orgs.C_WHITE, true )
+  self.Edit:orgs_BGR( orgs.C_DARKBLUE, orgs.C_BLUE )
   self.Edit:SetTall( 30 )
   self.Edit:SetVisible( false )
   self.Edit.DoClick = function()
@@ -34,7 +34,7 @@ function PANEL:Init()
 
     self.Text:SetSkin( self.Text.Editing and 'Default' or 'orgs.blankTextBox' )
     self.Text:SetDrawBackground( self.Text.Editing and true or false )
-    self.Text:SetTextColor( self.Text.Editing and C_GRAY or C_WHITE )
+    self.Text:SetTextColor( self.Text.Editing and orgs.C_GRAY or orgs.C_WHITE )
     self.Text:SetCursor( self.Text.Editing and 'hand' or 'arrow' )
     self.Text:RequestFocus()
     self.Edit:SetText( self.Text.Editing and 'Save' or 'Edit' )
@@ -74,7 +74,7 @@ function PANEL:Update( org )
     self.Edit:Show() self:InvalidateLayout()
   end
 
-  self.Text:SetText( org.Bulletin )
+  self.Text:orgs_SetText( org.Bulletin )
   self.Text:SetVisible( org.Bulletin and org.Bulletin ~= '' )
   self.NoBulletin:SetVisible( not org.Bulletin or org.Bulletin == '')
 

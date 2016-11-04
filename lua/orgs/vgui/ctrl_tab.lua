@@ -8,14 +8,14 @@ function PANEL:Init()
   self.Header:Dock( TOP )
 
   self.Body = self:Add( 'DPanel' )
-  self.Body:BGR( C_GRAY )
+  self.Body:orgs_BGR( orgs.C_GRAY )
   self.Body:Dock( FILL )
 
   local bar = self:Add( 'DPanel' )
-  bar:Dock( TOP, {u=5} )
+  bar:orgs_Dock( TOP, {u=5} )
   bar:MoveToFront()
   bar:SetTall( 3 )
-  bar:BGR( C_BLUE )
+  bar:orgs_BGR( orgs.C_BLUE )
 
   self.Tabs = {}
   self:Dock( FILL )
@@ -24,7 +24,7 @@ end
 
 function PANEL:RepositionTabs()
   for k, tab in pairs( self.Tabs ) do
-    tab.Tab:Dock( LEFT, nil, nil, true )
+    tab.Tab:orgs_Dock( LEFT, nil, nil, true )
     tab.Tab:SetSize( tab.Tab:GetWide() +20, 45 )
   end
 end
@@ -34,10 +34,10 @@ function PANEL:AddTab( name, panel, col, altCol, id )
   id = id or #self.Tabs +1
 
   local tab = self.Header:Add( 'DButton' )
-  tab:SetText( name, 'orgs.Medium', C_WHITE )
+  tab:orgs_SetText( name, 'orgs.Medium', orgs.C_WHITE )
 
   tab:SetContentAlignment( 5 )
-  tab:BGR( col or C_DARKBLUE, altCol or C_BLUE )
+  tab:orgs_BGR( col or orgs.C_DARKBLUE, altCol or orgs.C_BLUE )
   tab.DoClick = function( tab ) self:SetActiveTab( id ) end
   tab.ID = id
 
@@ -113,17 +113,35 @@ function PANEL:SetActiveTab( id )
   local id = id or next(self.Tabs)
   local old, new = self:GetActiveTab(), self:GetTab( id )
 
-  new.Tab:SetText( new.Name, _, C_DARKGRAY )
-  new.Tab:BGR( C_WHITE )
+  new.Tab:orgs_SetText( new.Name, _, orgs.C_DARKGRAY )
+  new.Tab:orgs_BGR( orgs.C_WHITE )
 
   if self.ActiveTab == id then return end
 
   if old and IsValid( old.Panel ) then
-    old.Tab:SetText( old.Name, _, C_WHITE )
-    old.Tab:BGR( old.Color or C_DARKBLUE, old.AltColor or C_BLUE )
-    old.Panel:Hide()
-  end
+    old.Tab:orgs_SetText( old.Name, _, orgs.C_WHITE )
+    old.Tab:orgs_BGR( old.Color or orgs.C_DARKBLUE, old.AltColor or orgs.C_BLUE )
 
+    local alpha1 = old.Panel:GetAlpha()
+    old.Panel:AlphaTo( 0, .1, 0, function()
+      self.ActiveTab = id
+      old.Panel:Hide()
+      old.Panel:SetAlpha( alpha1 )
+      local alpha2 = new.Panel:GetAlpha()
+      if new.Panel.OnTabActive then new.Panel:OnTabActive() end
+      self.ActiveTab = id
+      new.Panel:SetAlpha( 0 )
+      new.Panel:Show()
+      new.Panel:AlphaTo( alpha2, .1, 0 )
+    end )
+  else
+    local alpha2 = new.Panel:GetAlpha()
+    if new.Panel.OnTabActive then new.Panel:OnTabActive() end
+    self.ActiveTab = id
+    new.Panel:SetAlpha( 0 )
+    new.Panel:Show()
+    new.Panel:AlphaTo( alpha2, .1, 0 )
+  end
   -- TODO: Transitional animations
   -- Possibly do logic in the TabMenu's Think hook instead of using in-built methods?
 
@@ -156,9 +174,6 @@ function PANEL:SetActiveTab( id )
   --   end )
 
   -- end
-  if new.Panel.OnTabActive then new.Panel:OnTabActive() end
-  new.Panel:Show()
-  self.ActiveTab = id
 
 end
 

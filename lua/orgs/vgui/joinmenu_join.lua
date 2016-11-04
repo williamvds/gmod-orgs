@@ -3,17 +3,17 @@ local PANEL = {}
 function PANEL:Init()
   self.Lines = {}
 
-  self.NoGroups = self:AddLabel( 'There are no public groups - try making your own',
+  self.NoGroups = self:orgs_AddLabel( 'There are no public groups - try making your own',
     'orgs.Medium' )
   self.NoGroups:Dock( FILL )
   self.NoGroups:SetContentAlignment( 5 )
   self.NoGroups:Hide()
 
   self.List = self:Add( 'DListView' )
-  self.List:Dock( FILL, {l=-1,r=-3} )
+  self.List:orgs_Dock( FILL, {l=-1,r=-3} )
   self.List:SetHeaderHeight( 25 )
   self.List:SetDataHeight( 65 )
-  self.List:BGR( C_NONE )
+  self.List:orgs_BGR( orgs.C_NONE )
   self.List:Hide()
 
   for k, v in pairs( {
@@ -24,8 +24,8 @@ function PANEL:Init()
   } ) do
     c = self.List:AddColumn( v.txt )
     if v.w then c:SetFixedWidth( v.w ) end
-    c.Header:SetText( nil, 'orgs.Medium', C_WHITE )
-    c.Header:BGR( C_DARKBLUE )
+    c.Header:orgs_SetText( nil, 'orgs.Medium', orgs.C_WHITE )
+    c.Header:orgs_BGR( orgs.C_DARKBLUE )
   end
 
   self:Update()
@@ -37,33 +37,33 @@ function PANEL:AddLine( rank, org )
     rank, org.Name, org.Members, '' )
   l.OrgID = org.OrgID
 
-  l.Columns[1]:SetText( nil, 'orgs.Large', C_WHITE )
+  l.Columns[1]:orgs_SetText( nil, 'orgs.Large', orgs.C_WHITE )
   l.Columns[1]:SetContentAlignment( 5 )
   l.Columns[1]:Dock( LEFT )
 
-  l.Columns[2]:SetText( nil, 'orgs.Large', C_WHITE )
+  l.Columns[2]:orgs_SetText( nil, 'orgs.Large', orgs.C_WHITE )
   l.Columns[2]:SetContentAlignment( 5 )
   l.Columns[2]:Dock( FILL )
 
-  l.Columns[3]:SetText( nil, 'orgs.Large', C_WHITE )
+  l.Columns[3]:orgs_SetText( nil, 'orgs.Large', orgs.C_WHITE )
   l.Columns[3]:SetContentAlignment( 5 )
   l.Columns[3]:Dock( RIGHT )
 
-  l.Motto = l:AddLabel( nil, 'orgs.Medium' )
-  l.Motto:Dock( BOTTOM, {u=2,d=5} )
+  l.Motto = l:orgs_AddLabel( nil, 'orgs.Medium' )
+  l.Motto:orgs_Dock( BOTTOM, {u=2,d=5} )
   l.Motto:SetTall( 25 )
   l.Motto:SetContentAlignment( 5 )
   if not org.Motto then l.Motto:Hide() end
 
   l.JoinPanel = l:Add( 'DPanel' )
-  l.JoinPanel:BGR( C_NONE )
+  l.JoinPanel:orgs_BGR( orgs.C_NONE )
   l.JoinPanel:Dock( RIGHT )
   l.JoinPanel:SetZPos( -2 )
 
   l.Join = l.JoinPanel:Add( 'DButton' )
-  l.Join:SetText( 'Join', 'orgs.Medium', C_WHITE )
-  l.Join:BGR( C_DARKBLUE, C_BLUE )
-  l.Join:Dock( FILL, {l=22,r=22,u=17,d=17 } )
+  l.Join:orgs_SetText( 'Join', 'orgs.Medium', orgs.C_WHITE )
+  l.Join:orgs_BGR( orgs.C_DARKBLUE, orgs.C_BLUE )
+  l.Join:orgs_Dock( FILL, {l=22,r=22,u=17,d=17 } )
   l.Join.DoClick = function( p )
     netmsg.Send( 'orgs.JoinMenu_Join.Join', {org.OrgID} )
   end
@@ -76,7 +76,7 @@ function PANEL:AddLine( rank, org )
     l.JoinPanel:SetWide( ListView:ColumnWidth( 4 ) )
   end
 
-  l:BGR( C_NONE, C_DARKGRAY )
+  l:orgs_BGR( orgs.C_NONE, orgs.C_DARKGRAY )
 
   self.Lines[org.OrgID] = l
 
@@ -84,7 +84,7 @@ function PANEL:AddLine( rank, org )
 end
 
 function PANEL:Update()
-  local list = safeTable( orgs.List, true )
+  local list = netmsg.safeTable( orgs.List, true )
 
   local public = table.Copy( list )
   for k, v in pairs( public ) do
@@ -119,7 +119,7 @@ function PANEL:Update()
         l.Motto:Show()
       end
       l.Columns[1]:SetText( table.Count( list ) -rank )
-      l.Columns[3]:SetText( org.Members or 0 ) -- TODO
+      l.Columns[3]:SetText( org.Members or 0 )
     end
 
     if not org.Public then self.List:RemoveLine( l:GetID() ) end

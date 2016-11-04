@@ -14,22 +14,22 @@ function PANEL:Init()
   self.Header:SetTall( 35 )
 
   self.ColorCube = self.Header:Add( 'DPanel' )
-  self.ColorCube.Color = C_WHITE
+  self.ColorCube.Color = orgs.C_WHITE
   self.ColorCube.Paint = function( p, w, h )
-    DrawRect( 0, 0, w, h, C_WHITE )
-    DrawRect( 1, 1, w -2, h -2, p.Color )
+    orgs.DrawRect( 0, 0, w, h, orgs.C_WHITE )
+    orgs.DrawRect( 1, 1, w -2, h -2, p.Color )
   end
   self.ColorCube:SetSize( 20, 20 )
   self.ColorCube:SetPos( 0, 7 )
 
-  self.Name = self.Header:AddLabel( '', 'orgs.Large', C_WHITE )
-  self.Name:Dock( LEFT, {l=20,u=2}, _, true )
+  self.Name = self.Header:orgs_AddLabel( '', 'orgs.Large', orgs.C_WHITE )
+  self.Name:orgs_Dock( LEFT, {l=20,u=2}, _, true )
   self.Name:SetAutoStretchVertical( true )
 
-  self.Tag = self.Header:AddLabel( '', 'orgs.Large', C_WHITE )
-  self.Tag:Dock( LEFT, {l=5,u=2}, _, true )
+  self.Tag = self.Header:orgs_AddLabel( '', 'orgs.Large', orgs.C_WHITE )
+  self.Tag:orgs_Dock( LEFT, {l=5,u=2}, _, true )
 
-  self.Motto = self:AddLabel( '', 'orgs.Small', C_WHITE, true )
+  self.Motto = self:orgs_AddLabel( '', 'orgs.Small', orgs.C_WHITE, true )
   -- self.Motto:SetContentAlignment( 4 ) TODO: Change to 7?
   self.Motto:SetWide( mottoWidth )
   self.Motto:Dock( LEFT )
@@ -38,13 +38,13 @@ function PANEL:Init()
   self.Divider:SetTall( 4 )
   self.Divider:MoveToBack()
   self.Divider:Dock( BOTTOM )
-  self.Divider:BGR( C_BLUE )
+  self.Divider:orgs_BGR( orgs.C_BLUE )
 
   self.Body = self:Add( 'DPanel' )
   self.Body:MoveToBack()
   self.Body:SetTall( bodyHeight )
   self.Body:Dock( BOTTOM )
-  self.Body:BGR( C_DARKGRAY )
+  self.Body:orgs_BGR( orgs.C_DARKGRAY )
 
   self.TabMenu = self.Body:Add( 'orgs.TabMenu' )
   self.Bulletin = self.TabMenu:AddTab( 'BULLETIN', vgui.Create( 'orgs.Menu.Bulletin' ) )
@@ -54,11 +54,11 @@ function PANEL:Init()
     nil, nil, 'manage' )
   self.TabMenu:AddTab( 'SETTINGS', vgui.Create( 'orgs.Menu.Settings' ) )
 
-  self.Msg = self:AddLabel( '', 'orgs.Small', C_WHITE )
+  self.Msg = self:orgs_AddLabel( '', 'orgs.Small', orgs.C_WHITE )
   self.Msg:Hide()
   self.Msg:SetContentAlignment( 5 )
   self.Msg:MoveToBack()
-  self.Msg:Dock( BOTTOM, {u=2} )
+  self.Msg:orgs_Dock( BOTTOM, {u=2} )
 
   self:BuildStats()
   self:Update()
@@ -72,12 +72,12 @@ function PANEL:BuildStats()
 
     self.Stats = self:Add( 'DPanel' )
     self.Stats:SetSize( statsWidth )
-    self.Stats:Dock( RIGHT, nil, {l=5} )
-    self.Stats:BGR( C_DARKBLUE )
+    self.Stats:orgs_Dock( RIGHT, nil, {l=5} )
+    self.Stats:orgs_BGR( orgs.C_DARKBLUE )
 
     self.StatTab = {
       { label = 'RANK', func = function()
-        local tab = safeTable( orgs.List, true )
+        local tab = netmsg.safeTable( orgs.List, true )
 
         local rank = 0
         for k, v in SortedPairsByMemberValue( tab, 'Balance', true ) do
@@ -96,15 +96,15 @@ function PANEL:BuildStats()
     for k, stat in pairs( self.StatTab ) do
 
       local pnl = self.Stats:Add( 'DPanel' )
-      pnl:BGR( C_DARKBLUE )
-      pnl:Dock( LEFT, {r=5} )
+      pnl:orgs_BGR( orgs.C_DARKBLUE )
+      pnl:orgs_Dock( LEFT, {r=5} )
       pnl:SetWide( (statsWidth/#self.StatTab) -5 -(3/#self.StatTab) )
 
-      pnl.Label = pnl:AddLabel( stat.label, 'orgs.Small', C_WHITE )
-      pnl.Label:Dock( TOP, {u=9} )
+      pnl.Label = pnl:orgs_AddLabel( stat.label, 'orgs.Small', orgs.C_WHITE )
+      pnl.Label:orgs_Dock( TOP, {u=9} )
       pnl.Label:SetContentAlignment( 5 )
 
-      pnl.Value = pnl:AddLabel( '', 'orgs.Medium', C_WHITE )
+      pnl.Value = pnl:orgs_AddLabel( '', 'orgs.Medium', orgs.C_WHITE )
       pnl.Value:Dock( TOP )
       pnl.Value:SetContentAlignment( 5 )
       self.Stats[ stat.label ] = pnl
@@ -125,10 +125,10 @@ function PANEL:Update()
   if not self.Org then return end
   self.Org = table.Copy( self.Org ) self.Org.__tabID = nil
 
-  self.Name:SetText( self.Org.Name, _, _, true )
+  self.Name:orgs_SetText( self.Org.Name, _, _, true )
   self.ColorCube.Color = istable( self.Org.Color ) and self.Org.Color
     or Color( unpack( string.Explode( ',', self.Org.Color ) ) )
-  self.Tag:SetText( self.Org.Tag and '['..self.Org.Tag..']' or '', nil, nil, true )
+  self.Tag:orgs_SetText( self.Org.Tag and '['..self.Org.Tag..']' or '', nil, nil, true )
   self.Motto:SetText( self.Org.Motto or '' )
   self:BuildStats()
 
@@ -166,13 +166,12 @@ function PANEL:SetMsg( text, col, time )
 
   if self.Msg:IsVisible() then
     self.Msg:AlphaTo( 0, .2, 0, function()
-      self.Msg:SetText( text )
-      self.Msg:SetTextColor( col or C_WHITE )
+      self.Msg:orgs_SetText( text, nil, col or orgs.C_WHITE )
       self.Msg:AlphaTo( 255, .2, 0 )
     end )
 
   else
-    self.Msg:SetTextColor( col or C_WHITE )
+    self.Msg:SetTextColor( col or orgs.C_WHITE )
     self.Msg:SetText( text )
     self.Msg:SetAlpha( 0 )
     self.Msg:Show()
@@ -195,7 +194,7 @@ function PANEL:SetMsg( text, col, time )
 end
 
 function PANEL:SetError( text, time )
-  self:SetMsg( text, C_RED, time )
+  self:SetMsg( text, orgs.C_RED, time )
 end
 
 vgui.Register( 'orgs.Menu', PANEL, 'orgs.Frame' )

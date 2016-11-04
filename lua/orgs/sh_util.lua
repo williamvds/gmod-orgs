@@ -169,7 +169,7 @@ local player = FindMetaTable( 'Player' )
 
 function player:orgs_Org( id )
   local orgID = self:GetNWVar( 'orgs.OrgID' )
-  return (id or not orgID) and orgID or orgs.List[orgID]
+  return ( id or not orgID ) and orgID or orgs.List[orgID]
 end
 
 function player:orgs_Info()

@@ -162,6 +162,8 @@ function PANEL:Update()
     self:AddLine( event )
   end
 
+  self:SortByColumn( 1, true )
+
 end
 
 vgui.Register( 'orgs.Events', PANEL, 'DListView' )

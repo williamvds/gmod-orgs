@@ -38,7 +38,7 @@ function orgs.Popup( title, text, buttons )
     for k, tab in pairs( buttons ) do
       local b = bPnl:Add( 'DButton' )
       b:orgs_SetText( tab[1] or tab.Label or '', 'orgs.Medium', orgs.C_WHITE )
-      b:Dock( (k %2 == 0 and RIGHT or LEFT), {l= (k %2 == 0 and 0 or 15),
+      b:orgs_Dock( (k %2 == 0 and RIGHT or LEFT), {l= (k %2 == 0 and 0 or 15),
         r= (k %2 == 0 and 15 or 0),u=5,d=5} )
       b.DoClick = tab.DoClick or function() p:AnimateHide() end
       b:orgs_BGR( tab.Color or orgs.C_DARKBLUE, tab.AltColor or orgs.C_BLUE )

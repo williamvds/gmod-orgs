@@ -202,7 +202,7 @@ function PANEL:Init()
     orgs.DrawRect( 0, 0, w, h, orgs.C_WHITE )
     p:DrawTextEntryText( orgs.C_DARKGRAY, orgs.C_GRAY, orgs.C_GRAY )
   end
-  self.Salary:SetText( self.Player.Salary )
+  self.Salary:orgs_SetText( self.Player.Salary )
 
   l = self:NewLine()
 

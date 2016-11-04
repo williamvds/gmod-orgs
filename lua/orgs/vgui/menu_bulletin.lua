@@ -62,7 +62,7 @@ end
 
 function PANEL:PerformLayout()
   self.Text:Dock( FILL )
-  self.Edit:Dock( BOTTOM, {l=265,r=265,u=5,d=5} )
+  self.Edit:orgs_Dock( BOTTOM, {l=265,r=265,u=5,d=5} )
 end
 
 function PANEL:Update( org )

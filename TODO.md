@@ -1,7 +1,6 @@
 ### Bugs and improvements
 - [ ] netmsg: remove table pointers from netmsg.Tables once the original is removed
 - [ ] settings: rename to 'You', show rank, settings
-- [ ] Stop polluting global table
 - [ ] Add tooltips to panels where it makes sense
 - [ ] Give players chat log when something happens to them
 - [ ] Don't share group balance with all players, only members (create rank property?)

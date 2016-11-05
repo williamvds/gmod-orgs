@@ -108,7 +108,11 @@ orgs.updatePlayer = function( ply, tab, ply2, done )
   end
 
   if table.Count( tab ) < 1 then return 1 end
-  tab.Salary = tab.Salary and math.floor( tonumber( tab.Salary ) )
+  tab.Salary = tonumber( tab.Salary )
+  tab.Salary = tab.Salary and tab.Salary ~= member.Salary
+    and ( tonumber( tab.Salary ) > 0 and math.floor( tab.Salary )
+    and tab.Salary or NULL )
+    or nil
 
   if ply2 then
     if not member then return 2 end

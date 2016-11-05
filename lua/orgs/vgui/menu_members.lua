@@ -25,7 +25,7 @@ end
 function PANEL:Init()
   self.Players = {}
   self:orgs_BGR( orgs.C_GRAY )
-  
+
   self.Desc = self:orgs_AddLabel( 'For more information secondary or double click members',
     'orgs.Small', orgs.C_WHITE )
   self.Desc:orgs_Dock( BOTTOM, {u=5,d=5} )
@@ -257,8 +257,12 @@ function PANEL:Init()
     perms = string.Implode( ',', perms )
 
     tab.Perms = perms ~= self.Player.Perms and perms or nil
-    tab.Salary = tonumber(self.Salary:GetText()) ~= self.Player.Salary
-      and math.floor( tonumber( self.Salary:GetText() ) ) or nil
+
+    local sal = tonumber( self.Salary:GetText() )
+    tab.Salary = sal and sal ~= self.Player.Salary
+      and math.floor( sal )
+      or 0
+
     tab.RankID = self.Rank.Value ~= self.Player.RankID and self.Rank.Value or nil
 
     if table.Count( tab ) < 1 then

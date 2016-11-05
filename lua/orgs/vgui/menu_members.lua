@@ -24,14 +24,22 @@ end
 
 function PANEL:Init()
   self.Players = {}
-  self.oldAddLine = vgui.GetControlTable( 'DListView' ).AddLine
+  self:orgs_BGR( orgs.C_GRAY )
+  
+  self.Desc = self:orgs_AddLabel( 'For more information secondary or double click members',
+    'orgs.Small', orgs.C_WHITE )
+  self.Desc:orgs_Dock( BOTTOM, {u=5,d=5} )
+  self.Desc:SetContentAlignment(5)
+
+  self.List = self:Add( 'DListView' )
+  self.List.oldAddLine = vgui.GetControlTable( 'DListView' ).AddLine
   -- Negative margin to fix the last column having wrong width
   -- and to fix apparent 1px horizontal padding on lines
-  self:orgs_Dock( FILL, {l=-1,r=-3} )
-  self:SetHeaderHeight( 25 )
-  self:SetDataHeight( 24 )
-  self:SetMultiSelect( false )
-  self:orgs_BGR( orgs.C_GRAY )
+  self.List:orgs_Dock( FILL, {l=-1,r=-3} )
+  self.List:SetHeaderHeight( 25 )
+  self.List:SetDataHeight( 24 )
+  self.List:SetMultiSelect( false )
+  self.List:orgs_BGR( orgs.C_GRAY )
 
   local c
   for k, v in pairs( {
@@ -40,99 +48,99 @@ function PANEL:Init()
     {txt= 'Rank', w=150},
     {txt= 'Salary', w= 125}
   } ) do
-    c = self:AddColumn( v.txt )
+    c = self.List:AddColumn( v.txt )
     if v.w then c:SetFixedWidth( v.w ) end
     c.Header:orgs_SetText( nil, 'orgs.Medium', orgs.C_WHITE )
     c.Header:orgs_BGR( orgs.C_DARKBLUE )
   end
 
-end
-
-function PANEL:AddLine( ply, ... )
-  local tab, text = {...}, {}
-  for k, v in pairs( tab ) do text[k] = istable(v) and v[1] or v end
+  self.List.AddLine = function( self, ply, ... )
+    local tab, text = {...}, {}
+    for k, v in pairs( tab ) do text[k] = istable(v) and v[1] or v end
 
 
-  local l = self:oldAddLine( player.GetBySteamID64( ply ) and '' or ' ', unpack( text ) )
-  l.Player = ply
+    local l = self:oldAddLine( player.GetBySteamID64( ply ) and '' or ' ', unpack( text ) )
+    l.Player = ply
 
-  l.Paint = function( self, w, h )
-    local col = orgs.C_NONE
-    if self:IsSelected() then col = orgs.C_LIGHTGRAY end
-    orgs.DrawRect( 0, 0, w, h, col )
+    l.Paint = function( self, w, h )
+      local col = orgs.C_NONE
+      if self:IsSelected() then col = orgs.C_LIGHTGRAY end
+      orgs.DrawRect( 0, 0, w, h, col )
+    end
+
+    l.Columns[1].Color = player.GetBySteamID64( ply ) and orgs.C_LIGHTGREEN or orgs.C_RED
+    l.Columns[1].PaintOver = function( self, w, h )
+      surface.SetDrawColor( self.Color )
+      draw.NoTexture()
+      drawCircle( 12, 12, 8, 24 )
+    end
+
+    for k, v in pairs( tab ) do
+      if istable(v) and v[2] then l:SetSortValue( k, v[2] ) end
+    end
+
+    for k, c in pairs( l.Columns ) do
+      c:orgs_SetText( nil, 'orgs.SmallLight', orgs.C_WHITE )
+      c:SetContentAlignment(5)
+    end
+
+    self:GetParent().Players[ ply ] = l
+
+    return l
   end
 
-  l.Columns[1].Color = player.GetBySteamID64( ply ) and orgs.C_LIGHTGREEN or orgs.C_RED
-  l.Columns[1].PaintOver = function( self, w, h )
-    surface.SetDrawColor( self.Color )
-    draw.NoTexture()
-    drawCircle( 12, 12, 8, 24 )
-  end
+  self.List.OnRowRightClick = function( self, id, line )
 
-  for k, v in pairs( tab ) do
-    if istable(v) and v[2] then l:SetSortValue( k, v[2] ) end
-  end
+    if line.Player ~= LocalPlayer():SteamID64()
+    and orgs.Ranks[orgs.Members[line.Player].RankID].Immunity
+    >= LocalPlayer():orgs_Rank().Immunity then
+      return
+    end
 
-  for k, c in pairs( l.Columns ) do
-    c:orgs_SetText( nil, 'orgs.SmallLight', orgs.C_WHITE )
-    c:SetContentAlignment(5)
-  end
+    self.Popup = DermaMenu( self )
+    self.Popup:orgs_BGR( orgs.C_WHITE )
 
-  self.Players[ ply ] = l
-
-  return l
-end
-
-function PANEL:OnRowRightClick( id, line )
-
-  if line.Player ~= LocalPlayer():SteamID64()
-  and orgs.Ranks[orgs.Members[line.Player].RankID].Immunity
-  >= LocalPlayer():orgs_Rank().Immunity then
-    return
-  end
-
-  self.Popup = DermaMenu( self )
-  self.Popup:orgs_BGR( orgs.C_WHITE )
-
-  self.Popup:AddOption( 'View Steam profile', function()
-    gui.OpenURL( 'https://steamcommunity.com/profiles/'.. line.Player )
-  end )
+    self.Popup:AddOption( 'View Steam profile', function()
+      gui.OpenURL( 'https://steamcommunity.com/profiles/'.. line.Player )
+    end )
 
 
-  if line.Player ~= LocalPlayer():SteamID64()
-  and LocalPlayer():orgs_Has( orgs.PERM_KICK ) then
-    self.Popup:AddOption( 'Kick', function()
-      netmsg.Send( 'orgs.Menu.Members.Kick', line.Player )( function( tab )
-        if tab[1] then
-          return
-        end
-        -- orgs.Menu:Update()
+    if line.Player ~= LocalPlayer():SteamID64()
+    and LocalPlayer():orgs_Has( orgs.PERM_KICK ) then
+      self.Popup:AddOption( 'Kick', function()
+        netmsg.Send( 'orgs.Menu.Members.Kick', line.Player )( function( tab )
+          if tab[1] then
+            return
+          end
+          -- orgs.Menu:Update()
+        end )
       end )
-    end )
-  end
+    end
 
-  if LocalPlayer():orgs_Has( orgs.PERM_PROMOTE ) then
-    self.Popup:AddOption( 'Manage member', function()
-      orgs._managePlayer = orgs.Members[line.Player]
-      vgui.Create( 'orgs.Menu.Members.Manage' )
-      orgs._managePlayer = nil
-    end )
-  end
+    if LocalPlayer():orgs_Has( orgs.PERM_PROMOTE ) then
+      self.Popup:AddOption( 'Manage member', function()
+        orgs._managePlayer = orgs.Members[line.Player]
+        vgui.Create( 'orgs.Menu.Members.Manage' )
+        orgs._managePlayer = nil
+      end )
+    end
 
-  for k, opt in pairs( self.Popup:GetCanvas():GetChildren() ) do
-    if opt.ThisClass ~= 'DMenuOption' then continue end
-    opt:orgs_SetText( nil, 'orgs.Small', orgs.C_DARKGRAY )
-    opt:SetTextInset( 10, 0 )
-    opt:orgs_BGR( orgs.C_NONE )
-  end
+    for k, opt in pairs( self.Popup:GetCanvas():GetChildren() ) do
+      if opt.ThisClass ~= 'DMenuOption' then continue end
+      opt:orgs_SetText( nil, 'orgs.Small', orgs.C_DARKGRAY )
+      opt:SetTextInset( 10, 0 )
+      opt:orgs_BGR( orgs.C_NONE )
+    end
 
-  self.Popup:Open()
+    self.Popup:Open()
+  end
+  self.List.DoDoubleClick = self.List.OnRowRightClick
+
 end
-PANEL.DoDoubleClick = PANEL.OnRowRightClick
 
 function PANEL:Update( org )
 
-  for k, l in pairs( self:GetLines() ) do
+  for k, l in pairs( self.List:GetLines() ) do
     local member = orgs.Members[ l.Player ]
     if not member then self:RemoveLine( k ) continue end
     local rank = orgs.Ranks[ member.RankID ]
@@ -145,12 +153,12 @@ function PANEL:Update( org )
   for k, ply in pairs( netmsg.safeTable( orgs.Members, true ) ) do
     if self.Players[ k ] then continue end
     local rank = orgs.Ranks[ply.RankID]
-    self:AddLine( ply.SteamID, ply.Nick, {rank.Name, rank.Immunity},
+    self.List:AddLine( ply.SteamID, ply.Nick, {rank.Name, rank.Immunity},
       ply.Salary and orgs.FormatCurrency( ply.Salary ) )
   end
 end
 
-vgui.Register( 'orgs.Menu.Members', PANEL, 'DListView' )
+vgui.Register( 'orgs.Menu.Members', PANEL, 'DPanel' )
 
 -- Player management popup
 

@@ -123,7 +123,7 @@ function PANEL:SetActiveTab( id )
     old.Tab:orgs_BGR( old.Color or orgs.C_DARKBLUE, old.AltColor or orgs.C_BLUE )
 
     local alpha1 = old.Panel:GetAlpha()
-    old.Panel:AlphaTo( 0, .1, 0, function()
+    old.Panel:AlphaTo( 0, .075, 0, function()
       self.ActiveTab = id
       old.Panel:Hide()
       old.Panel:SetAlpha( alpha1 )
@@ -132,7 +132,7 @@ function PANEL:SetActiveTab( id )
       self.ActiveTab = id
       new.Panel:SetAlpha( 0 )
       new.Panel:Show()
-      new.Panel:AlphaTo( alpha2, .1, 0 )
+      new.Panel:AlphaTo( alpha2, .075, 0 )
     end )
   else
     local alpha2 = new.Panel:GetAlpha()
@@ -140,7 +140,7 @@ function PANEL:SetActiveTab( id )
     self.ActiveTab = id
     new.Panel:SetAlpha( 0 )
     new.Panel:Show()
-    new.Panel:AlphaTo( alpha2, .1, 0 )
+    new.Panel:AlphaTo( alpha2, .075, 0 )
   end
   -- TODO: Transitional animations
   -- Possibly do logic in the TabMenu's Think hook instead of using in-built methods?

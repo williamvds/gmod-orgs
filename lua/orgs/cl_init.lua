@@ -71,6 +71,7 @@ orgs.ManageFails = { -- Managing other players (including self when joining)
   'you have insufficient immunity to manage that member',
   'you have insufficient immunity to give that rank',
   'you don\'t have the permissions you are trying to bestow',
+  'you must leave your group before joining another',
   'that group does not exist',
   'that group is full',
   'that group is invitation only',

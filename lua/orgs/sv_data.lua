@@ -12,12 +12,32 @@ local function getID( var )
   return isentity( var ) and var:SteamID64() or var
 end
 
-orgs.addEvent = function( type, tab )
+-- Events
+
+orgs.addEvent = function( type, tab, done )
   local copy = table.Copy( tab )
   orgs._Provider.addEvent( type, copy, function( id )
     tab.EventID = id
     orgs.Events[id] = tab
+    if done then done( id ) end
   end )
+end
+
+-- invites
+orgs.addInvite = function( to, from, done )
+  local steamID1, steamID2, org = getID( to ), getID( from ), from:orgs_Org(0)
+  if not to or not from then
+    -- From/to not specified
+    return 1
+  elseif not org or not from:orgs_Has( orgs.PERM_INVITE ) then
+    -- From player cannot invite
+    return 2
+  end
+
+  orgs._Provider.addInvite( steamID1, steamID2, function()
+    orgs.LogEvent( orgs.EVENT_INVITE, {ActionBy= steamID2, ActionAgainst= steamID1, OrgID= org} )
+  end )
+
 end
 
 --[[ Players ]]
@@ -124,29 +144,32 @@ orgs.updatePlayer = function( ply, tab, ply2, done )
 
   if tab.OrgID and tab.OrgID ~= NULL then
     local org = orgs.List[tab.OrgID]
-    if not org then
-      -- Org does not exist
+    if member and member.OrgID then
+      -- Player already in another group
       return 9
+    elseif not org then
+      -- Org does not exist
+      return 10
     elseif org.Members >= orgs.Types[org.Type].MaxMembers then
       -- Target group full
-      return 10
+      return 11
     elseif not org.Forming and not org.Public then
       -- Not public TODO: check invitations
-      return 11
+      return 12
     end
   end
 
   if tab.RankID and tab.RankID ~= NULL then
     if not orgs.Ranks[ tab.RankID ] then
     -- Rank doesn't exist
-      return 12
+      return 13
     elseif (member and not tab.OrgID) and member.OrgID
     and member.OrgID ~= orgs.Ranks[ tab.RankID ].OrgID then
     -- Rank not part of current Org
-        return 13
+        return 14
     elseif not member and ( not tab.OrgID or tab.OrgID ~= orgs.Ranks[ tab.RankID ].OrgID ) then
     -- Rank not part of target Org
-      return 14
+      return 15
     end
   end
 
@@ -290,9 +313,14 @@ end
 orgs.addOrg = function( tab, ply, done )
   local steamID = getID( ply )
 
-  if not tab.Name or ( tab.Name and string.len( tab.Name ) > orgs.MaxNameLength ) then
+  if orgs.Members[steamID] and orgs.Members[steamID].OrgID then
+    -- Player already in another group
     return 1
+  elseif not tab.Name or ( tab.Name and string.len( tab.Name ) > orgs.MaxNameLength ) then
+    -- Invalid name
+    return 2
   end
+
 
   orgs._Provider.addOrg( tab, function( orgID, err )
     if err then return end
@@ -311,7 +339,6 @@ orgs.addOrg = function( tab, ply, done )
         orgs.updateOrg( orgID, {DefaultRank= rankID} )
       end or imm == table.Count( orgs.DefaultRanks ) and steamID and function( rankID, tab )
         orgs.updatePlayer( steamID, {OrgID= orgID, RankID= rankID}, nil, function()
-          print( 'updatePlayer callback')
             orgs.List[orgID].Forming = nil -- So we can check if an org is public when joining
         end )
       end )

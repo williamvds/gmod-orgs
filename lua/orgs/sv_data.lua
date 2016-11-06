@@ -204,24 +204,26 @@ orgs.updatePlayer = function( ply, tab, ply2, done )
 
       if tab.OrgID ~= NULL then
         orgs.List[tab.OrgID].Members = orgs.List[tab.OrgID].Members +1
+        if not orgs.List[tab.OrgID].Forming then
+          orgs.LogEvent( orgs.EVENT_MEMBER_ADDED, {ActionBy= steamID, OrgID= tab.OrgID} )
+        end
 
       else
         if steamID2 then orgs.LogEvent( orgs.EVENT_MEMBER_KICKED,
-          {ActionBy= steamID2, ActionAgainst= steamID, OrgID= orgs.Members[steamID2].OrgID} )
+          {ActionBy= steamID2, ActionAgainst= steamID, OrgID= member2.OrgID} )
         else orgs.LogEvent( orgs.EVENT_MEMBER_LEFT,
-          {ActionBy= steamID, OrgID= orgs.Members[steamID].OrgID} )
+          {ActionBy= steamID, OrgID= member.OrgID} )
         end
 
+        -- check # of members and delete if empty
+        orgs.getOrgMembers( member.OrgID, function( data, err )
+          if #data == 0 then orgs.removeOrg( member.OrgID ) end
+        end )
+
       end
+
     end
 
-    if tab.RankID and tab.RankID ~= NULL then
-      orgs.LogEvent( orgs.EVENT_MEMBER_RANK, {
-        ActionBy= steamID2,
-        OrgID= orgs.Members[steamID] and orgs.Members[steamID].OrgID or tab.OrgID,
-        ActionAgainst= steamID,
-        ActionValue= tab.RankID } )
-    end
 
     local oldTab = orgs.Members[steamID] and netmsg.safeTable( orgs.Members[steamID], true ) or {}
 
@@ -240,6 +242,14 @@ orgs.updatePlayer = function( ply, tab, ply2, done )
 
     orgs.Members[steamID] = oldTab
 
+    if ( orgs.List[member.OrgID] and not orgs.List[member.OrgID].Forming )
+    and tab.RankID and tab.RankID ~= NULL then
+      orgs.LogEvent( orgs.EVENT_MEMBER_RANK, {
+        ActionBy= steamID2,
+        OrgID= orgs.Members[steamID].OrgID,
+        ActionAgainst= steamID,
+        ActionValue= tab.RankID } )
+    end
     -- if tab.OrgID then
     --   local plys = {}
     --   for k, ply in pairs( player.GetAll() ) do
@@ -423,8 +433,11 @@ orgs.addRank = function( orgID, tab, ply, done )
 
     tab.RankID = rankID
     orgs.Ranks[rankID] = tab
-    orgs.LogEvent( orgs.EVENT_RANK_ADDED, {ActionBy= steamID, OrgID= orgID,
-      ActionValue= tab.RankID} )
+
+    if not orgs.List[ tab.OrgID ].Forming then
+      orgs.LogEvent( orgs.EVENT_RANK_ADDED, {ActionBy= steamID, OrgID= orgID,
+        ActionValue= tab.RankID} )
+    end
 
     if done then done( rankID, tab, err ) end
   end )
@@ -631,11 +644,13 @@ orgs.updateOrg = function( orgID, tab, ply, done )
 
   orgs._Provider.updateOrg( orgID, tab, function( data, err )
 
-    for k, v in pairs( tab ) do
-      if not orgEvents[k] then continue end
-      if v == NULL then v = '' end
-      orgs.LogEvent( orgEvents[k],
-        {OrgID= orgID, ActionBy= steamID, ActionValue= v} )
+    if not orgs.List[orgID].Forming then
+      for k, v in pairs( tab ) do
+        if not orgEvents[k] then continue end
+        if v == NULL then v = '' end
+        orgs.LogEvent( orgEvents[k],
+          {OrgID= orgID, ActionBy= steamID, ActionValue= v} )
+      end
     end
 
     for k, v in pairs( tab ) do

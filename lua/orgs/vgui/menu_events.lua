@@ -162,16 +162,16 @@ function PANEL:Update()
   local events = netmsg.safeTable( orgs.Events, true )
 
   self.NoEvents:SetVisible( table.Count( events ) < 1 )
-  self.pnlCanvas:SetVisible( table.Count( events ) > 0 )
-  self:SetHideHeaders( table.Count( events ) < 1 )
+  self.List.pnlCanvas:SetVisible( table.Count( events ) > 0 )
+  self.List:SetHideHeaders( table.Count( events ) < 1 )
 
   for k, event in SortedPairsByMemberValue( events, 'Time', true ) do
     if self.Lines[ event.EventID ] then continue end
     self.List:AddLine( event )
   end
 
-  self:SortByColumn( 1, true )
+  self.List:SortByColumn( 1, true )
 
 end
 
-vgui.Register( 'orgs.Events', PANEL, 'DListView' )
+vgui.Register( 'orgs.Events', PANEL, 'DPanel' )

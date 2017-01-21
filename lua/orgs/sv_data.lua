@@ -320,7 +320,8 @@ orgs.updatePlayer = function( ply, tab, ply2, done )
       netmsg.SyncTable( orgs.Events, ply )
       netmsg.SyncTable( orgs.Members, ply )
 
-      if tab.OrgID ~= NULL then
+      if tab.OrgID == NULL then orgs.Members[steamID] = nil
+      else
         timer.Simple( .1, function() netmsg.Call( ply, 'orgs.JoinedOrg' ) end )
       end
     end

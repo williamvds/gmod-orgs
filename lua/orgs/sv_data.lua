@@ -40,14 +40,17 @@ orgs.addInvite = function( to, from, done )
 
 end
 
---[[ Players ]]
+-- Players
 
 -- Given: steamID
 -- Expected: table of player attributes
 orgs.getPlayer = function( ply, done )
 
   local steamID = getID( ply )
-  orgs.Log( true, 'Fetching information for ', '%s [%s]' %{ ply:Nick(), steamID } )
+  if not orgs._Provider.Failed then
+    orgs.Log( true, 'Fetching information for ', '%s [%s]' %{ ply:Nick(), steamID } )
+  end
+
 
   orgs._Provider.getPlayer( steamID, function( data, err )
     if not data then orgs.addPlayer( IsValid( ply ) and ply or steamID ) return end
@@ -63,10 +66,8 @@ orgs.getPlayer = function( ply, done )
         netmsg.SyncTable( orgs.Members, ply )
         netmsg.SyncTable( orgs.Ranks, ply )
       end
-      if not orgs.Loaded[ data.OrgID ] then
-        orgs.getOrgRanks( data.OrgID )
-        orgs.getOrgMembers( data.OrgID )
-        orgs.getOrgEvents( data.OrgID )
+      if not orgs.List[data.OrgID].Loaded then
+        orgs.loadOrg( data.OrgID )
       end
     end
 
@@ -84,8 +85,11 @@ hook.Add( 'PlayerInitialSpawn', 'orgs.GetPlayerInfo', orgs.getPlayer )
 -- Given: player, function callback
 orgs.addPlayer = function( ply, done )
 
-  orgs.Log( true, 'Storing player info for ', isentity( ply )
+  if not orgs._Provider.Failed then
+    orgs.Log( true, 'Storing player info for ', isentity( ply )
     and '%s [%s]' %{ply:Nick(), ply:SteamID64()} or ply )
+  end
+
   orgs._Provider.addPlayer( getID( ply ), isentity( ply ) and IsValid( ply )
     and ply:Nick() or '???',
   function( data, err )
@@ -194,63 +198,65 @@ orgs.updatePlayer = function( ply, tab, ply2, done )
     end
 
     if tab.OrgID then
-      if IsValid( ply ) then
-        ply:SetNWVar( 'orgs.OrgID', tab.OrgID == NULL and nil or tab.OrgID )
-      end
-
-      if member and member.OrgID then
-        orgs.List[member.OrgID].Members = orgs.List[member.OrgID].Members -1
-      end
 
       if tab.OrgID ~= NULL then
         orgs.List[tab.OrgID].Members = orgs.List[tab.OrgID].Members +1
+
         if not orgs.List[tab.OrgID].Forming then
           orgs.LogEvent( orgs.EVENT_MEMBER_ADDED, {ActionBy= steamID, OrgID= tab.OrgID} )
         end
 
-      else
+        if not orgs.List[tab.OrgID].Loaded then
+          orgs.loadOrg( tab.OrgID )
+        end
+
+      elseif member and member.OrgID then
         if steamID2 then orgs.LogEvent( orgs.EVENT_MEMBER_KICKED,
           {ActionBy= steamID2, ActionAgainst= steamID, OrgID= member2.OrgID} )
         else orgs.LogEvent( orgs.EVENT_MEMBER_LEFT,
           {ActionBy= steamID, OrgID= member.OrgID} )
         end
+        orgs.List[member.OrgID].Members = orgs.List[member.OrgID].Members -1
 
         -- check # of members and delete if empty
-        orgs.getOrgMembers( member.OrgID, function( data, err )
-          if #data == 0 then orgs.removeOrg( member.OrgID ) end
+        local oldOrgID = member.OrgID
+        orgs.getOrgMembers( oldOrgID, function( data, err )
+          if #data == 0 then orgs.removeOrg( oldOrgID ) end
         end )
 
       end
 
     end
 
-
-    local oldTab = orgs.Members[steamID] and netmsg.safeTable( orgs.Members[steamID], true ) or {}
-
-    if table.Count( oldTab ) < 1 then
+    -- Merge changes to member table, create it if necessary
+    local member = member and netmsg.safeTable( member, true ) or {}
+    if table.Count( member ) < 1 then
       tab.Nick = IsValid( ply ) and ply:Nick() or '???'
       tab.SteamID = steamID
     end
-    table.Merge( oldTab, tab )
+    table.Merge( member, tab )
 
+    -- Clear NULL values
     for k, v in pairs( tab ) do
       if v == NULL then
-        tab[k] = nil
-        oldTab[k] = nil
+        member[k] = nil
       end
     end
 
-    orgs.Members[steamID] = oldTab
+    orgs.Members[steamID] = member
 
+    -- Log group join
     if ( orgs.List[member.OrgID] and not orgs.List[member.OrgID].Forming )
     and tab.RankID and tab.RankID ~= NULL then
       orgs.LogEvent( orgs.EVENT_MEMBER_RANK, {
         ActionBy= steamID2,
-        OrgID= orgs.Members[steamID].OrgID,
+        OrgID= member.OrgID,
         ActionAgainst= steamID,
-        ActionValue= tab.RankID } )
+        ActionValue= member.RankID } )
     end
-    -- if tab.OrgID then
+
+    -- TODO: Sync member table?
+    -- if tab.OrgID and tab.OrgID ~= NULL then
     --   local plys = {}
     --   for k, ply in pairs( player.GetAll() ) do
     --     if ply:orgs_Org(0) == tab.OrgID then table.insert( plys, ply ) end
@@ -258,7 +264,9 @@ orgs.updatePlayer = function( ply, tab, ply2, done )
     --   netmsg.SyncTable( orgs.Members, plys )
     -- end
 
+    -- Resync shared group tables for player
     if IsValid( ply ) and tab.OrgID then
+      ply:SetNWVar( 'orgs.OrgID', tab.OrgID == NULL and nil or tab.OrgID )
       netmsg.SyncTable( orgs.Ranks, ply )
       netmsg.SyncTable( orgs.Events, ply )
       netmsg.SyncTable( orgs.Members, ply )
@@ -273,57 +281,8 @@ orgs.updatePlayer = function( ply, tab, ply2, done )
 
 end
 
-orgs.leaveOrg = function( ply, ply2, done )
-  if ply2 then
-    local member, ply2 = orgs.Members[getID(ply)], orgs.Members[getID(ply2)]
-    if not member
-    or member.OrgID ~= ply2.OrgID
-    or not orgs.Has( ply2, orgs.PERM_KICK )
-    or orgs.Ranks[ply2.RankID].Immunity <= orgs.Ranks[member.RankID].Immunity then
-      return false
-    end
-  end
+-- Organisations
 
-  local orgID
-  if isentity(ply) then orgID = ply:orgs_Org(0)
-  else orgID = orgs.Members[ply] and orgs.Members[ply].OrgID end
-  if not orgID then return end
-
-  orgs._Provider.updatePlayer( getID( ply ),
-  {OrgID= NULL, RankID= NULL, Perms= NULL, Salary= NULL}, function( data, err )
-    if err then return end
-
-    if isentity( ply ) and IsValid( ply ) then
-      ply:SetNWVar( 'orgs.OrgID', nil )
-
-      netmsg.SyncTable( orgs.Members, ply )
-      netmsg.SyncTable( orgs.Ranks, ply )
-      netmsg.SyncTable( orgs.Events, ply )
-    end
-
-    orgs.Members[getID(ply)].OrgID = nil
-    orgs.Members[getID(ply)].RankID = nil
-    orgs.Members[getID(ply)].Perms = nil
-    orgs.Members[getID(ply)].Salary = nil
-
-    local plys = {}
-    for k, ply in pairs( player.GetAll() ) do
-      if ply:orgs_Org(0) == orgID then table.insert( plys, ply ) end
-    end
-    netmsg.SyncTable( orgs.Members, plys )
-
-    if ply2 then orgs.LogEvent( orgs.EVENT_MEMBER_KICKED, {ActionBy= ply2, ActionAgainst= ply, OrgID= orgID} )
-    else orgs.LogEvent( orgs.EVENT_MEMBER_LEFT, {ActionBy= ply, OrgID= orgID} ) end
-
-    -- check # of members and delete if empty
-    orgs.getOrgMembers( orgID, function( data, err )
-      if #data == 0 then orgs.removeOrg( orgID ) end
-    end )
-    if done then done( data, err ) end
-  end )
-end
-
---[[ Organisations ]]
 orgs.addOrg = function( tab, ply, done )
   local steamID = getID( ply )
 
@@ -335,17 +294,18 @@ orgs.addOrg = function( tab, ply, done )
     return 2
   end
 
+  for k, v in pairs( tab ) do
+    if k ~= 'Name' and k ~= 'Public' then return 3 end
+  end
 
   orgs._Provider.addOrg( tab, function( orgID, err )
     if err then return end
 
     local new = {Balance= 0, Color= '255,255,255', Type= 1, OrgID= orgID, Public= false, Members= 0,
-      Forming= true}
+      Forming= true, Loaded= true}
     table.Merge( new, tab )
 
     orgs.List[orgID] = new
-    orgs.LogEvent( orgs.EVENT_ORG_CREATED, {ActionBy= steamID, OrgID= orgID} )
-
     local imm = 1
     for k, rank in SortedPairsByMemberValue( orgs.DefaultRanks, 'Immunity' ) do
       rank.__key = nil
@@ -358,7 +318,8 @@ orgs.addOrg = function( tab, ply, done )
       end )
       imm = imm +1
     end
-    orgs.Loaded[orgID] = true
+
+    orgs.LogEvent( orgs.EVENT_ORG_CREATED, {ActionBy= steamID, OrgID= orgID} )
 
     if done then done( data, err ) end
   end )
@@ -539,7 +500,6 @@ orgs.getOrgRanks = function( orgID, done )
     if err then return end
 
     for k, rank in pairs( data ) do orgs.Ranks[rank.RankID] = rank end
-    orgs.Loaded[orgID] = true
 
     if done then done( data, err ) end
   end )
@@ -685,4 +645,11 @@ orgs.getAllOrgs = function( done )
 
     if done then done( data, err ) end
   end )
+end
+
+orgs.loadOrg = function( id, done )
+  orgs.getOrgRanks( id )
+  orgs.getOrgMembers( id )
+  orgs.getOrgEvents( id )
+  orgs.List[id].Loaded = true
 end

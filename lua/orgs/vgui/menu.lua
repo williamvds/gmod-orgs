@@ -1,4 +1,4 @@
-local menuSize = {600,400}
+local menuSize = {720,500}
 local bodyHeight = menuSize[2] -100
 local statsWidth = 242
 local mottoWidth = menuSize[1] -statsWidth -15
@@ -159,8 +159,7 @@ function PANEL:SetMsg( text, col, time )
       self.Msg:Hide()
     end )
     return
-
-  else orgs.ChatLog( col, text ) end
+  end
 
   self:SetTall( menuSize[2] +self.Msg:GetTall() +2 )
 

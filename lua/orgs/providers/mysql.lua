@@ -29,12 +29,12 @@ local setupQuery = [[
 SET FOREIGN_KEY_CHECKS = 0;
 CREATE TABLE IF NOT EXISTS orgs(
   OrgID bigint UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-  Type tinyint DEFAULT 0,
+  Type tinyint DEFAULT 1,
   Name varchar( %s ) NOT NULL,
   Tag varchar( %s ),
   Motto varchar( %s ),
   Bulletin varchar( %s ),
-  Balance int UNSIGNED DEFAULT 0,
+  Balance bigint UNSIGNED DEFAULT 0,
   DefaultRank bigint UNSIGNED,
   Color varchar( 11 ) DEFAULT '255,255,255',
   Public boolean DEFAULT false,
@@ -174,6 +174,8 @@ PROVIDER.delete = function( name, where, done )
     where and ' WHERE '.. where or ''}, nil, done )
 end
 
+-- Event helpers
+
 PROVIDER.addEvent = function( type, tab, done )
   PROVIDER.insert( 'events', tab,
   function( data, err, q )
@@ -201,10 +203,7 @@ end
 
 PROVIDER.getOrgMembers = function( orgID, done )
   PROVIDER._sendQuery( [[SELECT *, CONVERT( SteamID, char ) AS SteamID FROM players
-    WHERE OrgID = ?;]], {orgID},
-  function( data, err )
-    if done then done( data, err ) end
-  end )
+    WHERE OrgID = ?;]], {orgID}, done )
 end
 
 PROVIDER.addRank = function( orgID, tab, done )
@@ -246,18 +245,12 @@ end
 PROVIDER.getOrgEvents = function( orgID, done )
   PROVIDER._sendQuery( [[SELECT *, CONVERT( ActionBy, char ) AS ActionBy,
     CONVERT( ActionAgainst, char ) AS ActionAgainst
-    FROM events WHERE OrgID = ?;]], {orgID},
-  function( data, err )
-    if done then done( data, err ) end
-  end )
+    FROM events WHERE OrgID = ?;]], {orgID}, done )
 end
 
 PROVIDER.getAllOrgs = function( done )
   PROVIDER._sendQuery( [[SELECT orgs.*, ( SELECT COUNT(*) FROM players WHERE OrgID = orgs.OrgID )
-    AS Members FROM orgs;]], {},
-  function( data, err )
-    if done then done( data, err ) end
-  end )
+    AS Members FROM orgs;]], {}, done )
 end
 
 PROVIDER.db.onConnected = function()
@@ -276,7 +269,7 @@ PROVIDER.db.onConnected = function()
 end
 
 PROVIDER.db.onConnectionFailed = function()
-  orgs.LogError( false, 'Failed to connect to database' )
+  orgs.LogError( false, 'Failed to connect to database %s@%s' %{user, database} )
   PROVIDER.Failed = true
 end
 

@@ -94,7 +94,7 @@ function COMBOBOX:AddOptions( tab )
 end
 
 function COMBOBOX:AddOption( label, value, sortValue )
-  table.insert( self.Options, {Label= label, Value= value and value or label, SortValue= sortValue} )
+  table.insert( self.Options, {Label= label, Value= (value and value or label), SortValue= sortValue} )
 end
 
 vgui.Register( 'orgs.ComboBox', COMBOBOX, 'DButton' )

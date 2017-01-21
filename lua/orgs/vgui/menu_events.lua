@@ -5,7 +5,7 @@ function PANEL:Init()
   self:Dock( FILL )
   self:orgs_BGR( orgs.C_GRAY )
 
-  self.Desc = self:orgs_AddLabel( 'For more information secondary or double click events',
+  self.Desc = self:orgs_AddLabel( 'For more information double click events',
     'orgs.Small', orgs.C_WHITE )
   self.Desc:orgs_Dock( BOTTOM, {u=5} )
   self.Desc:SetContentAlignment(5)

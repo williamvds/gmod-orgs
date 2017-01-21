@@ -14,7 +14,7 @@ function PANEL:Init()
   self.List:SetMultiSelect( false )
   self.List:orgs_BGR( orgs.C_GRAY )
 
-  self.Desc = self:orgs_AddLabel( 'Manage ranks by secondary or double clicking them',
+  self.Desc = self:orgs_AddLabel( 'Manage ranks by double clicking them',
     'orgs.Small', orgs.C_WHITE )
   self.Desc:orgs_Dock( BOTTOM, {u=5} )
   self.Desc:SetContentAlignment(5)
@@ -86,7 +86,7 @@ function PANEL:Init()
           end
           self.Ranks[curDefault]:SetColumnText( 1, '' )
           self.Ranks[line.Rank]:SetColumnText( 1, '*' )
-          orgs.Menu:SetMsg( rankName ..' is now the group\'s default rank' )
+          orgs.ChatLog( rankName ..' is now the group\'s default rank' )
         end )
 
       end )
@@ -100,7 +100,7 @@ function PANEL:Init()
             orgs.Menu:SetError( 'Failed to remove rank because '.. orgs.RemoveRankFails[tab[1]] )
             return
           end
-          orgs.Menu:SetMsg( 'Removed rank '.. rankName )
+          orgs.ChatLog( 'Removed rank '.. rankName )
           self.List:RemoveLine( id )
         end )
 
@@ -234,7 +234,7 @@ function PANEL:Init()
     orgs.DrawRect( 0, 0, w, h, orgs.C_WHITE )
     p:DrawTextEntryText( orgs.C_DARKGRAY, orgs.C_GRAY, orgs.C_GRAY )
   end
-  self.BankLimit:SetText( self.Rank.BankLimit )
+  self.BankLimit:orgs_SetText( self.Rank.BankLimit )
 
   self.WithdrawLabel2 = l:orgs_AddLabel( 'every', 'orgs.Medium', orgs.C_WHITE, true )
   self.WithdrawLabel2:orgs_Dock( LEFT, {l=5} )
@@ -251,7 +251,7 @@ function PANEL:Init()
     orgs.DrawRect( 0, 0, w, h, orgs.C_WHITE )
     p:DrawTextEntryText( orgs.C_DARKGRAY, orgs.C_GRAY, orgs.C_GRAY )
   end
-  self.BankCooldown:SetText( self.Rank.BankCooldown )
+  self.BankCooldown:orgs_SetText( self.Rank.BankCooldown )
   self.BankCooldown:SetZPos( 2 )
 
   self.WithdrawLabel3 = l:orgs_AddLabel( 'mins', 'orgs.Medium', orgs.C_WHITE, true )
@@ -298,7 +298,7 @@ function PANEL:Init()
           return
         end
         if IsValid( orgs.Menu ) then
-          orgs.Menu:SetMsg( 'Successfully managed '.. self.Rank.Name )
+          orgs.ChatLog( 'Successfully managed '.. self.Rank.Name )
           -- orgs.Menu:Update()
         end
         self:AnimateHide()
@@ -311,7 +311,7 @@ function PANEL:Init()
           return
         end
         if IsValid( orgs.Menu ) then
-          orgs.Menu:SetMsg( 'Successfully added rank '.. tab.Name )
+          orgs.ChatLog( 'Successfully added rank '.. tab.Name )
           -- orgs.Menu:Update()
         end
         self:AnimateHide()

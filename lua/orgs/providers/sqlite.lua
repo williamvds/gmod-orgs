@@ -1,17 +1,8 @@
-local host = 'localhost'
-local user = 'root'
-local pass = 'root'
-local database = 'orgs_test'
-local port = 3306
-
--- End of config
-
-local PROVIDER = orgs._Provider or { Name= 'MySQL' }
-if not mysqloo then require( 'mysqloo' ) end
+local PROVIDER = orgs._Provider or { Name= 'SQLite' }
 
 local setupQuery = [[
 CREATE TABLE IF NOT EXISTS `orgs`(
-  `OrgID` bigint UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+  `OrgID` bigint UNSIGNED PRIMARY KEY AUTOINCREMENT,
   `Type` tinyint DEFAULT 0,
   `Name` varchar( %s ) NOT NULL,
   `Tag` varchar( %s ),

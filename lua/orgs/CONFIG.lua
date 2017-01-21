@@ -5,6 +5,12 @@
   If you're using MySQL, ensure you have defined the connection settings in ./providers/mysql.lua ]]
 orgs.Provider = 'mysql'
 
+-- The chat command prefix (DarkRP has its own setting)
+orgs.CommandPrefix = '/'
+
+-- Command to open the orgs menu
+orgs.Command = 'orgs'
+
 -- The bank name shown in the orgs menu
 orgs.BankName = 'My bank PLC'
 
@@ -14,11 +20,10 @@ orgs.CurrencySymbol = '$'
 -- If you want the currency symbol on the right, change to false
 orgs.CurrencySymbolLeft = true
 
--- Command to open the orgs menu
-orgs.Command = 'orgs'
-
 -- More detailed logging
-if SERVER then orgs.Debug = true end
+if SERVER then
+  orgs.Debug = true 
+end
 
 -- Time (in minutes) between salary payments
 orgs.SalaryDelay = 10
@@ -103,6 +108,7 @@ orgs.Types = {
 -- If you really want to change the format of messages
 -- It is recommended that you only change the strings (unless you know Lua)
 orgs.EventStrings = {
+  -- Group
   [orgs.EVENT_ORG_CREATED] = '[ActionBy] created a new organisation called [OrgID]',
   [orgs.EVENT_ORG_DESTROYED] = '[ActionBy] dissolved the organisation [OrgID]',
   [orgs.EVENT_ORG_TYPE] = function( tab )
@@ -127,6 +133,7 @@ orgs.EventStrings = {
     return '[ActionBy] made [OrgID] [ActionValue]'
   end,
 
+  -- Rank
   [orgs.EVENT_RANK_ADDED] = function( tab )
     local rankID = tonumber( tab.ActionValue )
     if orgs.Ranks[rankID] then
@@ -175,7 +182,6 @@ orgs.EventStrings = {
     end
     return '[ActionBy] set the withdraw cooldown of [ActionAgainst] to [ActionValue]'
   end,
-
   [orgs.EVENT_RANK_REMOVED] = function( tab )
     local rankID = tonumber( tab.ActionAgainst )
     if orgs.Ranks[rankID] then
@@ -199,6 +205,7 @@ orgs.EventStrings = {
         or '[ActionBy] changed [ActionAgainst]\'s rank to [ActionValue]'
     end,
 
+  -- Bank
   [orgs.EVENT_BANK_DEPOSIT] = function( tab )
     tab.ActionValue = orgs.FormatCurrency( tab.ActionValue )
     return '[ActionBy] deposited [ActionValue] into [OrgID]\'s account'

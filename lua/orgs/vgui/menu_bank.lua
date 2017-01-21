@@ -37,7 +37,7 @@ function PANEL:Init()
 
   self.BankName = self:orgs_AddLabel( string.upper(orgs.BankName), 'orgs.Large', orgs.C_GREEN )
   self.BankName:SetContentAlignment(5)
-  self.BankName:orgs_Dock( TOP, {u=5} )
+  self.BankName:orgs_Dock( TOP, {u=15} )
 
   self.AccountName = self:orgs_AddLabel( '', 'orgs.Medium', orgs.C_GREEN )
   self.AccountName:SetContentAlignment( 5 )
@@ -45,7 +45,7 @@ function PANEL:Init()
 
   self.Left = self:Add( 'DPanel' )
   self.Left:orgs_BGR( orgs.C_NONE )
-  self.Left:SetWide( 145 )
+  self.Left:SetWide( 185 )
   self.Left:orgs_Dock( LEFT, nil, {l=15} )
 
   self.Deposit = altButton( 'DEPOSIT', self.Left )
@@ -84,29 +84,29 @@ function PANEL:Init()
 
   self.Right = self:Add( 'DPanel' )
   self.Right:orgs_BGR( orgs.C_NONE )
-  self.Right:SetWide( 145 )
-  self.Right:orgs_Dock( RIGHT, nil, {r=15} )
+  self.Right:SetWide( 185 )
+  self.Right:orgs_Dock( RIGHT, nil, {u=25,r=15} )
 
   self.BalanceLabel = self.Right:orgs_AddLabel( 'BALANCE', 'orgs.Small', orgs.C_GREEN )
   self.BalanceLabel:SetContentAlignment( 5 )
   self.BalanceLabel:Dock( TOP )
   self.Balance = self.Right:orgs_AddLabel( '', 'orgs.Medium', orgs.C_GREEN )
   self.Balance:SetContentAlignment( 5 )
-  self.Balance:orgs_Dock( TOP, {d=15} )
+  self.Balance:orgs_Dock( TOP, {d=25} )
 
   self.InLabel = self.Right:orgs_AddLabel( 'LAST 24 HR IN', 'orgs.Small', orgs.C_GREEN )
   self.InLabel:SetContentAlignment( 5 )
   self.InLabel:Dock( TOP )
   self.In = self.Right:orgs_AddLabel( '', 'orgs.Medium', orgs.C_GREEN )
   self.In:SetContentAlignment( 5 )
-  self.In:orgs_Dock( TOP, {d=15} )
+  self.In:orgs_Dock( TOP, {d=25} )
 
   self.OutLabel = self.Right:orgs_AddLabel( 'LAST 24 HR OUT', 'orgs.Small', orgs.C_GREEN )
   self.OutLabel:SetContentAlignment( 5 )
   self.OutLabel:Dock( TOP )
   self.Out = self.Right:orgs_AddLabel( '', 'orgs.Medium', orgs.C_GREEN )
   self.Out:SetContentAlignment( 5 )
-  self.Out:orgs_Dock( TOP, {d=15} )
+  self.Out:orgs_Dock( TOP, {d=25} )
 
   self.ActionLabel = self:orgs_AddLabel( 'DEPOSIT', 'orgs.Medium', orgs.C_GREEN )
   self.ActionLabel:SetContentAlignment( 5 )
@@ -116,13 +116,13 @@ function PANEL:Init()
   self.TransferTo.Color = orgs.C_GREEN
   self.TransferTo.AltColor = orgs.C_DARKGREEN
   self.TransferTo:Hide()
-  self.TransferTo:orgs_Dock( TOP, {u=5,d=5,l=50,r=50} )
+  self.TransferTo:orgs_Dock( TOP, {u=5,d=5,l=75,r=75} )
 
   self.Value = self:Add( 'DTextEntry' )
   self.Value:SetFont( 'orgs.Medium' )
   self.Value:SetTall( 25 )
   self.Value:SetNumeric( true )
-  self.Value:orgs_Dock( TOP, {u=5,l=50,r=50} )
+  self.Value:orgs_Dock( TOP, {u=5,l=75,r=75} )
   self.Value.Paint = function( p, w, h )
     orgs.DrawRect( 0, 0, w, h, orgs.C_GREEN )
     p:DrawTextEntryText( orgs.C_DARKGREEN, orgs.C_DARKGREEN, orgs.C_DARKGREEN )
@@ -136,7 +136,7 @@ function PANEL:Init()
 
   self.Send = altButton( 'OK', self, true )
   self.Send.HollowOnHover = true
-  self.Send:orgs_Dock( TOP, {u=10,l=185,r=50} )
+  self.Send:orgs_Dock( TOP, {u=10,l=185,r=75} )
   self.Send:SetZPos( 1 ) -- Fixes panel order when they are hidden/shown depending on mode
   self.Send.DoClick = function()
     local val = self.Value:GetText() ~= '' and tonumber( self.Value:GetText() ) or 0
@@ -148,7 +148,7 @@ function PANEL:Init()
     netmsg.Send( 'orgs.Menu.Bank.'.. bankActions[self.Action],
       {Val= val, To= (self.Action == 2 and self.TransferTo.Value or nil)} )( function( tab )
         if tab[1] or not IsValid( orgs.Menu ) then return end
-        orgs.Menu:SetMsg( successMsg[self.Action] %{
+        orgs.ChatLog( successMsg[self.Action] %{
           orgs.FormatCurrencyShort( self.Value:GetText() ),
           -- TODO: Format the transfer target
           } )

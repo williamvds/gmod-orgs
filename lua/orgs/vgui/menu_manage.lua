@@ -15,7 +15,7 @@ function PANEL:Init()
   self.Selector:AddSheet( 'Edit ranks', self.Ranks )
 
   self.Events = self:Add( 'orgs.Events' )
-  self.Selector:AddSheet( 'View events', self.Events )
+  self.Selector:AddSheet( 'Events', self.Events )
 
   self.Selector.Content.PerformLayout = function( p )
     for k, b in pairs( self.Selector.Navigation.pnlCanvas:GetChildren() ) do
@@ -233,7 +233,7 @@ function PANEL:Init()
         return
       end
       -- orgs.Menu:Update()
-      orgs.Menu:SetMsg( 'Modified the group successfully' )
+      orgs.ChatLog( 'Modified the group successfully' )
     end )
   end
 

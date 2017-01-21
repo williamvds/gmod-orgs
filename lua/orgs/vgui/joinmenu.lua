@@ -82,7 +82,7 @@ function PANEL:SetMsg( text, col, time )
 end
 
 function PANEL:SetError( text, time )
-  self:SetMsg( text, orgs.C_RED, time )
+  orgs.ChatLog( text, orgs.C_RED, time )
 end
 
 function PANEL:Think()

@@ -102,7 +102,7 @@ function PANEL:Init()
         orgs.Menu:SetError( 'Failed to upgrade group - '.. orgs.ModifyFails[tab[1]] )
         return
       end
-      orgs.Menu:SetMsg( 'The group type is now '.. orgs.Types[tp].Name )
+      orgs.ChatLog( 'The group type is now '.. orgs.Types[tp].Name )
       self:AnimateHide()
     end )
   end

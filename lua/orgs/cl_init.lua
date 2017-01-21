@@ -12,7 +12,7 @@ orgs.C_WHITE      = Color( 238, 238, 238 )
 orgs.C_NONE       = Color( 0, 0, 0, 0 )
 
 surface.CreateFont( 'orgs.Menu', {
-  font      = 'Roboto-Medium',
+  font      = 'Roboto',
   size      = 14,
   weight    = 500,
   antialias = true,
@@ -20,14 +20,14 @@ surface.CreateFont( 'orgs.Menu', {
 } )
 
 surface.CreateFont( 'orgs.Tiny', {
-  font      = 'Roboto-Light',
-  size      = 15,
+  font      = 'Roboto',
+  size      = 16,
   weight    = 400,
   antialias = true,
 } )
 
 surface.CreateFont( 'orgs.SmallLight', {
-  font      = 'Roboto-Light',
+  font      = 'Roboto',
   size      = 18,
   weight    = 400,
   antialias = true,
@@ -41,7 +41,7 @@ surface.CreateFont( 'orgs.Small', {
 } )
 
 surface.CreateFont( 'orgs.Medium', {
-  font      = 'Roboto-Medium',
+  font      = 'Roboto',
   size      = 22,
   weight    = 500,
   antialias = true,
@@ -55,7 +55,7 @@ surface.CreateFont( 'orgs.MediumLight', {
 } )
 
 surface.CreateFont( 'orgs.Large', {
-  font      = 'Roboto-Medium',
+  font      = 'Roboto',
   size      = 28,
   weight    = 500,
   antialias = true,
@@ -161,12 +161,19 @@ hook.Add( 'KeyPress', 'orgs.CloseMenus', function( ply, bind )
 end )
 
 orgs.ChatLog = function( ... )
-  local tab = {}
-  for k, v in pairs( {...} ) do
-    table.insert( tab, v )
-    table.insert( tab, k %2 == 1 and orgs.HighlightCol or orgs.TextCol )
+  -- TODO: Get ChatLog to work with custom colors?
+  local args, chatTab = {...}, {}
+  for k, v in pairs( args ) do
+    table.insert( chatTab, v )
+    table.insert( chatTab, k %2 == 1 and orgs.HighlightCol or orgs.TextCol )
   end
-  chat.AddText( orgs.PrimaryCol, 'ORGS: ', orgs.TextCol, unpack( tab ) )
+  chat.AddText( orgs.PrimaryCol, 'ORGS: ', orgs.TextCol, unpack( chatTab ) )
+
+  if IsValid( orgs.Menu ) then
+    orgs.Menu:SetMsg( table.concat( args ) )
+  elseif IsValid( orgs.JoinMenu ) then
+    orgs.JoinMenu:SetMsg( table.concat( args ) )
+  end
 end
 netmsg.Receive( 'orgs.ChatLog', function( tab ) orgs.ChatLog( unpack( tab ) ) end )
 

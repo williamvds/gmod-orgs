@@ -3,7 +3,7 @@
 hook.Add( 'PlayerSay', 'orgs.ChatCommand', function( ply, text )
   if GAMEMODE.ThisClass == 'gamemode_darkrp' or DarkRP then return end
 
-  if string.lower( text ) == '!'..orgs.Command then
+  if string.lower( text ) == orgs.CommandPrefix..orgs.Command then
     if orgs._Provider.Failed then
       orgs.ChatLog( ply, orgs.C_RED, 'Organisations couldn\'t connect to the database - '
         ..'please warn an admin as soon as possible!' )
@@ -23,13 +23,12 @@ netmsg.Receive( 'orgs.CreateGroup', function( tab, ply )
 
   orgs.addOrg( tab, ply, function()
     ply.orgs_MakingGroup = false
-    netmsg.Send( 'orgs.CreateGroup', false, ply )
   end )
 
 end )
 
 netmsg.Receive( 'orgs.LeaveOrg', function( _, ply )
-  orgs.leaveOrg( ply, nil, function() netmsg.Call( ply, 'orgs.LeftOrg' ) end )
+  orgs.updatePlayer( ply, {OrgID= NULL}, nil, function() netmsg.Call( ply, 'orgs.LeftOrg' ) end )
 end )
 
 -- BULLETIN
@@ -46,7 +45,7 @@ end )
 
 netmsg.Receive( 'orgs.Menu.Members.Kick', function( tab, ply )
 
-  local err = orgs.leaveOrg( tab[1], ply, function()
+  local err = orgs.updatePlayer( tab[1], {OrgID= NULL}, ply, function()
     netmsg.Send( 'orgs.Menu.Members.Kick', false, ply )
   end )
 
@@ -163,17 +162,6 @@ end )
 -- JOIN
 
 netmsg.Receive( 'orgs.JoinMenu_Join.Join', function( tab, ply )
-  if not tab[1] or not orgs.List[tab[1]] or not orgs.List[tab[1]].Public then
-  -- Invalid org
-    netmsg.Respond( 1 ) return
-  end
-
-  local org = orgs.List[tab[1]]
-  if org.Members >= orgs.Types[ org.Type ].MaxMembers then
-  -- Org full
-    netmsg.Respond( 2 ) return
-  end
-
   local err = orgs.updatePlayer( ply, {OrgID= tab[1]} )
 
   if err then netmsg.Respond( err ) end

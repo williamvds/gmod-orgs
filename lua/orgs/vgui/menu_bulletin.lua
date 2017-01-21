@@ -47,11 +47,9 @@ function PANEL:Init()
       netmsg.Send( 'orgs.Menu.Bulletin', {self.Text:GetText()} )( function( tab )
         if tab[1] then
           self.Text:SetText( self.oldBulletin )
-          orgs.Menu:SetError( 'Something went wrong - '..
-            (tab[1] == 11 and 'the bulletin is too long!'
-            or 'you don\'t have permission to change the bulletin!') )
+          orgs.Menu:SetError( 'Something went wrong - '.. orgs.ModifyFails[tab[1]] )
         else
-          orgs.Menu:SetMsg( 'Edited the bulletin successfully' )
+          orgs.ChatLog( 'Edited the bulletin successfully' )
         end
       end)
     end

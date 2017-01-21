@@ -26,10 +26,19 @@ function PANEL:Init()
   self.Players = {}
   self:orgs_BGR( orgs.C_GRAY )
 
-  self.Desc = self:orgs_AddLabel( 'For more information secondary or double click members',
+  self.Desc = self:orgs_AddLabel( 'For more actions double click members',
     'orgs.Small', orgs.C_WHITE )
   self.Desc:orgs_Dock( BOTTOM, {u=5,d=5} )
   self.Desc:SetContentAlignment(5)
+
+  self.Invite = self:Add( 'DButton' )
+  self.Invite:orgs_BGR( orgs.C_DARKBLUE, orgs.C_BLUE )
+  self.Invite:orgs_SetText( 'Invite', 'orgs.Medium', orgs.C_WHITE )
+  self.Invite:orgs_Dock( BOTTOM, {l=260, r=260} )
+  self.Invite:SetTall( 30 )
+  self.Invite.DoClick = function( b )
+    vgui.Create( 'orgs.Menu.Members.Invite' )
+  end
 
   self.List = self:Add( 'DListView' )
   self.List.oldAddLine = vgui.GetControlTable( 'DListView' ).AddLine
@@ -150,6 +159,8 @@ function PANEL:Update( org )
     l:SetColumnText( 4, member.Salary and orgs.FormatCurrency( member.Salary ) or 'none' )
   end
 
+  self.Invite:SetVisible( LocalPlayer():orgs_Has( orgs.PERM_INVITE ) )
+
   for k, ply in pairs( netmsg.safeTable( orgs.Members, true ) ) do
     if self.Players[ k ] then continue end
     local rank = orgs.Ranks[ply.RankID]
@@ -187,9 +198,9 @@ function PANEL:Init()
   self.Rank.OnSelect = function( p, id )
     for k, v in pairs( orgs.PermCheckboxes ) do
       local box, perm = self[v[1]], orgs['PERM_'.. string.upper( v[1] )]
-      box:SetChecked( string.find( orgs.Ranks[p.Value].Perms, perm )
+      box:SetChecked( string.find( orgs.Ranks[p.Value].Perms or '', perm )
        or ( self.Player.Perms and string.find( self.Player.Perms, perm ) ) )
-      box:SetDisabled( string.find( orgs.Ranks[p.Value].Perms, perm )
+      box:SetDisabled( string.find( orgs.Ranks[p.Value].Perms or '', perm )
         or not LocalPlayer():orgs_Has( perm ) )
     end
   end
@@ -278,7 +289,7 @@ function PANEL:Init()
         return
       end
       if IsValid( orgs.Menu ) then
-        orgs.Menu:SetMsg( 'Successfully managed '.. ( self.Player.SteamID
+        orgs.ChatLog( 'Successfully managed '.. ( self.Player.SteamID
           == LocalPlayer():SteamID64()
           and 'yourself'
           or self.Player.Nick )

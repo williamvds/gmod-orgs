@@ -1,9 +1,19 @@
 ### Bugs and improvements
 - [ ] settings: rename to 'You', show rank, settings
-- [ ] Add tooltips to panels where it makes sense
-- [ ] Give players chat log when something happens to them
-- [ ] Don't share group balance with all players, only members (create rank property?)
-- [ ] More graceful handling of provider failure
+- [ ] add tooltips to panels where it makes sense
+- [ ] give players chat log when something happens to them
+- [ ] don't share group balance with all players, only members (create rank property for joinmenu?)
+- [ ] more graceful handling of provider failure
+- [ ] use a table column for each permission?
+- [ ] stop bulletin changes being wiped if menu updates while editing
+- [ ] limit message when withdrawing more than bank contains
+- [ ] immunity event log used instead withdraw limit
+- [ ] events not syncing for players when they are promoted
+- [ ] don't show rank promotion events when joining groups
+- [ ] promoting members removes the salary they had
+- [ ] random clientside duplication of ranks when you make an org, probably syncing issues
+- [ ] perform some antialiasing on circle indicating online
+
 
 ### Features to implement
 - [ ] upgrade: remove allegiances if necessary, warning if group is hidden
@@ -11,8 +21,16 @@
 - [ ] group hiding
 - [ ] alliances and allegiances
 - [ ] admin system
-- [ ] Store default ranks only once?  
+- [ ] store default ranks only once?  
 - [ ] vgui: Popup options, eg. with confirm/cancel (possibly VB.net style?)
 - [ ] providers: Adapt mysql provider for sqlite  
 - [ ] events: ability to filter by type
 - [ ] mysql: Use transactions for updating ranks?
+- [ ] ranks: Allow rank shorthand
+- [ ] multiple language support
+- [ ] bank limits for group types
+- [ ] allow requests for withdrawls, add permission for it?
+- [ ] drop shadows in menus
+- [ ] default rank salary
+- [ ] allow highlighting allies with halos
+- [ ] color playermodels based on their org for certain roles

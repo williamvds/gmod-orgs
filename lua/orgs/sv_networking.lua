@@ -18,11 +18,14 @@ hook.Add( 'PlayerSay', 'orgs.ChatCommand', function( ply, text )
 end )
 
 netmsg.Receive( 'orgs.JoinMenu.Create', function( tab, ply )
-  if ply.orgs_MakingGroup then return
-  else ply.orgs_MakingGroup = true end
+  if ply.orgs_GroupLock then return end
+  ply.orgs_GroupLock = true
 
   local err = orgs.addOrg( tab, ply, function()
     ply.orgs_MakingGroup = false
+
+  orgs.addOrg( tab, ply, function()
+    ply.orgs_GroupLock = nil
   end )
 
   if err then netmsg.Respond( err ) end
@@ -171,7 +174,12 @@ end )
 -- JOIN
 
 netmsg.Receive( 'orgs.JoinMenu_Join.Join', function( tab, ply )
-  local err = orgs.updatePlayer( ply, {OrgID= tab[1]} )
+  if ply.orgs_GroupLock then return end
+  ply.orgs_GroupLock = true
+
+  local err = orgs.updatePlayer( ply, {OrgID= tab[1]}, nil, function()
+    ply.orgs_GroupLock = nil
+  end )
 
   if err then netmsg.Respond( err ) end
 end )

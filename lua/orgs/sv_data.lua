@@ -296,7 +296,7 @@ orgs.updatePlayer = function( ply, tab, ply2, done )
 
     -- Log group join
     if ( orgs.List[member.OrgID] and not orgs.List[member.OrgID].Forming )
-    and tab.RankID and tab.RankID ~= NULL then
+    and tab.RankID and tab.RankID ~= NULL and not ply.orgs_GroupLock then
       orgs.LogEvent( orgs.EVENT_MEMBER_RANK, {
         ActionBy= steamID2,
         OrgID= member.OrgID,

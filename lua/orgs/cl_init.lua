@@ -80,6 +80,12 @@ orgs.ManageFails = { -- Managing other players (including self when joining)
   'the desired rank is not a part of the desired group',
 }
 
+orgs.InviteFails = { -- Inviting players
+  'you can\'t invite yourself',
+  'you can\'t invite players',
+  'that player has already been invited to this group',
+}
+
 orgs.EditRankFails = { -- Altering ranks
   'you haven\'t changed anything',
   'that rank doesn\'t exist',

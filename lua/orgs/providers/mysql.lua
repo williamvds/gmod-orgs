@@ -183,6 +183,28 @@ PROVIDER.addEvent = function( type, tab, done )
   end )
 end
 
+-- Invite helpers
+
+PROVIDER.addInvite = function( to, from, done )
+  PROVIDER.insert( 'invites', {To= to, From= from}, function( d, e, q )
+    if done then done( d, e, q:lastInsert() ) end
+  end )
+end
+
+PROVIDER.removeInvite = function( id, done )
+  PROVIDER.delete( 'invites', 'InviteID = '..id, done )
+end
+
+PROVIDER.getOrgInvites = function( id, done )
+  PROVIDER._sendQuery( [[SELECT *, CONVERT( `From`, char ) AS `From`, CONVERT( `To`, char ) AS `To`
+    FROM invites WHERE OrgID = %s;]] %{id}, nil, done )
+end
+
+PROVIDER.getPlayerInvites = function( id, done )
+  PROVIDER._sendQuery( [[SELECT *, CONVERT( `From`, char ) AS `From`, CONVERT( `To`, char ) AS `To`
+    FROM invites WHERE `To` = %s;]] %{id}, nil, done )
+end
+
 -- Player helpers
 
 PROVIDER.addPlayer = function( steamID, nick, done )

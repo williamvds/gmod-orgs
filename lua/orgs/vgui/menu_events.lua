@@ -87,7 +87,7 @@ function PANEL:Init()
     if not event then return end
 
     self.Popup = DermaMenu( self )
-    self.Popup:orgs_BGR( orgs.C_WHITE )
+    self.Popup:orgs_BGR( orgs.C_WHITE, Color( 30, 30, 30 ) )
 
     if event.ActionBy then
       self.Popup:AddOption( 'Actor: View Steam profile', function()

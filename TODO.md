@@ -34,3 +34,4 @@
 - [ ] default rank salary
 - [ ] allow highlighting allies with halos
 - [ ] color playermodels based on their org for certain roles
+- [ ] can be public property for org types

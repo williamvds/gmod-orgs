@@ -191,6 +191,12 @@ orgs.EventStrings = {
     return '[ActionBy] removed rank [ActionValue] from [OrgID]'
   end,
 
+  -- Invite
+  [orgs.EVENT_INVITE] = '[ActionAgainst] was invited to [OrgID] by [ActionBy]',
+  [orgs.EVENT_INVITE_WITHDRAWN] = '[ActionAgainst]\'s invitation to [OrgID] was'
+    ..'withdrawn by [ActionBy]',
+
+  -- Member
   [orgs.EVENT_MEMBER_ADDED] = '[ActionBy] joined organisation [OrgID]',
   [orgs.EVENT_MEMBER_LEFT] = '[ActionBy] left organisation [OrgID]',
   [orgs.EVENT_MEMBER_KICKED] = '[ActionBy] kicked [ActionAgainst] from organisation [OrgID]',

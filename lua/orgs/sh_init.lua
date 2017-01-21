@@ -1,4 +1,4 @@
-orgs = orgs or { List = {}, Loaded = {}, Ranks = {}, Members = {}, Events = {} }
+orgs = orgs or { List = {}, Loaded = {}, Ranks = {}, Members = {}, Invites = {}, Events = {} }
 
 if SERVER then
   AddCSLuaFile 'vendor/sh_vercas_von.lua'
@@ -32,11 +32,12 @@ Enum( orgs, 'EVENT_', {
   'RANK_BANKLIMIT',
   'RANK_BANKCOOLDOWN',
   'RANK_REMOVED',
+  'INVITE',
+  'INVITE_WITHDRAWN',
   'MEMBER_ADDED',
   'MEMBER_LEFT',
   'MEMBER_KICKED',
   'MEMBER_RANK',
-  'PLAYER_INVITED',
 } )
 
 -- Permission enumerations
@@ -109,6 +110,8 @@ orgs.Events.__filter = function( tab, ply, k, v )
   if ply:orgs_Org(0) ~= v.OrgID or not ply:orgs_Has( orgs.PERM_EVENTS ) then return end
   return v
 end
+
+netmsg.NetworkTable( orgs.Invites, 'orgs.Invites' )
 
 if CLIENT then
   orgs.Events.__onKeySync = function( tab, k, v )

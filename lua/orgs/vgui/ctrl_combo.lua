@@ -71,6 +71,7 @@ end
 function COMBOBOX:Select( id )
   if IsValid( self.List ) then self.List:Remove() end
 
+  PrintTable( self.Options )
   self:orgs_SetText( self.Options[id].Label )
   self.Value = self.Options[id].Value
 

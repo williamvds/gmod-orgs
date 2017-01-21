@@ -23,21 +23,69 @@ orgs.addEvent = function( type, tab, done )
   end )
 end
 
--- invites
+-- Invites
+
 orgs.addInvite = function( to, from, done )
-  local steamID1, steamID2, org = getID( to ), getID( from ), from:orgs_Org(0)
-  if not to or not from then
-    -- From/to not specified
+  if not isentity( from ) then from = player.GetBySteamID64( from ) end
+
+  local steamID, steamID2, org = getID( to ), getID( from ), from:orgs_Org(0)
+  if not to or not from --[[or from == to]] then -- TODO Readd check
+    -- From/to not specified or same person
     return 1
   elseif not org or not from:orgs_Has( orgs.PERM_INVITE ) then
     -- From player cannot invite
     return 2
+  else
+    -- To player has already been invited to the group
+    for k, inv in pairs( netmsg.safeTable( orgs.Invites, true ) ) do
+      if inv.OrgID == orgID and inv.To == steamID then return 3 end
+    end
   end
 
-  orgs._Provider.addInvite( steamID1, steamID2, function()
-    orgs.LogEvent( orgs.EVENT_INVITE, {ActionBy= steamID2, ActionAgainst= steamID1, OrgID= org} )
+  orgs._Provider.addInvite( steamID, steamID2, function( _, err, id )
+    if err then return end
+
+    orgs.Invites[id] = {InviteID= id, To= steamID, From= steamID2, OrgID= orgID}
+    orgs.LogEvent( orgs.EVENT_INVITE, {ActionBy= steamID2, ActionAgainst= steamID, OrgID= org} )
+
   end )
 
+end
+
+orgs.removeInvite = function( id, ply )
+  local orgID = ply:orgs_Org(0)
+  if not orgID or not ply:orgs_Has( PERM_KICK ) or orgID ~= orgs.Invites[id].OrgID then
+    return 1
+  end
+
+  local ply2 = orgs.Invites[id].To
+  orgs._Provider.removeInvite( id, function( _, err )
+    if err then return end
+
+    orgs.LogEvent( orgs.EVENT_INVITE_WITHDRAWN,
+      {ActionBy= ply, ActionAgainst= ply2, OrgID= orgID } )
+  end )
+
+end
+
+orgs.getOrgInvites = function( id, done )
+  orgs._Provider.getOrgInvites( id, function( data, err )
+    if err then return end
+
+    for k, inv in pairs( data ) do
+      orgs.Invites[ inv.InviteID ] = inv
+    end
+  end )
+end
+
+orgs.getPlayerInvites = function( id, done )
+  orgs._Provider.getPlayerInvites( id, function( data, err )
+    if err then return end
+
+    for k, inv in pairs( data ) do
+      orgs.Invites[ inv.InviteID ] = inv
+    end
+  end )
 end
 
 -- Players
@@ -51,6 +99,7 @@ orgs.getPlayer = function( ply, done )
     orgs.Log( true, 'Fetching information for ', '%s [%s]' %{ ply:Nick(), steamID } )
   end
 
+  orgs.getPlayerInvites( steamID )
 
   orgs._Provider.getPlayer( steamID, function( data, err )
     if not data then orgs.addPlayer( IsValid( ply ) and ply or steamID ) return end
@@ -651,5 +700,6 @@ orgs.loadOrg = function( id, done )
   orgs.getOrgRanks( id )
   orgs.getOrgMembers( id )
   orgs.getOrgEvents( id )
+  orgs.getOrgInvites( id )
   orgs.List[id].Loaded = true
 end

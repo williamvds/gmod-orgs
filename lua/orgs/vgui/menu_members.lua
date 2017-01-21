@@ -312,3 +312,110 @@ function PANEL:NewLine()
 end
 
 vgui.Register( 'orgs.Menu.Members.Manage', PANEL, 'orgs.Popup' )
+
+local PANEL = {}
+
+function PANEL:Init()
+  local l
+
+  self:SetTitle( 'Invite player' )
+  self:SetSize( 350, 200 )
+  self:AnimateShow()
+
+  self.Desc = self.Body:orgs_AddLabel( 'Invite a player to join the group',
+    'orgs.Small', orgs.C_WHITE )
+  self.Desc:Dock( TOP, {u=5} )
+  self.Desc:SetContentAlignment(5)
+
+  l = self:NewLine()
+
+  self.PlayerLabel = l:orgs_AddLabel( 'Select player', 'orgs.Medium', orgs.C_WHITE )
+  self.PlayerLabel:Dock( LEFT )
+  self.PlayerLabel:SetWide( 100 )
+  self.PlayerLabel:SetContentAlignment( 6 )
+
+  self.Player = l:Add( 'orgs.ComboBox' )
+  self.Player:orgs_Dock( LEFT, {l=15} )
+  self.Player:SetWide( 175 )
+  self.Player:AddOption( 'Send by Steam ID', -1, '\0' )
+  self.Player:Select(1)
+  for k, ply in pairs( player.GetAll() ) do
+    --if orgs.Members[ply:SteamID64()] then continue end -- TODO readd check
+    self.Player:AddOption( ply:Nick(), ply:SteamID64(), ply:Nick() )
+  end
+  self.Player.OnSelect = function( p )
+    self.SteamIDLine:SetVisible( self.Player.Value == -1 )
+    local to = not isnumber( self.Player.Value ) and self.Player.Value or
+      tonumber( self.SteamID:GetValue() ) and self.SteamID:GetValue()
+      or util.SteamIDTo64( self.SteamID:GetValue() )
+    self.SteamIDErr:SetVisible( to == '0' )
+    self.Send:SetDisabled( to == '0' )
+  end
+
+  self.SteamIDLine = self:NewLine()
+
+  self.SteamIDLabel = self.SteamIDLine:orgs_AddLabel( 'SteamID', 'orgs.Medium', orgs.C_WHITE )
+  self.SteamIDLabel:Dock( LEFT )
+  self.SteamIDLabel:SetWide( 100 )
+  self.SteamIDLabel:SetContentAlignment( 6 )
+
+  self.SteamID = self.SteamIDLine:Add( 'DTextEntry' )
+  self.SteamID:orgs_Dock( LEFT, {l=15} )
+  self.SteamID:SetSize( 185, 25 )
+  self.SteamID:SetFont( 'orgs.Medium' )
+  self.SteamID.Paint = function( p, w, h )
+    orgs.DrawRect( 0, 0, w, h, orgs.C_WHITE )
+    p:DrawTextEntryText( orgs.C_DARKGRAY, orgs.C_GRAY, orgs.C_GRAY )
+  end
+  self.SteamID.OnChange = function( p )
+    local to = tonumber( p:GetValue() ) and p:GetValue()
+      or util.SteamIDTo64( p:GetValue() )
+    self.SteamIDErr:SetVisible( to == '0' )
+    self.Send:SetDisabled( to == '0' )
+  end
+
+  self.SteamIDErr = self.Body:orgs_AddLabel( 'Invalid SteamID', 'orgs.Small', orgs.C_RED )
+  self.SteamIDErr:orgs_Dock( TOP, {u=5} )
+  self.SteamIDErr:SetWide( 100 )
+  self.SteamIDErr:SetContentAlignment( 5 )
+
+  self.Send = self.Body:Add( 'DButton' )
+  self.Send:orgs_BGR( orgs.C_DARKBLUE, orgs.C_BLUE )
+  self.Send:orgs_Dock( BOTTOM, {l=135,r=135} )
+  self.Send:SetTall( 30 )
+  self.Send:orgs_SetText( 'Send', 'orgs.Medium', orgs.C_WHITE )
+  self.Send.Paint = function( p, w, h )
+    orgs.DrawRect( 0, 0, w, h, p:GetDisabled() and orgs.C_LIGHTGRAY  or orgs.C_BLUE )
+  end
+  self.Send.DoClick = function( p )
+    local to = not isnumber( self.Player.Value ) and self.Player.Value or
+      tonumber( self.SteamID:GetValue() ) and self.SteamID:GetValue()
+      or util.SteamIDTo64( self.SteamID:GetValue() )
+
+    if to == '' then return end
+
+    toPly = player.GetBySteamID64( to )
+    netmsg.Send( 'orgs.Menu.Members.Invite', {to} ) ( function( tab )
+      print( tab[1])
+      if tab[1] then
+        orgs.Menu:SetError( 'Couldn\'t invite because ' ..orgs.InviteFails[tab[1]] )
+      else
+        orgs.Menu:SetMsg( 'Invited '.. IsValid( toPly ) and toPly:Nick() or 'that player'  )
+        self:AnimateHide()
+      end
+    end )
+  end
+
+  self.Player:OnSelect()
+end
+
+function PANEL:NewLine()
+
+  local l = self.Body:Add( 'DPanel' )
+  l:orgs_Dock( TOP, {u=10}, {l=10,r=10} )
+  l:orgs_BGR( orgs.C_NONE )
+
+  return l
+end
+
+vgui.Register( 'orgs.Menu.Members.Invite', PANEL, 'orgs.Popup' )

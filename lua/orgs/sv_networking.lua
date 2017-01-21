@@ -64,6 +64,14 @@ netmsg.Receive( 'orgs.Menu.Members.Manage', function( tab, ply )
   if err then netmsg.Respond( err ) end
 end )
 
+netmsg.Receive( 'orgs.Menu.Members.Invite', function( tab, ply )
+  local err = orgs.addInvite( tab[1], ply, function( _, err )
+    netmsg.Send( 'orgs.Menu.Members.Invite', err or false, ply )
+  end )
+
+  if err then netmsg.Respond( err ) end
+end )
+
 -- BANK
 
 netmsg.Receive( 'orgs.Menu.Bank.Deposit', function( tab, ply )

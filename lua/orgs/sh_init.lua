@@ -97,6 +97,7 @@ end
 netmsg.NetworkTable( orgs.List, 'orgs.List' )
 
 local sameOrgIDFilter = function( tab, ply, k, v )
+  if v == nil then return v end
   if ply:orgs_Org(0) ~= v.OrgID then return end
   return v
 end

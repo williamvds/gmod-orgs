@@ -1,5 +1,9 @@
 -- Handles all networking for the menus etc
 
+orgs.ChatLog = function( plys, ... )
+  netmsg.Send( 'orgs.ChatLog', {...}, plys )
+end
+
 hook.Add( 'PlayerSay', 'orgs.ChatCommand', function( ply, text )
   if GAMEMODE.ThisClass == 'gamemode_darkrp' or DarkRP then return end
 

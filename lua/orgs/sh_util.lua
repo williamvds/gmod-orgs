@@ -3,10 +3,6 @@ getmetatable''.__mod = function( self, tab )
   return string.format( self, unpack( tab ) )
 end
 
-orgs.ChatLog = function( plys, ... )
-  netmsg.Send( 'orgs.ChatLog', {...}, plys )
-end
-
 orgs.Log = function( debug, ... )
 
   if debug and not orgs.Debug then return end

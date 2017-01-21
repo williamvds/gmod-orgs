@@ -152,7 +152,6 @@ function PANEL:Init()
           orgs.FormatCurrencyShort( self.Value:GetText() ),
           -- TODO: Format the transfer target
           } )
-        -- orgs.Menu:Update()
       end )
     self.Value:RequestFocus()
   end
@@ -169,6 +168,10 @@ function PANEL:Update( org )
   self.Deposit:SetVisible( withdrawPerm )
   self.Withdraw:SetVisible( withdrawPerm )
   self.Transfer:SetVisible( withdrawPerm )
+
+  if not withdrawPerm then
+    self.Deposit:DoClick()
+  end
 
   local eventPerm = LocalPlayer():orgs_Has( orgs.PERM_EVENTS )
   self.InLabel:SetVisible( eventPerm )

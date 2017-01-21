@@ -676,7 +676,7 @@ orgs.updateOrg = function( orgID, tab, ply, done )
     end
 
     for k, v in pairs( tab ) do
-      orgs.List[orgID][k] = v == NULL and nil or v
+      org[k] = v ~= NULL and v or nil
     end
 
     if tab.Bulletin then

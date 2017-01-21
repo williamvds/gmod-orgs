@@ -27,9 +27,9 @@ end
 
 local bankActions = {'Deposit', 'Withdraw', 'Transfer'}
 local successMsg = {
-  [1] = 'Deposited %s into the group\'s account',
-  [2] = 'Withdrew %s from the group\'s account',
-  [3] = 'Transferred %s to %s\'s account',
+  'Deposited %s into the group\'s account',
+  'Withdrew %s from the group\'s account',
+  'Transferred %s to %s\'s account',
 }
 function PANEL:Init()
   self:orgs_BGR( orgs.C_DARKGREEN )

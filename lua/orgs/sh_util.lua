@@ -100,26 +100,27 @@ orgs.EventToString = function( tab, explode )
   return explode and string.Explode( '%', str ) or str
 end
 
-local postfixes = {'K','M','B','T'}
+local postfixes = {'K','M','B','T','QD','QT'}
 orgs.FormatCurrencyShort = function( amt, len )
   amt = tonumber( amt )
   if not amt then return end
 
-  len = len or 3
-  for k, v in pairs( postfixes ) do
-    if amt /(1000 ^k) < 1 then
-      local val = amt /(1000 ^(k -1))
-      local valLen = tostring(math.floor(val)):len()
-      return (orgs.CurrencySymbolLeft and orgs.CurrencySymbol or '')
-        ..'%s%s' %{ math.Round(val, len -valLen), postfixes[k-1] or '' }
-        .. (not orgs.CurrencySymbolLeft and orgs.CurrencySymbol or '')
-    end
+  local str = orgs.CurrencySymbolLeft and orgs.CurrencySymbol or ''
 
+  len = len or 3
+  local k = 1
+  while k < #postfixes and amt /(1000 ^k) >= 1 do
+    k = k +1
   end
 
-  return (orgs.CurrencySymbolLeft and orgs.CurrencySymbol or '')
-    ..'%s%s' %{ math.Round(amt /(1000 ^(#postfixes)), dec), postfixes[#postfixes] }
-    .. (not orgs.CurrencySymbolLeft and orgs.CurrencySymbol or '')
+  local val = amt /(1000 ^(k -1))
+  local valLen = tostring( math.floor(val) ):len()
+  str = str.. ( '%.'.. math.Clamp( 5 -valLen - string.len( orgs.CurrencySymbol ), 0, 2 ) ..'f%s' )
+  %{ math.Round( val, 2 ), postfixes[k-1] or '' }
+
+  --str = str.. '%s%s' %{ math.Round(amt /(1000 ^(#postfixes)), dec), postfixes[#postfixes] }
+
+  return str.. ( not orgs.CurrencySymbolLeft and orgs.CurrencySymbol or '' )
 end
 
 orgs.FormatCurrency = function( amt )

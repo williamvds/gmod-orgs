@@ -1,7 +1,9 @@
 local PANEL = {}
 
 -- From wiki.garrysmod.com/page/surface/DrawPoly
-local drawCircle = function( x, y, radius, seg )
+local drawCircle = function( x, y, radius, seg, col )
+  surface.SetDrawColor( col )
+  draw.NoTexture()
   local cir = {}
 
   table.insert( cir, { x= x, y= y, u= 0.5, v= 0.5 } )
@@ -78,10 +80,12 @@ function PANEL:Init()
     end
 
     l.Columns[1].Color = player.GetBySteamID64( ply ) and orgs.C_LIGHTGREEN or orgs.C_RED
-    l.Columns[1].PaintOver = function( self, w, h )
-      surface.SetDrawColor( self.Color )
-      draw.NoTexture()
-      drawCircle( 12, 12, 8, 24 )
+    l.Columns[1].PaintOver = function( p, w, h )
+      local a = p.Color.a
+      p.Color.a = a *.25
+      drawCircle( 12, 12, 8, 24, p.Color )
+      p.Color.a = a
+      drawCircle( 12, 12, 8, 12, p.Color )
     end
 
     for k, v in pairs( tab ) do
@@ -151,7 +155,7 @@ function PANEL:Update( org )
 
   for k, l in pairs( self.List:GetLines() ) do
     local member = orgs.Members[ l.Player ]
-    if not member then self:RemoveLine( k ) continue end
+    if not member then self.List:RemoveLine( k ) continue end
     local rank = orgs.Ranks[ member.RankID ]
     l:SetColumnText( 1, player.GetBySteamID64( l.Player ) and '' or ' ' )
     l:SetColumnText( 2, member.Nick )

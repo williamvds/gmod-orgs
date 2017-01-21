@@ -9,11 +9,9 @@
 - [ ] limit message when withdrawing more than bank contains
 - [ ] immunity event log used instead withdraw limit
 - [ ] events not syncing for players when they are promoted
-- [ ] don't show rank promotion events when joining groups
-- [ ] promoting members removes the salary they had
 - [ ] random clientside duplication of ranks when you make an org, probably syncing issues
-- [ ] perform some antialiasing on circle indicating online
-
+- [ ] show org type in joinmenu list
+- [ ] spamming allows duplicate withdrawls/deposit
 
 ### Features to implement
 - [ ] upgrade: remove allegiances if necessary, warning if group is hidden

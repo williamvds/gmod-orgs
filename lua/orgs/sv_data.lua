@@ -236,7 +236,7 @@ orgs.updatePlayer = function( ply, tab, ply2, done )
   end
 
   if tab.OrgID == NULL and member.OrgID then
-    tab.RankID = NULL; tab.Perms = NULL; tab.Salary = NULL
+    tab.RankID = NULL; tab.Perms = NULL
   end
 
   orgs._Provider.updatePlayer( steamID, tab, function( data, err )

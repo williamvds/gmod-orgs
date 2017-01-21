@@ -17,14 +17,15 @@ hook.Add( 'PlayerSay', 'orgs.ChatCommand', function( ply, text )
 
 end )
 
-netmsg.Receive( 'orgs.CreateGroup', function( tab, ply )
+netmsg.Receive( 'orgs.JoinMenu.Create', function( tab, ply )
   if ply.orgs_MakingGroup then return
   else ply.orgs_MakingGroup = true end
 
-  orgs.addOrg( tab, ply, function()
+  local err = orgs.addOrg( tab, ply, function()
     ply.orgs_MakingGroup = false
   end )
 
+  if err then netmsg.Respond( err ) end
 end )
 
 netmsg.Receive( 'orgs.LeaveOrg', function( _, ply )

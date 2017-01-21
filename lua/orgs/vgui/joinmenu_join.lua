@@ -18,7 +18,7 @@ function PANEL:Init()
 
   for k, v in pairs( {
     {txt= 'Rank', w= 100},
-    {txt= ''},
+    {txt= 'Organisation'},
     {txt= 'Members', w=100},
     {txt= '', w=100},
   } ) do
@@ -65,7 +65,14 @@ function PANEL:AddLine( rank, org )
   l.Join:orgs_BGR( orgs.C_DARKBLUE, orgs.C_BLUE )
   l.Join:orgs_Dock( FILL, {l=22,r=22,u=17,d=17 } )
   l.Join.DoClick = function( p )
-    netmsg.Send( 'orgs.JoinMenu_Join.Join', {org.OrgID} )
+    netmsg.Send( 'orgs.JoinMenu_Join.Join', {org.OrgID} ) ( function( tab )
+      if tab[1] then
+        orgs.JoinMenu:SetError( 'Couldn\'t join because ' .. orgs.ManageFails[ tab[1] ] )
+      else
+        orgs.JoinMenu:SetMsg( 'Joining group..' )
+      end
+
+    end )
   end
 
   l.DataLayout = function( self, ListView )

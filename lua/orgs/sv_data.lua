@@ -338,13 +338,23 @@ orgs.addOrg = function( tab, ply, done )
   if orgs.Members[steamID] and orgs.Members[steamID].OrgID then
     -- Player already in another group
     return 1
-  elseif not tab.Name or ( tab.Name and string.len( tab.Name ) > orgs.MaxNameLength ) then
+  elseif not tab.Name or not tostring( tab.Name )
+    or tab.Name:gsub( '[%s%c]', '' ) == '' or tab.Name:find( '%c' ) then
     -- Invalid name
-    return 2
+    return 7
+  elseif string.len( tab.Name ) > orgs.MaxNameLength then
+    -- Name too long
+    return 8
+  end
+
+  for k, v in pairs( netmsg.safeTable( orgs.List, true ) ) do
+    -- If name is duplicated
+    if v.Name:lower() == tab.Name:lower() then return 12 end
   end
 
   for k, v in pairs( tab ) do
-    if k ~= 'Name' and k ~= 'Public' then return 3 end
+    -- If trying to set values they shouldn't
+    if k ~= 'Name' and k ~= 'Public' then return 2 end
   end
 
   orgs._Provider.addOrg( tab, function( orgID, err )
@@ -601,8 +611,11 @@ orgs.updateOrg = function( orgID, tab, ply, done )
   -- If Balance is invalid
   if tab.Balance and tab.Balance < 0 then return 6 end
 
-  -- Name invalid
-  if tab.Name == NULL then return 7 end
+  if tab.Name == NULL or not tostring( tab.Name )
+    or tab.Name:gsub( '[%s%c]', '' ) == '' or tab.Name:find( '%c' ) then
+    -- Name invalid
+    return 7
+  end
 
   if tab.Name and tab.Name:len() > orgs.MaxNameLength then
     -- Name too long

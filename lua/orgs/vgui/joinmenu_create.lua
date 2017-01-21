@@ -34,7 +34,7 @@ function PANEL:Init()
   self.Public:Dock( LEFT )
   self.Public:SetSize( 22, 22 )
   self.Public.Paint = function( p, w, h )
-    orgs.DrawRect( 0, 0, w, h, p:GetDisabled() and orgs.C_LIGHTGRAY  or orgs.C_BLUE )
+    orgs.DrawRect( 0, 0, w, h, p:GetDisabled() and orgs.C_LIGHTGRAY or orgs.C_BLUE )
     orgs.DrawRect( 3, 3, w -6, h -6, p:GetChecked() and orgs.C_LIGHTGREEN or orgs.C_DARKRED )
   end
 
@@ -43,15 +43,29 @@ function PANEL:Init()
   self.CreateButton = self:Add( 'DButton' )
   self.CreateButton:orgs_SetText( 'Create group', 'orgs.Medium', orgs.C_WHITE )
   self.CreateButton:SetContentAlignment( 5 )
-  self.CreateButton:SetDrawBorder( false )
-  self.CreateButton:orgs_BGR( orgs.C_DARKBLUE, orgs.C_BLUE )
   self.CreateButton:orgs_Dock( BOTTOM, {l=230,r=230} )
   self.CreateButton:SetTall( 30 )
+  self.CreateButton:SetDisabled( LocalPlayer():orgs_Info() )
+  self.CreateButton.Paint = function( p, w, h )
+    orgs.DrawRect( 0, 0, w, h, p:GetDisabled() and orgs.C_LIGHTGRAY
+      or p:IsHovered() and orgs.C_BLUE or orgs.C_DARKBLUE )
+  end
   self.CreateButton.DoClick = function( p )
     p:SetDisabled( true )
     p:orgs_BGR( orgs.C_LIGHTGRAY )
-    netmsg.Send( 'orgs.CreateGroup', {Name= self.OrgName:GetValue(),
-      Public= self.Public:GetChecked() or nil} )
+
+    netmsg.Send( 'orgs.JoinMenu.Create', {Name= self.OrgName:GetValue(),
+      Public= self.Public:GetChecked() or nil} )( function( tab )
+
+      if tab[1] then
+        orgs.JoinMenu:SetError( 'Couldn\'t create group because ' .. orgs.ModifyFails[ tab[1] ] )
+      else
+        orgs.JoinMenu:SetMsg( 'Creating group..' )
+      end
+
+      p:SetDisabled( false )
+    end )
+
   end
 
   self.OrgName.OnEnter = function() self.CreateButton:DoClick() end

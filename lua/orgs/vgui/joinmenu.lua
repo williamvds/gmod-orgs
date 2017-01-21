@@ -53,8 +53,7 @@ function PANEL:SetMsg( text, col, time )
 
   if self.Msg:IsVisible() then
     self.Msg:AlphaTo( 0, .2, 0, function()
-      self.Msg:SetText( text )
-      self.Msg:SetTextColor( col or orgs.C_WHITE )
+      self.Msg:orgs_SetText( text, nil, col or orgs.C_WHITE )
       self.Msg:AlphaTo( 255, .2, 0 )
     end )
 
@@ -82,7 +81,7 @@ function PANEL:SetMsg( text, col, time )
 end
 
 function PANEL:SetError( text, time )
-  orgs.ChatLog( text, orgs.C_RED, time )
+  self:SetMsg( text, orgs.C_RED, time )
 end
 
 function PANEL:Think()

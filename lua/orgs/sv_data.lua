@@ -314,6 +314,10 @@ orgs.updatePlayer = function( ply, tab, ply2, done )
     -- end
 
     -- Resync shared group tables for player
+    if IsValid( ply ) and tab.RankID then
+      netmsg.SyncTable( orgs.Events, ply )
+    end
+
     if IsValid( ply ) and tab.OrgID then
       ply:SetNWVar( 'orgs.OrgID', tab.OrgID == NULL and nil or tab.OrgID )
       netmsg.SyncTable( orgs.Ranks, ply )

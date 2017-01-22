@@ -236,7 +236,7 @@ orgs.updatePlayer = function( ply, tab, ply2, done )
   end
 
   if tab.OrgID == NULL and member.OrgID then
-    tab.RankID = NULL; tab.Perms = NULL
+    tab.RankID = NULL; tab.Perms = NULL; tab.Salary = NULL
   end
 
   orgs._Provider.updatePlayer( steamID, tab, function( data, err )
@@ -294,24 +294,16 @@ orgs.updatePlayer = function( ply, tab, ply2, done )
 
     orgs.Members[steamID] = member
 
-    -- Log group join
-    if ( orgs.List[member.OrgID] and not orgs.List[member.OrgID].Forming )
-    and tab.RankID and tab.RankID ~= NULL and not ply.orgs_GroupLock then
+    -- Log rank change
+    if tab.RankID and tab.RankID ~= NULL
+    and ( orgs.List[member.OrgID] and not orgs.List[member.OrgID].Forming )
+    and not ( IsValid( ply ) and ply.orgs_GroupLock ) then
       orgs.LogEvent( orgs.EVENT_MEMBER_RANK, {
         ActionBy= steamID2,
         OrgID= member.OrgID,
         ActionAgainst= steamID,
         ActionValue= member.RankID } )
     end
-
-    -- TODO: Sync member table?
-    -- if tab.OrgID and tab.OrgID ~= NULL then
-    --   local plys = {}
-    --   for k, ply in pairs( player.GetAll() ) do
-    --     if ply:orgs_Org(0) == tab.OrgID then table.insert( plys, ply ) end
-    --   end
-    --   netmsg.SyncTable( orgs.Members, plys )
-    -- end
 
     -- Resync shared group tables for player
     if IsValid( ply ) and tab.RankID then
@@ -616,8 +608,8 @@ orgs.updateOrg = function( orgID, tab, ply, done )
   -- If Balance is invalid
   if tab.Balance and tab.Balance < 0 then return 6 end
 
-  if tab.Name == NULL or not tostring( tab.Name )
-    or tab.Name:gsub( '[%s%c]', '' ) == '' or tab.Name:find( '%c' ) then
+  if tab.Name and ( tab.Name == NULL or tab.Name ~= NULL and not tostring( tab.Name )
+    or tab.Name:gsub( '[%s%c]', '' ) == '' or tab.Name:find( '%c' ) ) then
     -- Name invalid
     return 7
   end

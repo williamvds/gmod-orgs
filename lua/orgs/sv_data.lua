@@ -661,7 +661,15 @@ orgs.updateOrg = function( orgID, tab, ply, done )
     tab.Balance = math.Clamp( tab.Balance or org.Balance, 0, tp.MaxBalance )
   end
 
+  -- Pre-emptively update balance before query
+  local balanceDelta = tab.Balance -org.Balance
+  if tab.Balance then org.Balance = tab.Balance end
+
   orgs._Provider.updateOrg( orgID, tab, function( data, err )
+    if err then
+      org.Balance = org.Balance -balanceDelta
+      return
+    end
 
     if not orgs.List[orgID].Forming then
       for k, v in pairs( tab ) do

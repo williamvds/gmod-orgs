@@ -18,11 +18,10 @@ if not mysqloo then
   end
 end
 
--- TODO: keep db as local variable only
-PROVIDER.db = PROVIDER.db or mysqloo.connect( host, user, pass, database, port )
-PROVIDER.db:setMultiStatements( false )
+local db = db or mysqloo.connect( host, user, pass, database, port )
+db:setMultiStatements( false )
 hook.Add( 'InitPostEntity', 'orgs.connectToDB', function()
-  PROVIDER.db:connect()
+  db:connect()
 end )
 
 local setupQuery = [[
@@ -120,7 +119,7 @@ local typeTab = {
   Entity= 'Null',
 }
 PROVIDER._sendQuery = function( sql, tab, done )
-  local q = tab and PROVIDER.db:prepare( sql ) or PROVIDER.db:query( sql )
+  local q = tab and db:prepare( sql ) or db:query( sql )
 
   q.onSuccess = function( q, data )
     if done then done( data, nil, q ) end
@@ -275,7 +274,7 @@ PROVIDER.getAllOrgs = function( done )
     AS Members FROM orgs;]], {}, done )
 end
 
-PROVIDER.db.onConnected = function()
+db.onConnected = function()
   if PROVIDER.DoneFirstConnect then return end
 
   PROVIDER.Failed = false
@@ -290,7 +289,7 @@ PROVIDER.db.onConnected = function()
   PROVIDER.DoneFirstConnect = true
 end
 
-PROVIDER.db.onConnectionFailed = function()
+db.onConnectionFailed = function()
   orgs.LogError( false, 'Failed to connect to database %s@%s' %{user, database} )
   PROVIDER.Failed = true
 end

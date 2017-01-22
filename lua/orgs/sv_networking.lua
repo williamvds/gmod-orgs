@@ -26,9 +26,6 @@ netmsg.Receive( 'orgs.JoinMenu.Create', function( tab, ply )
   ply.orgs_GroupLock = true
 
   local err = orgs.addOrg( tab, ply, function()
-    ply.orgs_MakingGroup = false
-
-  orgs.addOrg( tab, ply, function()
     ply.orgs_GroupLock = nil
   end )
 
@@ -61,7 +58,6 @@ netmsg.Receive( 'orgs.Menu.Members.Kick', function( tab, ply )
 end )
 
 netmsg.Receive( 'orgs.Menu.Members.Manage', function( tab, ply )
-
   local ply2 = tab.Player
   tab.Player = nil
 

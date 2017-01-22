@@ -30,7 +30,6 @@ function PANEL:Init()
   self.Tag:orgs_Dock( LEFT, {l=5,u=2}, _, true )
 
   self.Motto = self:orgs_AddLabel( '', 'orgs.Small', orgs.C_WHITE, true )
-  -- self.Motto:SetContentAlignment( 4 ) TODO: Change to 7?
   self.Motto:SetWide( mottoWidth )
   self.Motto:Dock( LEFT )
 

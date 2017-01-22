@@ -69,7 +69,6 @@ function PANEL:Init()
     local tab, text = {...}, {}
     for k, v in pairs( tab ) do text[k] = istable(v) and v[1] or v end
 
-
     local l = self:oldAddLine( player.GetBySteamID64( ply ) and '' or ' ', unpack( text ) )
     l.Player = ply
 
@@ -79,14 +78,16 @@ function PANEL:Init()
       orgs.DrawRect( 0, 0, w, h, col )
     end
 
-    l.Columns[1].Color = player.GetBySteamID64( ply ) and orgs.C_LIGHTGREEN or orgs.C_RED
+    l.Columns[1].Color = self:GetText() == '' and orgs.C_LIGHTGREEN or orgs.C_RED
     l.Columns[1].PaintOver = function( p, w, h )
-      local a = p.Color.a
-      p.Color.a = a *.25
-      drawCircle( 12, 12, 8, 24, p.Color )
-      p.Color.a = a
-      drawCircle( 12, 12, 8, 12, p.Color )
+      local col = p:GetText() == '' and orgs.C_LIGHTGREEN or orgs.C_RED
+      col.a = 63
+      drawCircle( 12, 12, 8, 24, col )
+      col.a = 255
+      drawCircle( 12, 12, 8, 12, col )
     end
+
+    if l.Columns[4]:GetText() == '' then l.Columns[4]:SetText( 'none' ) end
 
     for k, v in pairs( tab ) do
       if istable(v) and v[2] then l:SetSortValue( k, v[2] ) end
@@ -157,6 +158,7 @@ function PANEL:Update( org )
     local member = orgs.Members[ l.Player ]
     if not member then self.List:RemoveLine( k ) continue end
     local rank = orgs.Ranks[ member.RankID ]
+
     l:SetColumnText( 1, player.GetBySteamID64( l.Player ) and '' or ' ' )
     l:SetColumnText( 2, member.Nick )
     l:SetColumnText( 3, rank.Name )
@@ -271,12 +273,12 @@ function PANEL:Init()
     end
     perms = string.Implode( ',', perms )
 
-    tab.Perms = perms ~= self.Player.Perms and perms or nil
+    tab.Perms = perms ~= ( self.Player.Perms or '' ) and perms or nil
 
     local sal = tonumber( self.Salary:GetText() )
     tab.Salary = sal and sal ~= self.Player.Salary
       and math.floor( sal )
-      or 0
+      or nil
 
     tab.RankID = self.Rank.Value ~= self.Player.RankID and self.Rank.Value or nil
 
@@ -400,7 +402,6 @@ function PANEL:Init()
 
     toPly = player.GetBySteamID64( to )
     netmsg.Send( 'orgs.Menu.Members.Invite', {to} ) ( function( tab )
-      print( tab[1])
       if tab[1] then
         orgs.Menu:SetError( 'Couldn\'t invite because ' ..orgs.InviteFails[tab[1]] )
       else

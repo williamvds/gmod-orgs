@@ -142,38 +142,6 @@ function PANEL:SetActiveTab( id )
     new.Panel:Show()
     new.Panel:AlphaTo( alpha2, .075, 0 )
   end
-  -- TODO: Transitional animations
-  -- Possibly do logic in the TabMenu's Think hook instead of using in-built methods?
-
-  -- if instant then
-  --   new.Panel:Dock( FILL )
-  --   new.Panel:Show()
-  -- else
-
-  --   local dir = self.ActiveTab > id and LEFT or RIGHT
-
-  --   old.Panel:Stop()
-  --   old.Panel:MoveTo( old.Panel:GetWide() +10, self.y, 2, _, _,
-  --     function()
-
-  --       old.Panel:Hide()
-
-  --   end )
-
-  --   if new.Panel.m_AnimList and #new.Panel.m_AnimList > 0 then
-  --     new.Panel:Stop()
-  --   else
-  --     new.Panel:Dock( NODOCK )
-  --     new.Panel:SetSize( self.Body:GetWide() -20, self.Body:GetTall() -10 )
-  --     new.Panel.x = -new.Panel:GetWide()
-  --     new.Panel:Show()
-  --   end
-
-  --   new.Panel:MoveTo( 10, new.Panel.y, 2, .1, _, function()
-  --     new.Panel:Dock( FILL )
-  --   end )
-
-  -- end
 
 end
 

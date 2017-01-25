@@ -361,7 +361,7 @@ orgs.addOrg = function( tab, ply, done )
     if err then return end
 
     local new = {Balance= 0, Color= '255,255,255', Type= 1, OrgID= orgID, Public= false, Members= 0,
-      Forming= true, Loaded= true}
+      Rank= #netmsg.safeTable( orgs.List, true ), Forming= true, Loaded= true}
     table.Merge( new, tab )
 
     orgs.List[orgID] = new
@@ -665,13 +665,25 @@ orgs.updateOrg = function( orgID, tab, ply, done )
   end
 
   -- Pre-emptively update balance before query
-  local balanceDelta = tab.Balance -org.Balance
-  if tab.Balance then org.Balance = tab.Balance end
+  local balanceDelta
+  if tab.Balance then
+    balanceDelta = tab.Balance -org.Balance
+    org.Balance = tab.Balance
+  end
 
   provider.updateOrg( orgID, tab, function( data, err )
     if err then
       org.Balance = org.Balance -balanceDelta
       return
+    end
+
+    if tab.Balance then
+      -- TODO: Don't resort entire list? Take into account hidden orgs
+      local rank, copy = 1, netmsg.safeTable( orgs.List, true )
+      for k, v in SortedPairsByMemberValue( copy, 'Rank', true ) do
+        orgs.List[v.OrgID].Rank = rank
+        rank = rank +1
+      end
     end
 
     if not orgs.List[orgID].Forming then
@@ -709,6 +721,7 @@ orgs.getAllOrgs = function( done )
     if err then LogError( false, 'Couldn\'t load organisation list!' ) return end
 
     for k, v in pairs( data ) do
+      v.Rank = k
       orgs.List[v.OrgID] = v
       orgs.getOrgMembers( v.OrgID )
     end

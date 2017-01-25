@@ -75,21 +75,11 @@ function PANEL:BuildStats()
     self.Stats:orgs_BGR( orgs.C_DARKBLUE )
 
     self.StatTab = {
-      { label = 'RANK', func = function()
-        local tab = netmsg.safeTable( orgs.List, true )
-
-        local rank = 0
-        for k, v in SortedPairsByMemberValue( tab, 'Balance', true ) do
-          rank = rank +1
-          if v.OrgID == self.Org.OrgID then return tostring( rank ) end
-        end
-
-        return '0'
-      end },
+      { label = 'RANK', func = function() return self.Org.Rank end },
       { label = 'BALANCE', func = function()
         return orgs.FormatCurrencyShort( self.Org.Balance )
       end },
-      { label = 'MEMBERS', func = function() return table.Count( orgs.Members ) -1 end },
+      { label = 'MEMBERS', func = function() return self.Org.Members end },
     }
 
     for k, stat in pairs( self.StatTab ) do

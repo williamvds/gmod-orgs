@@ -90,8 +90,7 @@ hook.Add( 'DarkRPFinishedLoading', 'orgs.DarkRPCompat', function()
 end )
 
 orgs.List.__subFilter = function( tab, ply, k, v )
-  if v == nil then return v end
-  if k == 'Bulletin' and tab.OrgID ~= ply:orgs_Org(0) then return end
+  if ( k == 'Bulletin' or k == 'Balance' ) and tab.OrgID ~= ply:orgs_Org(0) then return end
   return v
 end
 netmsg.NetworkTable( orgs.List, 'orgs.List' )

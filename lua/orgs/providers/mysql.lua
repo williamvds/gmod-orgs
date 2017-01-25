@@ -272,13 +272,13 @@ end
 
 PROVIDER.getAllOrgs = function( done )
   PROVIDER._sendQuery( [[SELECT orgs.*, ( SELECT COUNT(*) FROM players WHERE OrgID = orgs.OrgID )
-    AS Members FROM orgs;]], {}, done )
+    AS Members FROM orgs ORDER BY Balance DESC;]], {}, done )
 end
 
 db.onConnected = function()
+  PROVIDER.Failed = false
   if PROVIDER.DoneFirstConnect then return end
 
-  PROVIDER.Failed = false
   orgs.Log( true, 'Connected to database; running setup queries ...' )
   for k, sql in pairs( string.Explode( ';', setupQuery ) ) do
     PROVIDER._sendQuery( sql ..';' )

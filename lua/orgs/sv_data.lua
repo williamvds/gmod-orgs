@@ -3,20 +3,23 @@ if not file.Exists( 'orgs/providers/'.. orgs.Provider ..'.lua', 'LUA' ) then
   orgs.Provider = 'sqlite'
 end
 
-orgs._Provider = orgs._Provider or include( 'providers/'.. orgs.Provider ..'.lua' )
-if not orgs._Provider or ( orgs._Provider and orgs._Provider.Failed ) then
-  orgs._Provider = include 'providers/sqlite.lua'
+local provider = provider or include( 'providers/'.. orgs.Provider ..'.lua' )
+if not provider or ( provider and provider.Failed ) then
+  provider = include 'providers/sqlite.lua'
 end
+if orgs.Debug then orgs._Provider = provider end
 
 local function getID( var )
   return isentity( var ) and var:SteamID64() or var
 end
 
+orgs.ProviderFailed = function() return provider.Failed end
+
 -- Events
 
 orgs.addEvent = function( type, tab, done )
   local copy = table.Copy( tab )
-  orgs._Provider.addEvent( type, copy, function( id )
+  provider.addEvent( type, copy, function( id )
     tab.EventID = id
     orgs.Events[id] = tab
     if done then done( id ) end
@@ -28,11 +31,11 @@ end
 orgs.addInvite = function( to, from, done )
   if not isentity( from ) then from = player.GetBySteamID64( from ) end
 
-  local steamID, steamID2, org = getID( to ), getID( from ), from:orgs_Org(0)
+  local steamID, steamID2, orgID = getID( to ), getID( from ), from:orgs_Org(0)
   if not to or not from --[[or from == to]] then -- TODO Readd check
     -- From/to not specified or same person
     return 1
-  elseif not org or not from:orgs_Has( orgs.PERM_INVITE ) then
+  elseif not orgID or not from:orgs_Has( orgs.PERM_INVITE ) then
     -- From player cannot invite
     return 2
   else
@@ -59,7 +62,7 @@ orgs.removeInvite = function( id, ply )
   end
 
   local ply2 = orgs.Invites[id].To
-  orgs._Provider.removeInvite( id, function( _, err )
+  provider.removeInvite( id, function( _, err )
     if err then return end
 
     orgs.LogEvent( orgs.EVENT_INVITE_WITHDRAWN,
@@ -69,7 +72,7 @@ orgs.removeInvite = function( id, ply )
 end
 
 orgs.getOrgInvites = function( id, done )
-  orgs._Provider.getOrgInvites( id, function( data, err )
+  provider.getOrgInvites( id, function( data, err )
     if err then return end
 
     for k, inv in pairs( data ) do
@@ -79,7 +82,7 @@ orgs.getOrgInvites = function( id, done )
 end
 
 orgs.getPlayerInvites = function( id, done )
-  orgs._Provider.getPlayerInvites( id, function( data, err )
+  provider.getPlayerInvites( id, function( data, err )
     if err then return end
 
     for k, inv in pairs( data ) do
@@ -95,13 +98,13 @@ end
 orgs.getPlayer = function( ply, done )
 
   local steamID = getID( ply )
-  if not orgs._Provider.Failed then
+  if not provider.Failed then
     orgs.Log( true, 'Fetching information for ', '%s [%s]' %{ ply:Nick(), steamID } )
   end
 
   orgs.getPlayerInvites( steamID )
 
-  orgs._Provider.getPlayer( steamID, function( data, err )
+  provider.getPlayer( steamID, function( data, err )
     if not data then orgs.addPlayer( IsValid( ply ) and ply or steamID ) return end
     if err then return end -- TODO: Add an error message of some sort?
 
@@ -134,12 +137,12 @@ hook.Add( 'PlayerInitialSpawn', 'orgs.GetPlayerInfo', orgs.getPlayer )
 -- Given: player, function callback
 orgs.addPlayer = function( ply, done )
 
-  if not orgs._Provider.Failed then
+  if not provider.Failed then
     orgs.Log( true, 'Storing player info for ', isentity( ply )
     and '%s [%s]' %{ply:Nick(), ply:SteamID64()} or ply )
   end
 
-  orgs._Provider.addPlayer( getID( ply ), isentity( ply ) and IsValid( ply )
+  provider.addPlayer( getID( ply ), isentity( ply ) and IsValid( ply )
     and ply:Nick() or '???',
   function( data, err )
     if done then done( data, err ) end
@@ -239,7 +242,7 @@ orgs.updatePlayer = function( ply, tab, ply2, done )
     tab.RankID = NULL; tab.Perms = NULL; tab.Salary = NULL
   end
 
-  orgs._Provider.updatePlayer( steamID, tab, function( data, err )
+  provider.updatePlayer( steamID, tab, function( data, err )
     local ply = player.GetBySteamID64( steamID )
     if err then
       orgs.Log( true, 'Failed to update player ', IsValid( ply ) and ply:Nick() or steamID )
@@ -354,7 +357,7 @@ orgs.addOrg = function( tab, ply, done )
     if k ~= 'Name' and k ~= 'Public' then return 2 end
   end
 
-  orgs._Provider.addOrg( tab, function( orgID, err )
+  provider.addOrg( tab, function( orgID, err )
     if err then return end
 
     local new = {Balance= 0, Color= '255,255,255', Type= 1, OrgID= orgID, Public= false, Members= 0,
@@ -386,7 +389,7 @@ orgs.removeOrg = function( orgID )
 
   orgs.Log( false, 'Removing organisation ', orgID )
 
-  orgs._Provider.removeOrg( orgID, function()
+  provider.removeOrg( orgID, function()
     orgs.getOrgMembers( orgID, function( data )
       for k, ply in pairs( data ) do orgs.updatePlayer( data.SteamID,
         {OrgID= NULL, RankID= NULL, Salary= NULL, Perms= NULL} )
@@ -401,7 +404,7 @@ end
 
 orgs.getOrgMembers = function( orgID, done )
 
-  orgs._Provider.getOrgMembers( orgID, function( data, err )
+  provider.getOrgMembers( orgID, function( data, err )
     if err then return end
 
     for k, v in pairs( data ) do orgs.Members[ v.SteamID ] = v end
@@ -445,7 +448,7 @@ orgs.addRank = function( orgID, tab, ply, done )
   tab.OrgID = orgID
 
   local steamID = getID( ply )
-  orgs._Provider.addRank( orgID, tab, function( rankID, err )
+  provider.addRank( orgID, tab, function( rankID, err )
     if err then return end
 
     tab.RankID = rankID
@@ -502,7 +505,7 @@ orgs.updateRank = function( rankID, tab, ply, done )
     end
   end
 
-  orgs._Provider.updateRank( rankID, tab, function( _, err )
+  provider.updateRank( rankID, tab, function( _, err )
     if err then return end
 
     for k, v in pairs( tab ) do
@@ -543,7 +546,7 @@ orgs.removeRank = function( rankID, ply, done )
     orgs.updatePlayer( mem.SteamID, {RankID= orgs.List[orgID].DefaultRank}, steamID )
   end
 
-  orgs._Provider.removeRank( rankID, function( data, err )
+  provider.removeRank( rankID, function( data, err )
     orgs.LogEvent( orgs.EVENT_RANK_REMOVED,
       {ActionBy= steamID, OrgID= orgID, ActionValue= orgs.Ranks[rankID].Name} )
       orgs.Ranks[rankID] = nil
@@ -552,7 +555,7 @@ orgs.removeRank = function( rankID, ply, done )
 end
 
 orgs.getOrgRanks = function( orgID, done )
-  orgs._Provider.getOrgRanks( orgID, function( data, err )
+  provider.getOrgRanks( orgID, function( data, err )
     if err then return end
 
     for k, rank in pairs( data ) do orgs.Ranks[rank.RankID] = rank end
@@ -665,7 +668,7 @@ orgs.updateOrg = function( orgID, tab, ply, done )
   local balanceDelta = tab.Balance -org.Balance
   if tab.Balance then org.Balance = tab.Balance end
 
-  orgs._Provider.updateOrg( orgID, tab, function( data, err )
+  provider.updateOrg( orgID, tab, function( data, err )
     if err then
       org.Balance = org.Balance -balanceDelta
       return
@@ -694,7 +697,7 @@ orgs.updateOrg = function( orgID, tab, ply, done )
 end
 
 orgs.getOrgEvents = function( orgID, done )
-  orgs._Provider.getOrgEvents( orgID, function( data, err )
+  provider.getOrgEvents( orgID, function( data, err )
     for k, event in pairs( data ) do
       orgs.Events[event.EventID] = event
     end
@@ -702,7 +705,7 @@ orgs.getOrgEvents = function( orgID, done )
 end
 
 orgs.getAllOrgs = function( done )
-  orgs._Provider.getAllOrgs( function( data, err )
+  provider.getAllOrgs( function( data, err )
     if err then LogError( false, 'Couldn\'t load organisation list!' ) return end
 
     for k, v in pairs( data ) do

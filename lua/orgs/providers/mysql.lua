@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS players(
   RankID bigint UNSIGNED,
   Perms varchar( 15 ),
   Salary int,
-  CONSTRAINT FOREIGN KEY ( OrgID ) REFERENCES Orgs( OrgID )
+  CONSTRAINT FOREIGN KEY ( OrgID ) REFERENCES orgs( OrgID )
     ON DELETE SET NULL
 );
 CREATE TABLE IF NOT EXISTS ranks(
@@ -58,7 +58,7 @@ CREATE TABLE IF NOT EXISTS ranks(
   BankLimit bigint,
   BankCooldown bigint,
   Immunity smallint,
-  CONSTRAINT FOREIGN KEY ( OrgID ) REFERENCES Orgs( OrgID )
+  CONSTRAINT FOREIGN KEY ( OrgID ) REFERENCES orgs( OrgID )
     ON DELETE CASCADE
 );
 CREATE TABLE IF NOT EXISTS events(
@@ -75,18 +75,20 @@ CREATE TABLE IF NOT EXISTS invites(
   OrgID bigint UNSIGNED,
   `From` bigint UNSIGNED NOT NULL,
   `To` bigint UNSIGNED NOT NULL,
-  CONSTRAINT FOREIGN KEY ( OrgID ) REFERENCES Orgs( OrgID )
+  CONSTRAINT FOREIGN KEY ( OrgID ) REFERENCES orgs( OrgID )
     ON DELETE CASCADE
 );
 SET FOREIGN_KEY_CHECKS = 1
 ]] %{orgs.MaxNameLength, orgs.MaxTagLength, orgs.MaxMottoLength, orgs.MaxBulletinLength}
 
-PROVIDER.orgsTable = TruthTable{'Type','Name','Tag','Motto','Bulletin','Balance','DefaultRank',
-  'Color', 'Public'}
-PROVIDER.playersTable = TruthTable{'SteamID','Nick','OrgID','RankID','Perms','Salary'}
-PROVIDER.ranksTable = TruthTable{'OrgID','Name','Perms','BankLimit','BankCooldown','Immunity'}
-PROVIDER.eventsTable = TruthTable{'OrgID','Type','ActionBy','ActionValue','ActionAgainst','Time'}
-PROVIDER.invitesTable = TruthTable{'OrgID','From','To'}
+local tables = {
+  orgs     = TruthTable{'Type','Name','Tag','Motto','Bulletin','Balance','DefaultRank',
+    'Color', 'Public'},
+  players  = TruthTable{'SteamID','Nick','OrgID','RankID','Perms','Salary'},
+  ranks    = TruthTable{'OrgID','Name','Perms','BankLimit','BankCooldown','Immunity'},
+  events   = TruthTable{'OrgID','Type','ActionBy','ActionValue','ActionAgainst','Time'},
+  invites  = TruthTable{'OrgID','From','To'},
+}
 
 --   Helpers
 local function qmarks( tab, update, name )
@@ -143,7 +145,7 @@ end
 PROVIDER.insert = function( name, tab, done )
 
   for k, v in pairs( tab ) do
-    if not PROVIDER[ name ..'Table' ][k] then tab[k] = nil end
+    if not tables[name][k] then tab[k] = nil end
   end
   local cols, qs = columns( tab, name ), qmarks( tab )
   tab = table.ClearKeys( tab )
@@ -151,10 +153,9 @@ PROVIDER.insert = function( name, tab, done )
   PROVIDER._sendQuery( 'INSERT INTO %s( %s ) VALUES( %s );' %{name, cols, qs}, tab, done )
 end
 
-
 PROVIDER.update = function( name, tab, where, whereParams, done )
   for k, v in pairs( tab ) do
-    if not PROVIDER[ name ..'Table' ][k] then tab[k] = nil end
+    if not tables[name][k] then tab[k] = nil end
   end
   local qs = qmarks( tab, true, name )
 
@@ -296,6 +297,8 @@ end
 
 -- For Lua autoreload
 if orgs._Provider and orgs._Provider.Name == PROVIDER.Name then
+  PROVIDER.DoneFirstConnect = orgs._Provider.DoneFirstConnect
   orgs._Provider = PROVIDER
+  db:connect()
 end
 return PROVIDER

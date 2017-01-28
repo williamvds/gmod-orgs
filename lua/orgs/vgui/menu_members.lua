@@ -105,12 +105,6 @@ function PANEL:Init()
 
   self.List.OnRowRightClick = function( self, id, line )
 
-    if line.Player ~= LocalPlayer():SteamID64()
-    and orgs.Ranks[orgs.Members[line.Player].RankID].Immunity
-    >= LocalPlayer():orgs_Rank().Immunity then
-      return
-    end
-
     self.Popup = DermaMenu( self )
     self.Popup:orgs_BGR( orgs.C_WHITE )
 

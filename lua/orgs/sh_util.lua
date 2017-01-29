@@ -104,10 +104,10 @@ local postfixes = {'K','M','B','T','QD','QT'}
 orgs.FormatCurrencyShort = function( amt, len )
   amt = tonumber( amt )
   if not amt then return end
+  len = len or 6
 
   local str = orgs.CurrencySymbolLeft and orgs.CurrencySymbol or ''
 
-  len = len or 3
   local k = 1
   while k < #postfixes and amt /(1000 ^k) >= 1 do
     k = k +1
@@ -115,10 +115,9 @@ orgs.FormatCurrencyShort = function( amt, len )
 
   local val = amt /(1000 ^(k -1))
   local valLen = tostring( math.floor(val) ):len()
-  str = str.. ( '%.'.. math.Clamp( 5 -valLen - string.len( orgs.CurrencySymbol ), 0, 2 ) ..'f%s' )
-  %{ math.Round( val, 2 ), postfixes[k-1] or '' }
-
-  --str = str.. '%s%s' %{ math.Round(amt /(1000 ^(#postfixes)), dec), postfixes[#postfixes] }
+  str = str.. ( '%.'.. ( len -valLen -orgs.CurrencySymbol:len() -( postfixes[k-1] or '' ):len() > 2
+    and '2' or '0' ) ..'f%s' )
+    %{ math.Round( val, 2 ), postfixes[k-1] or '' }
 
   return str.. ( not orgs.CurrencySymbolLeft and orgs.CurrencySymbol or '' )
 end

@@ -10,7 +10,7 @@ function PANEL:Init()
   self.NoGroups:Hide()
 
   self.List = self:Add( 'DListView' )
-  self.List:orgs_Dock( FILL, {l=-1,r=-3} )
+  self.List:orgs_Dock( FILL, {l=-1,r=-1} )
   self.List:SetHeaderHeight( 25 )
   self.List:SetDataHeight( 65 )
   self.List:orgs_BGR( orgs.C_NONE )
@@ -28,26 +28,22 @@ function PANEL:Init()
     c.Header:orgs_BGR( orgs.C_DARKBLUE )
   end
 
+  self.List.Columns[2]:SetWidth( -100 )
+
   self:Update()
 end
 
-function PANEL:AddLine( rank, org )
+function PANEL:AddLine( org )
 
   local l = vgui.GetControlTable( 'DListView' ).AddLine( self.List,
-    rank, org.Name, org.Members, '' )
+    org.Rank, org.Name, org.Members, '' )
   l.OrgID = org.OrgID
 
-  l.Columns[1]:orgs_SetText( nil, 'orgs.Large', orgs.C_WHITE )
-  l.Columns[1]:SetContentAlignment( 5 )
-  l.Columns[1]:Dock( LEFT )
-
-  l.Columns[2]:orgs_SetText( nil, 'orgs.Large', orgs.C_WHITE )
-  l.Columns[2]:SetContentAlignment( 5 )
-  l.Columns[2]:Dock( FILL )
-
-  l.Columns[3]:orgs_SetText( nil, 'orgs.Large', orgs.C_WHITE )
-  l.Columns[3]:SetContentAlignment( 5 )
-  l.Columns[3]:Dock( RIGHT )
+  for i= 1, 3 do
+    l.Columns[i]:orgs_SetText( nil, 'orgs.Large', orgs.C_WHITE )
+    l.Columns[i]:SetContentAlignment( 5 )
+    l.Columns[i]:Dock( i < 2 and LEFT or i < 3 and FILL or RIGHT )
+  end
 
   l.Motto = l:orgs_AddLabel( nil, 'orgs.Medium' )
   l.Motto:orgs_Dock( BOTTOM, {u=2,d=5} )
@@ -63,7 +59,7 @@ function PANEL:AddLine( rank, org )
   l.Join = l.JoinPanel:Add( 'DButton' )
   l.Join:orgs_SetText( 'Join', 'orgs.Medium', orgs.C_WHITE )
   l.Join:orgs_BGR( orgs.C_DARKBLUE, orgs.C_BLUE )
-  l.Join:orgs_Dock( FILL, {l=22,r=22,u=17,d=17 } )
+  l.Join:orgs_Dock( FILL, {l=22,r=22,u=17,d=17} )
   l.Join.DoClick = function( p )
     netmsg.Send( 'orgs.JoinMenu_Join.Join', {org.OrgID} ) ( function( tab )
       if tab[1] then
@@ -91,9 +87,8 @@ function PANEL:AddLine( rank, org )
 end
 
 function PANEL:Update()
-  local list = netmsg.safeTable( orgs.List, true )
+  local public = netmsg.safeTable( orgs.List, true )
 
-  local public = table.Copy( list )
   for k, v in pairs( public ) do
     if not v.Public then public[k] = nil end
   end
@@ -110,29 +105,26 @@ function PANEL:Update()
     end
   end
 
-
-  local rank = -1
-  for k, org in SortedPairsByMemberValue( list, 'Balance' ) do
-    rank = rank +1
+  for k, org in pairs( public ) do
     local l = self.Lines[org.OrgID]
 
     if not IsValid( l ) then
-      l = self:AddLine( table.Count( list ) -rank, org )
+      l = self:AddLine( org )
 
     else
       l.Columns[2]:SetText( org.Name )
       if org.Motto then
-        l.Motto:SetText( '\'%s\'' %{org.Motto or ''} )
+        l.Motto:SetText( [['%s']] %{org.Motto or ''} )
         l.Motto:Show()
-      end
-      l.Columns[1]:SetText( table.Count( list ) -rank )
+      else l.Motto:Hide() end
+      l.Columns[1]:SetText( org.Rank )
       l.Columns[3]:SetText( org.Members or 0 )
-    end
+     end
 
     if not org.Public then self.List:RemoveLine( l:GetID() ) end
   end
 
-
+  self.List:SortByColumn( 1 )
 end
 
 vgui.Register( 'orgs.JoinMenu_Join', PANEL )

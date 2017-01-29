@@ -214,7 +214,9 @@ function PANEL:Init()
     if k %2 ~= 0 then box:SizeToContents()
     else box:SetWide( 150 ) end
 
-    if self.Rank.RankID then box:SetChecked( string.find( self.Rank.Perms, perm ) ) end
+    if self.Rank.RankID then
+      box:SetChecked( orgs.RankHas( self.Rank.RankID, perm ) )
+    end
     box:SetDisabled( not LocalPlayer():orgs_Has( perm ) )
 
     if k %2 == 0 then l = self:NewLine() end

@@ -102,7 +102,7 @@ function PANEL:BuildStats()
 
   else
     for k, stat in pairs( self.StatTab ) do
-      self.Stats[ stat.label ].Value:SetText( stat.func() )
+      self.Stats[ stat.label ].Value:orgs_SetText( stat.func() )
     end
   end
 

@@ -342,7 +342,7 @@ orgs.addOrg = function( tab, ply, done )
     or tab.Name:gsub( '[%s%c]', '' ) == '' or tab.Name:find( '%c' ) then
     -- Invalid name
     return 7
-  elseif string.len( tab.Name ) > orgs.MaxNameLength then
+  elseif tab.Name:len() > orgs.MaxNameLength then
     -- Name too long
     return 8
   end
@@ -509,7 +509,7 @@ orgs.updateRank = function( rankID, tab, ply, done )
     if err then return end
 
     for k, v in pairs( tab ) do
-      orgs.Ranks[rankID][k] = v == NULL and nil or v
+      rank[k] = v ~= NULL and v or nil
       if rankEvents[k] then
         if v == NULL then v = '' end
         orgs.LogEvent( rankEvents[k],

@@ -147,19 +147,30 @@ function TruthTable( tab )
 end
 
 function orgs.Has( ply, ... )
-  if isentity( ply ) then return ply:orgs_Has( ... ) end
+  if not ply or #{...} < 1 then return false end
 
-  ply = orgs.Members[isentity(ply) and ply:SteamID64() or ply]
-  if not ply then return false end
-  checkPerms, plyPerms = {...}, TruthTable( string.Explode( ',', orgs.Ranks[ply.RankID].Perms ) )
-  if ply.Perms then
-    table.Merge( plyPerms, TruthTable( string.Explode( ',', ply.Perms ) ) )
-  end
-  for k, v in pairs( checkPerms ) do
-    if not v or not plyPerms[tostring(v)] then return false end
+  ply = orgs.Members[isentity( ply ) and ply:SteamID64() or ply]
+  if not ply then return end
+
+  plyPerms = TruthTable( string.Explode( ',', ply.Perms or '' ) )
+  local hasPerms = true
+  for k, v in pairs( {...} ) do
+    if not v or not plyPerms[tostring(v)] then hasPerms = false end
   end
 
-  return #checkPerms > 0 -- In case an invalid permission is given
+  return hasPerms or orgs.RankHas( ply.RankID, ... )
+end
+
+function orgs.RankHas( rank, ... )
+  local rank = orgs.Ranks[rank]
+  if not rank or #{...} < 1 then return false end
+
+  rankPerms = TruthTable( string.Explode( ',', rank.Perms or '' ) )
+  for k, v in pairs( {...} ) do
+    if not v or not rankPerms[tostring(v)] then return false end
+  end
+
+  return true
 end
 
 local player = FindMetaTable( 'Player' )
@@ -181,16 +192,7 @@ function player:orgs_Rank( id )
 end
 
 function player:orgs_Has( ... )
-  local rank = self:orgs_Rank()
-  if not rank then return false end
+  if not self:orgs_Org(0) then return false end
 
-  checkPerms, plyPerms = {...}, TruthTable( string.Explode( ',', rank.Perms ) )
-  if self:orgs_Info().Perms then
-    table.Merge( plyPerms, TruthTable( string.Explode( ',', self:orgs_Info().Perms ) ) )
-  end
-  for k, v in pairs( checkPerms ) do
-    if not v or not plyPerms[tostring(v)] then return false end
-  end
-
-  return #checkPerms > 0 -- In case an invalid permission is given
+  return orgs.Has( self, ... )
 end

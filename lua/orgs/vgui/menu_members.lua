@@ -198,10 +198,8 @@ function PANEL:Init()
   self.Rank.OnSelect = function( p, id )
     for k, v in pairs( orgs.PermCheckboxes ) do
       local box, perm = self[v[1]], orgs['PERM_'.. string.upper( v[1] )]
-      box:SetChecked( string.find( orgs.Ranks[p.Value].Perms or '', perm )
-       or ( self.Player.Perms and string.find( self.Player.Perms, perm ) ) )
-      box:SetDisabled( string.find( orgs.Ranks[p.Value].Perms or '', perm )
-        or not LocalPlayer():orgs_Has( perm ) )
+      box:SetChecked( orgs.RankHas( p.Value, perm ) or orgs.Has( orgs._managePlayer, perm ) )
+      box:SetDisabled( orgs.RankHas( p.Value, perm ) or not orgs.Has( LocalPlayer(), perm ) )
     end
   end
 

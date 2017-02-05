@@ -68,7 +68,7 @@ CREATE TABLE IF NOT EXISTS events(
   ActionBy bigint UNSIGNED,
   ActionValue varchar( 100 ),
   ActionAgainst bigint UNSIGNED,
-  Time int( 32 )
+  Time datetime
 );
 CREATE TABLE IF NOT EXISTS invites(
   InviteID int( 8 ) PRIMARY KEY AUTO_INCREMENT,

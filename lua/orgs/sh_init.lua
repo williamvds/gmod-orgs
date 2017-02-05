@@ -112,6 +112,14 @@ orgs.Events.__filter = function( tab, ply, k, v )
   return v
 end
 
+orgs.Invites.__filter = function( tab, ply, k, v )
+  if ply:SteamID64() ~= tab.To
+  and not ( ply:orgs_Org(0) == tab.OrgID and ply:orgs_Has( orgs.PERM_KICK ) ) then
+    return
+  end
+
+  return v
+end
 netmsg.NetworkTable( orgs.Invites, 'orgs.Invites' )
 
 if CLIENT then

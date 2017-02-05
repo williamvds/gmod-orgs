@@ -19,7 +19,7 @@ end
 
 function netmsg.safeTable( tab, clean )
   local newTab = {}
-  table.Merge( newTab, getmetatable( tab ) and tab.__tab or tab )  -- Prevents copying metatable
+  table.Merge( newTab, tab.__tab or tab )  -- Prevents copying metatable
 
   if clean then
     newTab.__tabID = nil
@@ -29,7 +29,7 @@ function netmsg.safeTable( tab, clean )
 
   for k, v in pairs( newTab ) do
     if isfunction( v ) then newTab[k] = nil end
-    if istable( v ) then newTab[k] = netmsg.safeTable( getmetatable(v) and v.__tab or v ) end
+    if istable( v ) then newTab[k] = netmsg.safeTable( v.__tab or v ) end
   end
 
   return newTab
@@ -99,6 +99,9 @@ if SERVER then
   netmsg.METATABLE = {
     __newindex = function( self, key, value )
       local oldValue = rawget( netmsg.Tables[self.__tabID], key )
+
+      if value == oldValue then return end
+
       if value == nil and istable( oldValue ) and oldValue.__tabID then
         for k, v in pairs( netmsg.Tables ) do
           if string.StartWith( k, oldValue.__tabID ..'.' ) then netmsg.Tables[k] = nil end
@@ -111,6 +114,7 @@ if SERVER then
 
       if istable( value ) and not iscolor( value ) and not isvector( v ) then
         -- Subtables need to be networked, and be given the parent's filter
+        value.__parent = self.__tabID
         value.__filter = self.__subFilter
         netmsg.NetworkTable( value, self.__tabID ..'.'.. key, nil, self.__tabID, key )
         return
@@ -208,6 +212,7 @@ if SERVER then
   netmsg.Receive( 'netmsg.NWSync', function( _, ply )
     ply:SyncNWVars()
     for k, tab in pairs( netmsg.Tables ) do
+      if tab.__parent then continue end
       netmsg.SyncTable( tab, ply )
     end
     timer.Simple( .1, function() netmsg.Call( ply, 'netmsg.TableSyncDone' ) end )
@@ -217,29 +222,43 @@ if SERVER then
     netmsg.Send( 'netmsg.Call', { name= name, args= {...} }, plys )
   end
 
+  -- Recursively apply filtering to a table for a specific player
+  local function filterTable( tab, ply )
+    local filtered = {}
+    table.Merge( filtered, tab.__tab or tab )
+
+    for k, v in pairs( netmsg.safeTable( tab, true ) ) do
+      if tab.__filter then filtered[k] = tab:__filter( ply, k, v ) end
+      if istable( tab[k] ) and tab[k].__filter then filtered[k] = filterTable( tab[k], ply ) end
+    end
+
+    return filtered
+  end
+
+  -- Sync a table to a player so they have all the correct data
   function netmsg.SyncTable( tab, plys, parent, key )
     if not tab.__tabID then
       Error( '[NET] SyncTable given table with no network identifier' )
-      --PrintTable( tab )
       return
     end
 
-    if tab.__filter then
-      local safeTab = netmsg.safeTable( tab, true )
-      for k, ply in pairs( plys and (istable(plys) and plys or {plys}) or player.GetAll() ) do
-        local sendTab = netmsg.safeTable( tab )
-        for k, v in pairs( safeTab ) do
-          if tab.__filter then sendTab[k] = tab:__filter( ply, k, v ) end
-        end
+    plys = plys and ( istable(plys) and plys or {plys} ) or player.GetAll()
+    if tab.__filter or tab.__subFilter then
+      for k, ply in pairs( plys ) do
+
+        local sendTab = filterTable( tab, ply )
+        sendTab = netmsg.safeTable( sendTab )
 
         netmsg.Send( 'netmsg.SyncTable', parent
-          and {tab= netmsg.safeTable(sendTab), p= parent, k= key, __hasParent= true}
-          or netmsg.safeTable(sendTab), ply )
+          and {tab= sendTab, p= parent, k= key, __hasParent= true}
+          or sendTab, ply )
       end
 
-    else netmsg.Send( 'netmsg.SyncTable', parent
-      and {tab= netmsg.safeTable( tab ), p= parent, k= key, __hasParent= true}
-      or netmsg.safeTable( tab ), plys ) end
+    else
+      netmsg.Send( 'netmsg.SyncTable', parent
+        and {tab= netmsg.safeTable( tab ), p= parent, k= key, __hasParent= true}
+        or netmsg.safeTable( tab ), plys )
+    end
   end
 
 end

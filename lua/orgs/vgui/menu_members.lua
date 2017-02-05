@@ -322,23 +322,23 @@ function PANEL:Init()
 
   self.Desc = self.Body:orgs_AddLabel( 'Invite a player to join the group',
     'orgs.Small', orgs.C_WHITE )
-  self.Desc:Dock( TOP, {u=5} )
+  self.Desc:Dock( TOP, {u=5,d=5} )
   self.Desc:SetContentAlignment(5)
 
   l = self:NewLine()
 
   self.PlayerLabel = l:orgs_AddLabel( 'Select player', 'orgs.Medium', orgs.C_WHITE )
   self.PlayerLabel:Dock( LEFT )
-  self.PlayerLabel:SetWide( 100 )
+  self.PlayerLabel:SetWide( 105 )
   self.PlayerLabel:SetContentAlignment( 6 )
 
   self.Player = l:Add( 'orgs.ComboBox' )
   self.Player:orgs_Dock( LEFT, {l=15} )
-  self.Player:SetWide( 175 )
-  self.Player:AddOption( 'Send by Steam ID', -1, '\0' )
+  self.Player:SetWide( 185 )
+  self.Player:AddOption( 'Send by Steam ID', -1, 0 )
   self.Player:Select(1)
-  for k, ply in pairs( player.GetAll() ) do
-    --if orgs.Members[ply:SteamID64()] then continue end -- TODO readd check
+  for k, ply in pairs( player.GetHumans() ) do
+    if orgs.Members[ply:SteamID64()] then continue end
     self.Player:AddOption( ply:Nick(), ply:SteamID64(), ply:Nick() )
   end
   self.Player.OnSelect = function( p )
@@ -352,9 +352,9 @@ function PANEL:Init()
 
   self.SteamIDLine = self:NewLine()
 
-  self.SteamIDLabel = self.SteamIDLine:orgs_AddLabel( 'SteamID', 'orgs.Medium', orgs.C_WHITE )
+  self.SteamIDLabel = self.SteamIDLine:orgs_AddLabel( 'Steam ID', 'orgs.Medium', orgs.C_WHITE )
   self.SteamIDLabel:Dock( LEFT )
-  self.SteamIDLabel:SetWide( 100 )
+  self.SteamIDLabel:SetWide( 105 )
   self.SteamIDLabel:SetContentAlignment( 6 )
 
   self.SteamID = self.SteamIDLine:Add( 'DTextEntry' )

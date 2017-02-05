@@ -22,7 +22,7 @@ orgs.CurrencySymbolLeft = true
 
 -- More detailed logging
 if SERVER then
-  orgs.Debug = true 
+  orgs.Debug = true
 end
 
 -- Time (in minutes) between salary payments
@@ -193,7 +193,7 @@ orgs.EventStrings = {
 
   -- Invite
   [orgs.EVENT_INVITE] = '[ActionAgainst] was invited to [OrgID] by [ActionBy]',
-  [orgs.EVENT_INVITE_WITHDRAWN] = '[ActionAgainst]\'s invitation to [OrgID] was'
+  [orgs.EVENT_INVITE_WITHDRAWN] = '[ActionAgainst]\'s invitation to [OrgID] was '
     ..'withdrawn by [ActionBy]',
 
   -- Member

@@ -185,8 +185,8 @@ end
 
 -- Invite helpers
 
-PROVIDER.addInvite = function( to, from, done )
-  PROVIDER.insert( 'invites', {To= to, From= from}, function( d, e, q )
+PROVIDER.addInvite = function( to, from, orgID, done )
+  PROVIDER.insert( 'invites', {To= to, From= from, OrgID= orgID}, function( d, e, q )
     if done then done( d, e, q:lastInsert() ) end
   end )
 end

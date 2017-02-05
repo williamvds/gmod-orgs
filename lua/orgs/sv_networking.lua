@@ -75,6 +75,10 @@ netmsg.Receive( 'orgs.Menu.Members.Invite', function( tab, ply )
 
   if err then netmsg.Respond( err ) end
 end )
+
+netmsg.Receive( 'orgs.Menu.Members.RemoveInvite', function( tab, ply )
+  local err = orgs.removeInvite( tab[1], ply, function( _, err )
+    netmsg.Send( 'orgs.Menu.Members.RemoveInvite', err and true or false, ply )
   end )
 
   if err then netmsg.Respond( err ) end

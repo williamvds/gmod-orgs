@@ -71,6 +71,7 @@ orgs.addInvite = function( to, from, done )
     for k, inv in pairs( netmsg.safeTable( orgs.Invites, true ) ) do
       if inv.OrgID == orgID and inv.To == steamID then
         return 4
+      end
     end
   end
 
@@ -85,14 +86,28 @@ orgs.addInvite = function( to, from, done )
 end
 
 orgs.removeInvite = function( id, ply )
-  local orgID = ply:orgs_Org(0)
-  if not orgID or not ply:orgs_Has( PERM_KICK ) or orgID ~= orgs.Invites[id].OrgID then
+  if not id or not orgs.Invites[id] then
+    -- Invite does not exist
     return 1
+  end
+
+  local orgID
+  if IsValid( ply ) and isentity( ply ) then
+    orgID = ply:orgs_Org(0)
+    if not orgID
+    or ( ply and not ply:orgs_Has( orgs.PERM_KICK ) or orgID ~= orgs.Invites[id].OrgID ) then
+      -- Player can't withdraw that invite
+      return 2
+    end
   end
 
   local ply2 = orgs.Invites[id].To
   provider.removeInvite( id, function( _, err )
     if err then return end
+
+    orgs.Invites[id] = nil
+
+    if not ply then return end
 
     orgs.LogEvent( orgs.EVENT_INVITE_WITHDRAWN,
       {ActionBy= ply, ActionAgainst= ply2, OrgID= orgID } )
@@ -144,8 +159,10 @@ orgs.getPlayer = function( ply, done )
     if data.OrgID then
       if IsValid( ply ) then
         ply:SetNWVar( 'orgs.OrgID', data.OrgID )
+        netmsg.SyncTable( orgs.List[data.OrgID], ply )
         netmsg.SyncTable( orgs.Members, ply )
         netmsg.SyncTable( orgs.Ranks, ply )
+        netmsg.SyncTable( orgs.Events, ply )
       end
       if not orgs.List[data.OrgID].Loaded then
         orgs.loadOrg( data.OrgID )
@@ -188,10 +205,12 @@ orgs.updatePlayer = function( ply, tab, ply2, done )
   if member then
     for k, v in pairs( tab ) do
       if v == '' then tab[k] = NULL end
-      if ( tab[k] == NULL and nil or tab[k] ) == member[k] then tab[k] = nil continue end
+      if ( tab[k] == NULL and nil or tab[k] ) == member[k] then
+        tab[k] = nil
+        continue
+      end
     end
   end
-
   if table.Count( tab ) < 1 then return 1 end
   tab.Salary = tonumber( tab.Salary )
   tab.Salary = tab.Salary and tab.Salary ~= member.Salary
@@ -231,6 +250,7 @@ orgs.updatePlayer = function( ply, tab, ply2, done )
     end
   end
 
+  local inviteID
   if tab.OrgID and tab.OrgID ~= NULL then
     local org = orgs.List[tab.OrgID]
     if member and member.OrgID then
@@ -242,10 +262,19 @@ orgs.updatePlayer = function( ply, tab, ply2, done )
     elseif org.Members >= orgs.Types[org.Type].MaxMembers then
       -- Target group full
       return 11
-    elseif not org.Forming and not org.Public then
-      -- Not public TODO: check invitations
-      return 12
+    elseif not org.Forming then
+      for k, inv in pairs( netmsg.safeTable( orgs.Invites, true ) ) do
+        if inv.OrgID == tab.OrgID and inv.To == steamID then
+          inviteID = inv.InviteID; break
+        end
+      end
+
+      if not inviteID then
+        -- Not public and does not have invite
+        return 12
+      end
     end
+
   end
 
   if tab.RankID and tab.RankID ~= NULL then
@@ -262,12 +291,11 @@ orgs.updatePlayer = function( ply, tab, ply2, done )
     end
   end
 
-
   if tab.OrgID and tab.OrgID ~= NULL and not tab.RankID or tab.RankID == NULL then
     tab.RankID = orgs.List[ tab.OrgID ].DefaultRank
   end
 
-  if tab.OrgID == NULL and member.OrgID then
+  if tab.OrgID == NULL then
     tab.RankID = NULL; tab.Perms = NULL; tab.Salary = NULL
   end
 
@@ -280,6 +308,10 @@ orgs.updatePlayer = function( ply, tab, ply2, done )
 
     if tab.OrgID then
 
+      -- Remove invite if player had one
+      if inviteID then orgs.removeInvite( inviteID ) end
+
+      -- Alter member count, log join/leave/kick, load org info if not loaded, remove empty orgs
       if tab.OrgID ~= NULL then
         orgs.List[tab.OrgID].Members = orgs.List[tab.OrgID].Members +1
 
@@ -309,21 +341,21 @@ orgs.updatePlayer = function( ply, tab, ply2, done )
 
     end
 
-    -- Merge changes to member table, create it if necessary
-    local member = member and netmsg.safeTable( member, true ) or {}
-    if table.Count( member ) < 1 then
+    -- Merge changes to member table, create or remove it if necessary
+    local oldMember = member and netmsg.safeTable( member, true )
+    member = member and netmsg.safeTable( member ) or {}
+    if not oldMember or table.Count( oldMember ) < 1 then
       tab.Nick = IsValid( ply ) and ply:Nick() or '???'
       tab.SteamID = steamID
     end
     table.Merge( member, tab )
 
     -- Clear NULL values
-    for k, v in pairs( tab ) do
+    for k, v in pairs( member ) do
       if v == NULL then
         member[k] = nil
       end
     end
-
     orgs.Members[steamID] = member
 
     -- Log rank change
@@ -341,12 +373,17 @@ orgs.updatePlayer = function( ply, tab, ply2, done )
     if IsValid( ply ) and tab.RankID then
       netmsg.SyncTable( orgs.Events, ply )
     end
-
     if IsValid( ply ) and tab.OrgID then
-      ply:SetNWVar( 'orgs.OrgID', tab.OrgID == NULL and nil or tab.OrgID )
-      netmsg.SyncTable( orgs.Ranks, ply )
-      netmsg.SyncTable( orgs.Events, ply )
+      ply:SetNWVar( 'orgs.OrgID', member.OrgID )
+
+      if oldMember and oldMember.OrgID then
+        netmsg.SyncTable( orgs.List[oldMember.OrgID], ply )
+      end
+      if tab.OrgID ~= NULL then netmsg.SyncTable( orgs.List[tab.OrgID], ply ) end
+
+      if not tab.RankID then netmsg.SyncTable( orgs.Events, ply ) end
       netmsg.SyncTable( orgs.Members, ply )
+      netmsg.SyncTable( orgs.Ranks, ply )
 
       if tab.OrgID == NULL then orgs.Members[steamID] = nil
       else

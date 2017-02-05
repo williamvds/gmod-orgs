@@ -1,9 +1,7 @@
 local PANEL = {}
 
 function PANEL:Init()
-  self.Ranks = {}
-  -- Negative margin to fix the last column having wrong width
-  -- and to fix apparent 1px horizontal padding on lines
+  self.Lines = {}
   self:Dock( FILL )
   self:orgs_BGR( orgs.C_GRAY )
 
@@ -39,7 +37,6 @@ function PANEL:Init()
     local tab, text = {...}, {}
     for k, v in pairs( tab ) do text[k] = istable(v) and v[1] or v end
 
-
     local l = oldAddLine( p, unpack{...} )
     l.Rank = rank.RankID
 
@@ -58,7 +55,7 @@ function PANEL:Init()
       c:SetContentAlignment(5)
     end
 
-    self.Ranks[ rank.RankID ] = l
+    self.Lines[ rank.RankID ] = l
 
     return l
   end
@@ -84,8 +81,8 @@ function PANEL:Init()
             orgs.Menu:SetError( 'Failed set default rank because '.. orgs.ModifyFails[tab[1]] )
             return
           end
-          self.Ranks[curDefault]:SetColumnText( 1, '' )
-          self.Ranks[line.Rank]:SetColumnText( 1, '*' )
+          self.Lines[curDefault]:SetColumnText( 1, '' )
+          self.Lines[line.Rank]:SetColumnText( 1, '*' )
           orgs.ChatLog( rankName ..' is now the group\'s default rank' )
         end )
 
@@ -126,9 +123,14 @@ function PANEL:Init()
 end
 
 function PANEL:Update( org )
+
+  for k, l in pairs( self.List.Lines ) do
+    if not orgs.Ranks[l.Rank] then self.List:RemoveLine( k ) end
+  end
+
   for k, rank in pairs( netmsg.safeTable( orgs.Ranks, true ) ) do
-    if self.Ranks[ rank.RankID ] then
-      local l = self.Ranks[ rank.RankID ]
+    if self.Lines[ rank.RankID ] then
+      local l = self.Lines[ rank.RankID ]
       l:SetColumnText( 1, k == org.DefaultRank and '*' or '' )
       l:SetColumnText( 2, rank.Name )
       l:SetColumnText( 3, rank.Immunity )
@@ -204,6 +206,7 @@ function PANEL:Init()
   self.PermsLabel:orgs_Dock( LEFT, {l=-15}, nil, true )
 
   l = self:NewLine()
+
   for k, v in pairs( orgs.PermCheckboxes ) do
     self[v[1]] = l:Add( 'DCheckBoxLabel' )
     local box, perm = self[v[1]], orgs['PERM_'.. string.upper( v[1] )]

@@ -1,12 +1,12 @@
 local PANEL = {}
 
 function PANEL:Init()
-  self:orgs_Dock( FILL, {u=5,d=5})
+  self:orgs_Dock( FILL, {u=5,d=5} )
 
   self.Selector = self:Add( 'DColumnSheet' )
   self.Selector:orgs_BGR( orgs.C_NONE )
   self.Selector:orgs_Dock( FILL, {r=5} )
-  self.Selector.Navigation:orgs_Dock( LEFT, {l=5,r=5})
+  self.Selector.Navigation:orgs_Dock( LEFT, {l=5,r=5} )
 
   self.Modify = self:Add( 'orgs.Menu.Manage_Modify' )
   self.Selector:AddSheet( 'Edit group', self.Modify )
@@ -16,6 +16,9 @@ function PANEL:Init()
 
   self.Events = self:Add( 'orgs.Events' )
   self.Selector:AddSheet( 'Events', self.Events )
+
+  self.Invites = self:Add( 'orgs.Menu.Manage_Invites' )
+  self.Selector:AddSheet( 'Invites', self.Invites )
 
   self.Selector.Content.PerformLayout = function( p )
     for k, b in pairs( self.Selector.Navigation.pnlCanvas:GetChildren() ) do
@@ -42,7 +45,9 @@ function PANEL:Update( org )
   local visible, panels = {}, {
     [self.Modify]= 'MODIFY',
     [self.Events]= 'EVENTS',
-    [self.Ranks]= 'RANKS' }
+    [self.Ranks]= 'RANKS',
+    [self.Invites]= 'KICK',
+  }
 
   for k, v in SortedPairs( self.Selector.Items, true ) do
     local bool = LocalPlayer():orgs_Has( orgs['PERM_'..panels[v.Panel]] )
@@ -57,6 +62,7 @@ function PANEL:Update( org )
   self.Modify:Update( org )
   self.Events:Update( org )
   self.Ranks:Update( org )
+  self.Invites:Update( org )
 end
 
 vgui.Register( 'orgs.Menu.Manage', PANEL, 'EditablePanel' )

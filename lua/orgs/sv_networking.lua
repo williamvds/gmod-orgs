@@ -70,7 +70,11 @@ end )
 
 netmsg.Receive( 'orgs.Menu.Members.Invite', function( tab, ply )
   local err = orgs.addInvite( tab[1], ply, function( _, err )
-    netmsg.Send( 'orgs.Menu.Members.Invite', err or false, ply )
+    netmsg.Send( 'orgs.Menu.Members.Invite', err and true or false, ply )
+  end )
+
+  if err then netmsg.Respond( err ) end
+end )
   end )
 
   if err then netmsg.Respond( err ) end

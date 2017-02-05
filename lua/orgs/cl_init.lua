@@ -74,13 +74,14 @@ orgs.ManageFails = { -- Managing other players (including self when joining)
   'you must leave your group before joining another',
   'that group does not exist',
   'that group is full',
-  'that group is invitation only',
+  'you need an invitation to join that group',
   'the desired rank does not exist',
   'the desired rank is not a part of your group',
   'the desired rank is not a part of the desired group',
 }
 
 orgs.InviteFails = { -- Inviting players
+  'an invalid Steam ID was given',
   'you can\'t invite yourself',
   'you can\'t invite players',
   'that player has already been invited to this group',

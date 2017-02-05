@@ -31,28 +31,57 @@ end
 orgs.addInvite = function( to, from, done )
   if not isentity( from ) then from = player.GetBySteamID64( from ) end
 
+  if not isentity( to ) then
+
+    if tonumber( to ) then
+      -- SteamID64 validation
+      if to:len() < 5 then
+        return 1
+      end
+
+      local num = tonumber( to:sub(5) ) -1197960265728
+
+      if not string.StartWith( to, '7656' )
+      or num < 0 or num > 68719476736 then
+        return 1
+      end
+
+
+    else
+      -- SteamID validation
+      if not to or to == ''
+      or not string.find( to, '^STEAM_[0-1]:([0-1]):([0-9]+)$') then
+        return 1
+      end
+
+      to = util.SteamIDTo64( to )
+    end
+
+  end
+
   local steamID, steamID2, orgID = getID( to ), getID( from ), from:orgs_Org(0)
-  if not to or not from --[[or from == to]] then -- TODO Readd check
+  if not steamID or not steamID2 or steamID == steamID2 then
     -- From/to not specified or same person
-    return 1
+    return 2
   elseif not orgID or not from:orgs_Has( orgs.PERM_INVITE ) then
     -- From player cannot invite
-    return 2
+    return 3
   else
     -- To player has already been invited to the group
     for k, inv in pairs( netmsg.safeTable( orgs.Invites, true ) ) do
-      if inv.OrgID == orgID and inv.To == steamID then return 3 end
+      if inv.OrgID == orgID and inv.To == steamID then
+        return 4
     end
   end
 
-  orgs._Provider.addInvite( steamID, steamID2, function( _, err, id )
+  provider.addInvite( steamID, steamID2, orgID, function( data, err, id )
     if err then return end
 
     orgs.Invites[id] = {InviteID= id, To= steamID, From= steamID2, OrgID= orgID}
-    orgs.LogEvent( orgs.EVENT_INVITE, {ActionBy= steamID2, ActionAgainst= steamID, OrgID= org} )
+    orgs.LogEvent( orgs.EVENT_INVITE, {ActionBy= steamID2, ActionAgainst= steamID, OrgID= orgID} )
 
+    if done then done( data, err, id ) end
   end )
-
 end
 
 orgs.removeInvite = function( id, ply )

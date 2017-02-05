@@ -366,38 +366,70 @@ function PANEL:Init()
     p:DrawTextEntryText( orgs.C_DARKGRAY, orgs.C_GRAY, orgs.C_GRAY )
   end
   self.SteamID.OnChange = function( p )
-    local to = tonumber( p:GetValue() ) and p:GetValue()
-      or util.SteamIDTo64( p:GetValue() )
-    self.SteamIDErr:SetVisible( to == '0' )
-    self.Send:SetDisabled( to == '0' )
+
+    local val, to = p:GetValue()
+    if not isnumber( self.Player.Value ) then
+      -- SteamID from combobox
+      to = self.Player.Value
+
+    elseif tonumber( val ) then
+      -- SteamID64 validation
+      if val:len() < 5 then
+        p.Value = false; self.SteamIDErr:Show(); self.Send:SetDisabled( true )
+        return
+      end
+
+      local num = tonumber( val:sub(5) ) -1197960265728
+
+      if not string.StartWith( val, '7656' )
+      or num < 0 or num > 68719476736 then
+        p.Value = false; self.SteamIDErr:Show(); self.Send:SetDisabled( true )
+        return
+      end
+
+      to = val
+
+    else
+      -- SteamID validation
+      if not val or val == ''
+      or not string.find( val, '^STEAM_[0-1]:([0-1]):([0-9]+)$') then
+        p.Value = false; self.SteamIDErr:Show(); self.Send:SetDisabled( true )
+        return
+      end
+
+      to = util.SteamIDTo64( val )
+    end
+
+    p.Value = to; self.SteamIDErr:Hide(); self.Send:SetDisabled( false )
+
+    return to
   end
 
-  self.SteamIDErr = self.Body:orgs_AddLabel( 'Invalid SteamID', 'orgs.Small', orgs.C_RED )
-  self.SteamIDErr:orgs_Dock( TOP, {u=5} )
+  self.SteamIDErr = self.Body:orgs_AddLabel( 'Invalid Steam ID', 'orgs.Small', orgs.C_RED )
+  self.SteamIDErr:orgs_Dock( TOP, {u=10} )
   self.SteamIDErr:SetWide( 100 )
   self.SteamIDErr:SetContentAlignment( 5 )
 
   self.Send = self.Body:Add( 'DButton' )
   self.Send:orgs_BGR( orgs.C_DARKBLUE, orgs.C_BLUE )
-  self.Send:orgs_Dock( BOTTOM, {l=135,r=135} )
+  self.Send:orgs_Dock( BOTTOM, {l=135,r=135,d=5} )
   self.Send:SetTall( 30 )
   self.Send:orgs_SetText( 'Send', 'orgs.Medium', orgs.C_WHITE )
   self.Send.Paint = function( p, w, h )
     orgs.DrawRect( 0, 0, w, h, p:GetDisabled() and orgs.C_LIGHTGRAY  or orgs.C_BLUE )
   end
   self.Send.DoClick = function( p )
-    local to = not isnumber( self.Player.Value ) and self.Player.Value or
-      tonumber( self.SteamID:GetValue() ) and self.SteamID:GetValue()
-      or util.SteamIDTo64( self.SteamID:GetValue() )
 
-    if to == '' then return end
+    local to = self.SteamID:IsVisible() and self.SteamID.Value
+      or self.Player.Value
 
     toPly = player.GetBySteamID64( to )
     netmsg.Send( 'orgs.Menu.Members.Invite', {to} ) ( function( tab )
       if tab[1] then
         orgs.Menu:SetError( 'Couldn\'t invite because ' ..orgs.InviteFails[tab[1]] )
       else
-        orgs.Menu:SetMsg( 'Invited '.. IsValid( toPly ) and toPly:Nick() or 'that player'  )
+        orgs.Menu:SetMsg( 'Successfully invited '..
+          ( IsValid( toPly ) and toPly:Nick() or 'that player' ) )
         self:AnimateHide()
       end
     end )

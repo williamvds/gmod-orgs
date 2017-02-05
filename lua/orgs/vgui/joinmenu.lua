@@ -29,6 +29,10 @@ function PANEL:Init()
   self.Join = self.TabMenu:AddTab( 'JOIN', vgui.Create( 'orgs.JoinMenu_Join' ) )
   self.Create = self.TabMenu:AddTab( 'CREATE', vgui.Create( 'orgs.JoinMenu_Create' ) )
 
+  local count = table.Count( netmsg.safeTable( orgs.Invites, true ) )
+  local txt = 'INVITES'.. ( count > 0 and ' (%s)'  %{count} or '' )
+  self.Invites = self.TabMenu:AddTab( txt, vgui.Create( 'orgs.JoinMenu_Invites' ) )
+
   self.Msg = self:orgs_AddLabel( '', 'orgs.Small', orgs.C_WHITE )
   self.Msg:Hide()
   self.Msg:SetContentAlignment( 5 )
@@ -87,17 +91,17 @@ end
 function PANEL:Think()
   if input.IsKeyDown( KEY_ESCAPE ) then self:AnimateHide() end
 end
---
--- function PANEL:OnKeyCodePressed( key )
---   if key == KEY_ESCAPE then self:AnimateHide() end
--- end
 
 function PANEL:Update()
+  local count = table.Count( netmsg.safeTable( orgs.Invites, true ) )
+  local txt = 'INVITES'.. ( count > 0 and ' (%s)'  %{count} or '' )
+  self.TabMenu.Tabs[3].Tab:orgs_SetText( txt )
+  self.TabMenu.Tabs[3].Tab.Name = txt
+  self.TabMenu:RepositionTabs()
 
   for k, tab in pairs( self.TabMenu.Tabs ) do
     if tab.Panel.Update then tab.Panel:Update() end
   end
-
 end
 
 function PANEL:Paint( w, h ) orgs.DrawRect( 0, 0, w, h, orgs.C_DARKGRAY ) end

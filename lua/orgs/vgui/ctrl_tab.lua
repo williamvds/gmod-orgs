@@ -30,7 +30,6 @@ function PANEL:RepositionTabs()
 end
 
 function PANEL:AddTab( name, panel, col, altCol, id )
-
   id = id or #self.Tabs +1
 
   local tab = self.Header:Add( 'DButton' )

@@ -52,6 +52,10 @@ function PANEL:Update( org )
   for k, v in SortedPairs( self.Selector.Items, true ) do
     local bool = LocalPlayer():orgs_Has( orgs['PERM_'..panels[v.Panel]] )
     v.Button:SetVisible( bool )
+    if v.Panel == self.Invites then
+      local num = table.Count( netmsg.safeTable( orgs.Invites, true ) )
+      v.Button:SetText( num < 1 and 'Invites' or 'Invites (%s)' %{num} )
+    end
     if bool then visible[k] = v.Button end
   end
 

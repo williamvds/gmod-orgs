@@ -9,6 +9,11 @@ function PANEL:Init()
   self.NoInvites:Dock( FILL )
   self.NoInvites:SetContentAlignment(5)
 
+  self.Tip = self:orgs_AddLabel( 'Double click an invitation to withdraw it',
+    'orgs.Small', orgs.C_WHITE )
+  self.Tip:Dock( BOTTOM, {u=5} )
+  self.Tip:SetContentAlignment(5)
+
   self.List = self:Add( 'DListView' )
   self.List:orgs_Dock( FILL, {l=-1,r=-3} )
   self.List:SetHeaderHeight( 25 )
@@ -41,6 +46,8 @@ function PANEL:Init()
     local l = oldAddLine( p, to, from )
 
     l.Invite = inv.InviteID
+    l.To = inv.To
+    l.From = inv.From
 
     l.Paint = function( self, w, h )
       local col = orgs.C_NONE
@@ -62,6 +69,14 @@ function PANEL:Init()
 
     self.Popup = DermaMenu( p )
     self.Popup:orgs_BGR( orgs.C_WHITE )
+
+    self.Popup:AddOption( 'To: View Steam profile', function()
+      gui.OpenURL( 'https://steamcommunity.com/profiles/'.. line.To )
+    end )
+
+    self.Popup:AddOption( 'From: View Steam profile', function()
+      gui.OpenURL( 'https://steamcommunity.com/profiles/'.. line.From )
+    end )
 
     self.Popup:AddOption( 'Withdraw invite', function()
       netmsg.Send( 'orgs.Menu.Members.RemoveInvite', line.Invite ) ( function( tab )
@@ -106,6 +121,7 @@ function PANEL:Update( org )
 
   self.NoInvites:SetVisible( num < 1 )
   self.List:SetVisible( num > 0 )
+  self.Tip:SetVisible( num > 0 )
 
 end
 

@@ -68,7 +68,9 @@ CREATE TABLE IF NOT EXISTS events(
   ActionBy bigint UNSIGNED,
   ActionValue varchar( 100 ),
   ActionAgainst bigint UNSIGNED,
-  Time datetime
+  Time bigint,
+  CONSTRAINT FOREIGN KEY ( OrgID ) REFERENCES orgs( OrgID )
+    ON DELETE CASCADE
 );
 CREATE TABLE IF NOT EXISTS invites(
   InviteID int( 8 ) PRIMARY KEY AUTO_INCREMENT,

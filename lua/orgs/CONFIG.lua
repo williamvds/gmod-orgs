@@ -58,11 +58,15 @@ e.g. a rank with BankLimit of 1500 and BankCooldown 15 can withdraw no more than
 
 Immunity - Minimum immunity a rank has to have in order to perform actions (e.g. kick) against them
 
+Leader - if the rank is given to the founder
+Default - if the rank is the one that should be given to new members
+
 Please remember your commas after each }  ]]
 orgs.DefaultRanks = {
   { Name     = 'Leader',
     Perms    = '0,1,2,3,4,5,6,7',
-    Immunity = 100 },
+    Immunity = 100,
+    Leader   = true },
 
   { Name         = 'Deputy',
     Perms        = '0,1,2,3,4,5,7',
@@ -78,7 +82,8 @@ orgs.DefaultRanks = {
 
   { Name     = 'Member',
     Perms    = '0',
-    Immunity = 10 },
+    Immunity = 10,
+    Default  = true },
 }
 
 orgs.Types = {

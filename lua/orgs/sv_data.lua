@@ -291,7 +291,7 @@ orgs.updatePlayer = function( ply, tab, ply2, done )
     end
   end
 
-  if tab.OrgID and tab.OrgID ~= NULL and not tab.RankID or tab.RankID == NULL then
+  if tab.OrgID and tab.OrgID ~= NULL and ( not tab.RankID or tab.RankID == NULL ) then
     tab.RankID = orgs.List[ tab.OrgID ].DefaultRank
   end
 
@@ -431,17 +431,15 @@ orgs.addOrg = function( tab, ply, done )
     table.Merge( new, tab )
 
     orgs.List[orgID] = new
-    local imm = 1
     for k, rank in SortedPairsByMemberValue( orgs.DefaultRanks, 'Immunity' ) do
-      rank.__key = nil
-      orgs.addRank( orgID, rank, nil, imm == 1 and function( rankID, tab )
+      print( rank, rank.Default, rank.Leader )
+      orgs.addRank( orgID, rank, nil, rank.Default and function( rankID, tab )
         orgs.updateOrg( orgID, {DefaultRank= rankID} )
-      end or imm == table.Count( orgs.DefaultRanks ) and steamID and function( rankID, tab )
+      end or rank.Leader and function( rankID, tab )
         orgs.updatePlayer( steamID, {OrgID= orgID, RankID= rankID}, nil, function()
-            orgs.List[orgID].Forming = nil -- So we can check if an org is public when joining
+            orgs.List[orgID].Forming = nil
         end )
       end )
-      imm = imm +1
     end
 
     orgs.LogEvent( orgs.EVENT_ORG_CREATED, {ActionBy= steamID, OrgID= orgID} )

@@ -30,8 +30,14 @@ function PANEL:Init()
   local oldAddLine = vgui.GetControlTable( 'DListView' ).AddLine
 
   self.List.AddLine = function( p, inv )
-    local to, from = orgs.Members[inv.To] and orgs.Members[inv.To].Nick or inv.To,
-      orgs.Members[inv.From] and orgs.Members[inv.From].Nick or inv.From
+    local to, from = player.GetBySteamID64( inv.To ) and player.GetBySteamID64( inv.To ):Nick()
+      or orgs.Members[inv.To] and orgs.Members[inv.To].Nick
+      or util.SteamIDFrom64( inv.To ),
+
+      player.GetBySteamID64( inv.From ) and player.GetBySteamID64( inv.From ):Nick()
+      or orgs.Members[inv.From] and orgs.Members[inv.From].Nick
+      or util.SteamIDFrom64( inv.From )
+
     local l = oldAddLine( p, to, from )
 
     l.Invite = inv.InviteID
@@ -86,7 +92,7 @@ end
 
 function PANEL:Update( org )
   for k, l in pairs( self.List.Lines ) do
-    if not orgs.Invites[l.InviteID] then self.List:RemoveLine( k ) end
+    if not orgs.Invites[l.Invite] then self.List:RemoveLine( k ) end
   end
 
   local num = 0

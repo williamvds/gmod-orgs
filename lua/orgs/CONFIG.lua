@@ -192,9 +192,14 @@ orgs.EventStrings = {
   end,
 
   -- Invite
-  [orgs.EVENT_INVITE] = '[ActionAgainst] was invited to [OrgID] by [ActionBy]',
-  [orgs.EVENT_INVITE_WITHDRAWN] = '[ActionAgainst]\'s invitation to [OrgID] was '
-    ..'withdrawn by [ActionBy]',
+  [orgs.EVENT_INVITE] = function( tab )
+    tab.ActionAgainst = util.SteamIDFrom64( tab.ActionAgainst )
+    return '[ActionAgainst] was invited to [OrgID] by [ActionBy]'
+  end,
+  [orgs.EVENT_INVITE_WITHDRAWN] = function( tab )
+    tab.ActionAgainst = util.SteamIDFrom64( tab.ActionAgainst )
+    return '[ActionAgainst]\'s invitation to [OrgID] was withdrawn by [ActionBy]'
+  end,
 
   -- Member
   [orgs.EVENT_MEMBER_ADDED] = '[ActionBy] joined organisation [OrgID]',

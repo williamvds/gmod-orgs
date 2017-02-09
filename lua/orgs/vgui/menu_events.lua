@@ -5,6 +5,11 @@ function PANEL:Init()
   self:Dock( FILL )
   self:orgs_BGR( orgs.C_GRAY )
 
+  self.NoEvents = self:orgs_AddLabel( 'There are no events visible to you',
+  'orgs.Medium', orgs.C_WHITE )
+  self.NoEvents:Dock( FILL )
+  self.NoEvents:SetContentAlignment(5)
+
   self.Desc = self:orgs_AddLabel( 'For more information double click events',
     'orgs.Small', orgs.C_WHITE )
   self.Desc:orgs_Dock( BOTTOM, {u=5} )
@@ -22,7 +27,7 @@ function PANEL:Init()
     {txt= 'Time', w= 120},
     {txt= 'Description'},
   } ) do
-    c = self.List:AddColumn( v.txt )
+    local c = self.List:AddColumn( v.txt )
     if v.w then c:SetFixedWidth( v.w ) end
     c.Header:orgs_SetText( nil, 'orgs.Medium', orgs.C_WHITE )
     c.Header:orgs_BGR( orgs.C_DARKBLUE )
@@ -52,7 +57,8 @@ function PANEL:Init()
     l.Columns[1]:SetContentAlignment( 6 )
     l.Columns[1]:Dock( LEFT )
     l:SetSortValue( 1, event.EventID )
-    l:SetColumnText( 1, os.date( '%I:%M %p %d/%m/%y', event.Time ):gsub('/0', '/'):gsub('^0', '') )
+    l:SetColumnText( 1,
+      os.date( '%I:%M %p %d/%m/%y', event.Time ):gsub('/0', '/'):gsub('^0', ''):gsub(' 0', ' ') )
 
     local rt = l:Add( 'RichText' )
     rt:orgs_Dock( FILL, {r=8} )
@@ -150,20 +156,10 @@ function PANEL:Init()
     return y
   end
 
-  self.NoEvents = self:orgs_AddLabel( 'There are no events visible to you',
-    'orgs.Medium' )
-  self.NoEvents:Dock( FILL )
-  self.NoEvents:SetContentAlignment( 5 )
-  self.NoEvents:Hide()
-
 end
 
 function PANEL:Update()
   local events = netmsg.safeTable( orgs.Events, true )
-
-  self.NoEvents:SetVisible( table.Count( events ) < 1 )
-  self.List.pnlCanvas:SetVisible( table.Count( events ) > 0 )
-  self.List:SetHideHeaders( table.Count( events ) < 1 )
 
   for k, event in SortedPairsByMemberValue( events, 'Time', true ) do
     if self.Lines[ event.EventID ] then continue end
@@ -171,6 +167,10 @@ function PANEL:Update()
   end
 
   self.List:SortByColumn( 1, true )
+
+  self.NoEvents:SetVisible( table.Count( events ) < 1 )
+  self.Desc:SetVisible( table.Count( events ) > 0 )
+  self.List:SetVisible( table.Count( events ) > 0 )
 
 end
 

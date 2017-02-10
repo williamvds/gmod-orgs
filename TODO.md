@@ -7,7 +7,6 @@
 - [ ] use a table column for each permission?
 - [ ] stop bulletin changes being wiped if menu updates while editing
 - [ ] limit message when withdrawing more than bank contains
-- [ ] immunity event log used instead withdraw limit
 - [ ] events not syncing for players when they are promoted
 - [ ] random clientside duplication of ranks when you make an org, probably syncing issues
 - [ ] show org type in joinmenu list

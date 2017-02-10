@@ -531,7 +531,7 @@ local rankEvents = {
   Name = orgs.EVENT_RANK_RENAME,
   Perms = orgs.EVENT_RANK_PERMS,
   Immunity = orgs.EVENT_RANK_IMMUNITY,
-  BankLimit = orgs.EVENT_RANK_IMMUNITY,
+  BankLimit = orgs.EVENT_RANK_BANKLIMIT,
   BankCooldown = orgs.EVENT_RANK_BANKCOOLDOWN,
 }
 orgs.updateRank = function( rankID, tab, ply, done )

@@ -25,15 +25,15 @@ local function altButton( text, parent, right )
   return b
 end
 
+local function reset( self, tab )
+  for k, v in pairs( tab ) do
+    self[v].Active = false
+  end
+end
+
 local bankActions = {'Deposit', 'Withdraw', 'Transfer'}
-local successMsg = {
-  'Deposited %s into the group\'s account',
-  'Withdrew %s from the group\'s account',
-  'Transferred %s to %s\'s account',
-}
 function PANEL:Init()
   self:orgs_BGR( orgs.C_DARKGREEN )
-  self.Action = 1
 
   self.BankName = self:orgs_AddLabel( string.upper(orgs.BankName), 'orgs.Large', orgs.C_GREEN )
   self.BankName:SetContentAlignment(5)
@@ -48,37 +48,19 @@ function PANEL:Init()
   self.Left:SetWide( 185 )
   self.Left:orgs_Dock( LEFT, nil, {l=15} )
 
-  self.Deposit = altButton( 'DEPOSIT', self.Left )
-  self.Deposit:orgs_Dock( TOP, {u=25} )
-  self.Deposit.DoClick = function( b )
-    b.Active, self.Action = true, 1
-    self.ActionLabel:SetText( 'DEPOSIT' )
-    self.TransferTo:Hide()
-    self:InvalidateLayout()
-    self.Withdraw.Active, self.Transfer.Active = false, false
-  end
-  self.Deposit:orgs_Dock( TOP, {u=25} )
-  self.Deposit.Active = true
+  for k, v in pairs( bankActions ) do
+    self[v] = altButton( v:upper(), self.Left )
+    self[v].DoClick = function( b )
+      self.Action = k
+      self.ActionLabel:SetText( v:upper() )
+      self.TransferTo:SetVisible( k == 3 )
+      self:InvalidateLayout()
+      reset( self, bankActions )
+      b.Active = true
+    end
+    self[v]:orgs_Dock( TOP, {u=25} )
 
-  self.Withdraw = altButton( 'WITHDRAW', self.Left )
-  self.Withdraw.DoClick = function( b )
-    b.Active, self.Action = true, 2
-    self.ActionLabel:SetText( 'WITHDRAW' )
-    self.TransferTo:Hide()
-    self:InvalidateLayout()
-    self.Deposit.Active, self.Transfer.Active = false, false
   end
-  self.Withdraw:orgs_Dock( TOP, {u=20} )
-
-  self.Transfer = altButton( 'TRANSFER', self.Left )
-  self.Transfer.DoClick = function( b )
-    b.Active, self.Action = true, 3
-    self.ActionLabel:SetText( 'TRANSFER' )
-    self.TransferTo:Show()
-    self:InvalidateLayout()
-    self.Deposit.Active, self.Withdraw.Active = false, false
-  end
-  self.Transfer:orgs_Dock( TOP, {u=20} )
 
   -- RIGHT PANEL
 
@@ -87,26 +69,14 @@ function PANEL:Init()
   self.Right:SetWide( 185 )
   self.Right:orgs_Dock( RIGHT, nil, {u=25,r=15} )
 
-  self.BalanceLabel = self.Right:orgs_AddLabel( 'BALANCE', 'orgs.Small', orgs.C_GREEN )
-  self.BalanceLabel:SetContentAlignment( 5 )
-  self.BalanceLabel:Dock( TOP )
-  self.Balance = self.Right:orgs_AddLabel( '', 'orgs.Medium', orgs.C_GREEN )
-  self.Balance:SetContentAlignment( 5 )
-  self.Balance:orgs_Dock( TOP, {d=25} )
-
-  self.InLabel = self.Right:orgs_AddLabel( 'LAST 24 HR IN', 'orgs.Small', orgs.C_GREEN )
-  self.InLabel:SetContentAlignment( 5 )
-  self.InLabel:Dock( TOP )
-  self.In = self.Right:orgs_AddLabel( '', 'orgs.Medium', orgs.C_GREEN )
-  self.In:SetContentAlignment( 5 )
-  self.In:orgs_Dock( TOP, {d=25} )
-
-  self.OutLabel = self.Right:orgs_AddLabel( 'LAST 24 HR OUT', 'orgs.Small', orgs.C_GREEN )
-  self.OutLabel:SetContentAlignment( 5 )
-  self.OutLabel:Dock( TOP )
-  self.Out = self.Right:orgs_AddLabel( '', 'orgs.Medium', orgs.C_GREEN )
-  self.Out:SetContentAlignment( 5 )
-  self.Out:orgs_Dock( TOP, {d=25} )
+  for k, v in pairs( {Balance= 'Balance', In= 'Last 24 HR in', Out= 'Last 24 HR out'} ) do
+    self[k ..'Label'] = self.Right:orgs_AddLabel( v:upper(), 'orgs.Small', orgs.C_GREEN )
+    self[k ..'Label']:SetContentAlignment( 5 )
+    self[k ..'Label']:Dock( TOP )
+    self[k] = self.Right:orgs_AddLabel( '', 'orgs.Medium', orgs.C_GREEN )
+    self[k]:SetContentAlignment( 5 )
+    self[k]:orgs_Dock( TOP, {d=25} )
+  end
 
   self.ActionLabel = self:orgs_AddLabel( 'DEPOSIT', 'orgs.Medium', orgs.C_GREEN )
   self.ActionLabel:SetContentAlignment( 5 )
@@ -128,11 +98,17 @@ function PANEL:Init()
     p:DrawTextEntryText( orgs.C_DARKGREEN, orgs.C_DARKGREEN, orgs.C_DARKGREEN )
   end
   self.Value.AllowInput = function( p, val )
-    num = tonumber( p:GetText() ..val )
+    local num = tonumber( p:GetText() ..val )
     if not num and val ~= '' then return true end
-    return num < 0 or ( self.Action ~= 1 and num > LocalPlayer():orgs_Org().Balance )
-      or ( self.Action == 1 and num > LocalPlayer():getDarkRPVar('money') )
+    return num < 0
+      or ( self.Action ~= 1 and num > LocalPlayer():orgs_Org().Balance )
+      or ( self.Action == 1 and num > LocalPlayer():getDarkRPVar( 'money' )
+          or num +LocalPlayer():orgs_Org().Balance
+          > orgs.Types[LocalPlayer():orgs_Org().Type].MaxBalance )
   end
+
+  -- Set active button
+  self.Deposit:DoClick()
 
   self.Send = altButton( 'OK', self, true )
   self.Send.HollowOnHover = true
@@ -146,17 +122,17 @@ function PANEL:Init()
     then return end
 
     netmsg.Send( 'orgs.Menu.Bank.'.. bankActions[self.Action],
-      {Val= val, To= (self.Action == 2 and self.TransferTo.Value or nil)} )( function( tab )
-        if tab[1] or not IsValid( orgs.Menu ) then return end
-        orgs.ChatLog( successMsg[self.Action] %{
-          orgs.FormatCurrencyShort( self.Value:GetText() ),
-          -- TODO: Format the transfer target
-          } )
-      end )
+    {Val= val, To= self.Action == 3 and self.TransferTo.Value or nil} ) ( function( tab )
+      if tab[1] then
+        orgs.Menu:SetError( 'Transfer failed because '..
+          ( tab[1] == true and 'something went wrong' or orgs.ModifyFails[tab[1]] ) )
+      return end
+    end )
+
     self.Value:RequestFocus()
   end
-
   self.Value.OnEnter = self.Send.DoClick
+
 end
 
 function PANEL:Update( org )

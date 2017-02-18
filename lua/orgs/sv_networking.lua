@@ -86,53 +86,23 @@ end )
 
 -- BANK
 
-netmsg.Receive( 'orgs.Menu.Bank.Deposit', function( tab, ply )
-  local orgID = ply:orgs_Org(0)
-  if not orgID or not isnumber(tab.Val) then
+local bankHandler = function( tab, ply, msg )
+  local orgID, org = ply:orgs_Org(0), ply:orgs_Org()
+  if not orgID or not isnumber( tab.Val ) then
     netmsg.Respond( true )
-    return
-  end
-  local org, steamID = orgs.List[orgID], ply:SteamID64()
+  return end
 
-  tab.Val = math.Clamp( math.floor( tab.Val ), 0, math.huge )
-  orgs.AddMoney( ply, -tab.Val ) -- Can't risk players leaving
-  local err = orgs.updateOrg( orgID, {Balance= org.Balance +tab.Val}, nil,
-  function( _, err )
-    if err then
-      orgs.AddMoney( ply, tab.Val )
-      netmsg.Send( 'orgs.Menu.Bank.Deposit', true, ply )
-    return end
-    orgs.LogEvent( orgs.EVENT_BANK_DEPOSIT, {ActionBy= steamID,
-      ActionValue= tab.Val, OrgID= orgID} )
-    netmsg.Send( 'orgs.Menu.Bank.Deposit', false, ply )
+  local err = orgs.updateOrg( orgID,
+  {Balance= org.Balance +( msg:find('Deposit') and tab.Val or -tab.Val ) }, ply,
+  function( _, err, msg )
+    netmsg.Send( msg, err and true or false, ply )
   end )
 
   if err then netmsg.Respond( err ) end
-end )
+end
 
-netmsg.Receive( 'orgs.Menu.Bank.Withdraw', function( tab, ply )
-  local orgID = ply:orgs_Org(0)
-  if not ply:orgs_Org(0) or not isnumber( tab.Val )
-  or not ply:orgs_Has( orgs.PERM_WITHDRAW ) then
-    netmsg.Respond( 18 )
-    return
-  end
-  local org, steamID = orgs.List[orgID], ply:SteamID64()
-
-  tab.Val = math.Clamp( math.floor( tab.Val ), 0, org.Balance )
-  local err = orgs.updateOrg( ply:orgs_Org(0), {Balance= org.Balance -tab.Val}, nil,
-  function( _, err )
-    if err then netmsg.Send( 'orgs.Menu.Bank.Withdraw', true, ply ) return end
-
-    orgs.LogEvent( orgs.EVENT_BANK_WITHDRAW, {ActionBy= IsValid(ply) and ply or steamID,
-      ActionValue= tab.Val, OrgID= orgID} )
-
-    orgs.AddMoney( ply, tab.Val )
-    netmsg.Send( 'orgs.Menu.Bank.Withdraw', err or false, ply )
-  end )
-
-  if err then netmsg.Respond( err ) end
-end )
+netmsg.Receive( 'orgs.Menu.Bank.Deposit', bankHandler )
+netmsg.Receive( 'orgs.Menu.Bank.Withdraw', bankHandler )
 
 -- MANAGE
 

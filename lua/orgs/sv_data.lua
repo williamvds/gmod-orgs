@@ -30,6 +30,7 @@ end
 
 orgs.addInvite = function( to, from, done )
   if not isentity( from ) then from = player.GetBySteamID64( from ) end
+  to = tostring( to )
 
   if not isentity( to ) then
 
@@ -45,7 +46,6 @@ orgs.addInvite = function( to, from, done )
       or num < 0 or num > 68719476736 then
         return 1
       end
-
 
     else
       -- SteamID validation
@@ -211,7 +211,9 @@ orgs.updatePlayer = function( ply, tab, ply2, done )
       end
     end
   end
+
   if table.Count( tab ) < 1 then return 1 end
+
   tab.Salary = tonumber( tab.Salary )
   tab.Salary = tab.Salary and tab.Salary ~= member.Salary
     and ( tonumber( tab.Salary ) > 0 and math.floor( tab.Salary )
@@ -342,21 +344,20 @@ orgs.updatePlayer = function( ply, tab, ply2, done )
     end
 
     -- Merge changes to member table, create or remove it if necessary
-    local oldMember = member and netmsg.safeTable( member, true )
-    member = member and netmsg.safeTable( member ) or {}
-    if not oldMember or table.Count( oldMember ) < 1 then
+    local oldMember = member and netmsg.safeTable( member, true ) or nil
+    if not member or table.Count( oldMember ) < 1 then
       tab.Nick = IsValid( ply ) and ply:Nick() or '???'
       tab.SteamID = steamID
     end
-    table.Merge( member, tab )
 
-    -- Clear NULL values
-    for k, v in pairs( member ) do
-      if v == NULL then
-        member[k] = nil
-      end
+    if not member then
+      orgs.Members[steamID] = {}
+      member = orgs.Members[steamID]
     end
-    orgs.Members[steamID] = member
+    -- Clear NULL values
+    for k, v in pairs( tab ) do
+        member[k] = v ~= NULL and v or nil
+    end
 
     -- Log rank change
     if tab.RankID and tab.RankID ~= NULL
@@ -385,9 +386,11 @@ orgs.updatePlayer = function( ply, tab, ply2, done )
       netmsg.SyncTable( orgs.Members, ply )
       netmsg.SyncTable( orgs.Ranks, ply )
 
-      if tab.OrgID == NULL then orgs.Members[steamID] = nil
-      else
-        timer.Simple( .1, function() netmsg.Call( ply, 'orgs.JoinedOrg' ) end )
+      if tab.OrgID ~= NULL then
+        timer.Simple( .1, function()
+          if not IsValid( ply ) then return end
+          netmsg.Call( ply, 'orgs.JoinedOrg' )
+        end )
       end
     end
 
@@ -432,7 +435,6 @@ orgs.addOrg = function( tab, ply, done )
 
     orgs.List[orgID] = new
     for k, rank in SortedPairsByMemberValue( orgs.DefaultRanks, 'Immunity' ) do
-      print( rank, rank.Default, rank.Leader )
       orgs.addRank( orgID, rank, nil, rank.Default and function( rankID, tab )
         orgs.updateOrg( orgID, {DefaultRank= rankID} )
       end or rank.Leader and function( rankID, tab )
@@ -461,6 +463,12 @@ orgs.removeOrg = function( orgID )
     end )
 
     orgs.List[orgID] = nil
+    for k, v in pairs( netmsg.safeTable( orgs.Events, true ) ) do
+      if v.OrgID == orgID then orgs.Events[k] = nil end
+    end
+    for k, v in pairs( netmsg.safeTable( orgs.Ranks, true ) ) do
+      if v.OrgID == orgID then orgs.Ranks[k] = nil end
+    end
 
   end )
 
@@ -653,18 +661,18 @@ orgs.updateOrg = function( orgID, tab, ply, done )
     steamID = getID( ply )
     member = orgs.Members[steamID]
 
-    if tab.OrgID or tab.Balance then
+    if tab.OrgID then
     -- Player attempting to change values they shouldn't
       return 2
     elseif not member or not member.OrgID or member.OrgID ~= orgID then
     -- If actor is not a member TODO: Admin check?
       return 3
-    elseif tab.Bulletin and not orgs.Has( ply, orgs.PERM_BULLETIN ) then
+    elseif tab.Bulletin and not orgs.Has( steamID, orgs.PERM_BULLETIN ) then
     -- If player does not have bulletin perms
       return 4
     end
 
-    if not orgs.Has( ply, orgs.PERM_MODIFY ) then
+    if not orgs.Has( steamID, orgs.PERM_MODIFY ) then
     -- If actor does not have modify perms
       for k, v in pairs( tab ) do
         if k ~= 'Bulletin' and k ~= 'Balance' then return 5 end
@@ -672,8 +680,42 @@ orgs.updateOrg = function( orgID, tab, ply, done )
     end
   end
 
-  -- If Balance is invalid
-  if tab.Balance and tab.Balance < 0 then return 6 end
+  local rank = member and orgs.Ranks[member.RankID]
+  if tab.Balance and not isnumber( tab.Balance )
+  or ( isnumber( tab.Balance ) and tab.Balance < 0 ) then
+    -- Balance is invalid
+    return 6
+
+  elseif isnumber( tab.Balance ) and ( not player.GetBySteamID64( steamID )
+  or tab.Balance < org.Balance
+  and not orgs.Has( steamID, orgs.PERM_WITHDRAW ) ) then
+    -- Player can't withdraw
+    return 18
+
+  elseif isnumber( tab.Balance ) and tab.Balance >= orgs.Types[org.Type].MaxBalance then
+    -- Balance becomes greater than max
+    return 19
+  elseif isnumber( tab.Balance ) and tab.Balance < org.Balance
+  and steamID and rank and rank.BankLimit and rank.BankCooldown then
+
+    local sum = tab.Balance -org.Balance
+    for k, v in SortedPairsByMemberValue( netmsg.safeTable( orgs.Events, true ), 'Time', true ) do
+      if v.OrgID ~= orgID
+      or ( v.Type ~= orgs.EVENT_BANK_WITHDRAW and v.Type ~= orgs.EVENT_BANK_TRANSFER )
+      or v.ActionBy ~= steamID then
+      continue end
+
+      if v.Time <= os.time() -( rank.BankCooldown *60 ) then break end
+
+      sum = sum +tonumber( v.ActionValue )
+    end
+
+    if sum > rank.BankLimit then
+      -- Player would exceed their withdraw limit
+      return 20
+    end
+  end
+
 
   if tab.Name and ( tab.Name == NULL or tab.Name ~= NULL and not tostring( tab.Name )
     or tab.Name:gsub( '[%s%c]', '' ) == '' or tab.Name:find( '%c' ) ) then
@@ -731,17 +773,32 @@ orgs.updateOrg = function( orgID, tab, ply, done )
   -- Pre-emptively update balance before query
   local balanceDelta
   if tab.Balance then
+
     balanceDelta = tab.Balance -org.Balance
     org.Balance = tab.Balance
+    if balanceDelta > 0 then
+      orgs.AddMoney( player.GetBySteamID64( steamID ), -balanceDelta )
+    end
   end
 
   provider.updateOrg( orgID, tab, function( data, err )
     if err then
       org.Balance = org.Balance -balanceDelta
-      return
-    end
+      if balanceDelta > 0 then
+        orgs.AddMoney( player.GetBySteamID64( steamID ), balanceDelta )
+      end
+
+    return end
 
     if tab.Balance then
+
+      orgs.LogEvent( balanceDelta > 0 and orgs.EVENT_BANK_DEPOSIT or orgs.EVENT_BANK_WITHDRAW,
+        {ActionBy= steamID, ActionValue= math.abs( balanceDelta ), OrgID= orgID} )
+
+      if balanceDelta < 0 then
+        orgs.AddMoney( player.GetBySteamID64( steamID ), -balanceDelta )
+      end
+
       -- TODO: Don't resort entire list? Take into account hidden orgs
       local rank, copy = 1, netmsg.safeTable( orgs.List, true )
       for k, v in SortedPairsByMemberValue( copy, 'Rank', true ) do

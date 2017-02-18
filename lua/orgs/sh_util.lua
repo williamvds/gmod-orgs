@@ -68,7 +68,8 @@ orgs.EventToString = function( tab, explode )
 
   if tab.ActionBy then
     local steamID = tab.ActionBy
-    local ply = (orgs.Members[steamID] and orgs.Members[steamID].Nick)
+    local ply = ( CLIENT and steamID == LocalPlayer():SteamID64() and '(You)' )
+    or (orgs.Members[steamID] and orgs.Members[steamID].Nick)
     or (player.GetBySteamID64( steamID ) and player.GetBySteamID64( steamID ):Nick())
     if ply then tab.ActionBy = (orgs.Debug and '%s [%s]' or '%s')
       %{ply, orgs.Debug and tab.ActionBy or nil} end
@@ -77,7 +78,8 @@ orgs.EventToString = function( tab, explode )
   local getOrg = table.HasValue( {orgs.EVENT_BANK_TRANSFER}, tab.Type )
   if tab.ActionAgainst and not getOrg then
     local steamID = tab.ActionAgainst
-    local ply = (orgs.Members[steamID] and orgs.Members[steamID].Nick)
+    local ply = ( CLIENT and steamID == LocalPlayer():SteamID64() and '(You)' )
+    or (orgs.Members[steamID] and orgs.Members[steamID].Nick)
     or (player.GetBySteamID64( steamID ) and player.GetBySteamID64( steamID ):Nick())
     if ply then tab.ActionAgainst = (orgs.Debug and '%s [%s]' or '%s')
       %{ply, orgs.Debug and tab.ActionAgainst or nil} end

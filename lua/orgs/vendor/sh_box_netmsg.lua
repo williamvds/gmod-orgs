@@ -1,18 +1,20 @@
-netmsg = netmsg or { Hooks = {}, Tables = {} }
+netmsg = netmsg or { Hooks = {}, Receivers = {}, Tables = {} }
+
+local reservedKeys = {
+  __id     = true,
+  __parent    = true,
+  __key       = true,
+  __filter    = true,
+  __subFilter = true,
+}
 local EntityMeta = FindMetaTable( 'Entity' )
-
-local function iscolor( tab )
-
-  return tab.r and tab.g and tab.b and tab.a
-end
-
 -- Should only be passed netmsg tables (without metatable)
 local function findSubTables( tab )
   for k, v in pairs( tab ) do
-    if istable(v) and not iscolor(v) and not isvector(v)
-    and ( (SERVER and not v.__tabID) or CLIENT ) then
+    if istable(v) and not IsColor(v) and not isvector(v)
+    and ( (SERVER and not v.__id) or CLIENT ) then
       v.__filter = tab.__subFilter
-      netmsg.NetworkTable( v, (tab.__tabID and tab.__tabID ..'.' or '') .. k )
+      netmsg.NetworkTable( v, (tab.__id and tab.__id ..'.' or '') .. k )
     end
   end
 end
@@ -22,42 +24,41 @@ function netmsg.safeTable( tab, clean )
   table.Merge( newTab, tab.__tab or tab )  -- Prevents copying metatable
 
   if clean then
-    newTab.__tabID = nil
-    newTab.__filter = nil
-    newTab.__subFilter = nil
+    for k, v in pairs( reservedKeys ) do
+      newTab[k] = nil
+    end
   end
 
   for k, v in pairs( newTab ) do
     if isfunction( v ) then newTab[k] = nil end
-    if istable( v ) then newTab[k] = netmsg.safeTable( v.__tab or v ) end
+    if istable( v ) then newTab[k] = netmsg.safeTable( v.__tab or v, clean ) end
   end
 
   return newTab
 end
 
 function netmsg.Receive( name, func )
-  netmsg.Hooks[ name ] = func
+  netmsg.Receivers[ name ] = func
 end
 
-function netmsg.NetworkTable( tab, id, ... )
-  if SERVER and tab.__tabID then return end
+function netmsg.NetworkTable( tab, id, plys, parent, key )
+  if SERVER and tab.__id then return end
 
-  tab.__tabID = id
+  tab.__id = id
   if SERVER then
     local filter, subFilter = tab.__filter, tab.__subFilter
 
-    netmsg.Tables[id] = {}
+    netmsg.Tables[id] = { __id= id, __parent= parent, __key= key }
     table.Merge( netmsg.Tables[id], tab )
     findSubTables( netmsg.Tables[id] )
 
     table.Empty( tab )
-    tab.__tabID = id
-    tab.__filter = filter
-    tab.__subFilter = subFilter
+
+    tab.__id = id
 
     setmetatable( tab, netmsg.METATABLE )
 
-    netmsg.SyncTable( netmsg.Tables[id], unpack{...} )
+    netmsg.SyncTable( netmsg.Tables[id], plys )
     return
   end
 
@@ -67,18 +68,18 @@ end
 
 function EntityMeta:GetNWVar( name, def )
 
-  return ( self.net_PrivVars and self.net_PrivVars[ name ] )
-    or ( self.net_PubVars and self.net_PubVars[ name ] ) or def
+  return ( self.netmsg_PrivVars and self.netmsg_PrivVars[ name ] )
+    or ( self.netmsg_PubVars and self.netmsg_PubVars[ name ] ) or def
 end
 
 local lastNetmsg, lastPly
 net.Receive( 'netmsg.Msg', function( _, ply )
 
   local name = net.ReadString()
-  local done = netmsg.Hooks[ name ]
+  local done = netmsg.Receivers[ name ]
 
   if not done then
-    MsgN( string.format('[NET] Could not find hook for message %s', name ) )
+    MsgN( string.format('[NET] Could not find receiver for message %s', name ) )
     return
   end
 
@@ -98,25 +99,26 @@ if SERVER then
 
   netmsg.METATABLE = {
     __newindex = function( self, key, value )
-      local oldValue = rawget( netmsg.Tables[self.__tabID], key )
+      local oldValue = rawget( netmsg.Tables[self.__id], key )
 
       if value == oldValue then return end
 
-      if value == nil and istable( oldValue ) and oldValue.__tabID then
+      if value == nil and istable( oldValue ) and oldValue.__id then
         for k, v in pairs( netmsg.Tables ) do
-          if string.StartWith( k, oldValue.__tabID ..'.' ) then netmsg.Tables[k] = nil end
+          if string.StartWith( k, oldValue.__id ..'.' ) then netmsg.Tables[k] = nil end
         end
-        netmsg.Tables[oldValue.__tabID] = nil
+        netmsg.Tables[oldValue.__id] = nil
       end
 
-      rawset( netmsg.Tables[self.__tabID], key, value )
+
+      rawset( netmsg.Tables[self.__id], key, value )
       if isfunction( value ) then rawset( self, key, value ) return end
 
-      if istable( value ) and not iscolor( value ) and not isvector( v ) then
+      if istable( value ) and not IsColor( value ) and not isvector( v ) then
         -- Subtables need to be networked, and be given the parent's filter
-        value.__parent = self.__tabID
         value.__filter = self.__subFilter
-        netmsg.NetworkTable( value, self.__tabID ..'.'.. key, nil, self.__tabID, key )
+
+        netmsg.NetworkTable( value, self.__id ..'.'.. key, nil, self.__id, key )
         return
       end
 
@@ -124,14 +126,14 @@ if SERVER then
         -- Perform filtering for each player
         for _, ply in pairs( player.GetAll() ) do
           local v = self:__filter( ply, key, value )
-          netmsg.Send( 'netmsg.SyncKey', { id= self.__tabID, k= key, v= v }, ply )
+          netmsg.Send( 'netmsg.SyncKey', { id= self.__id, k= key, v= v }, ply )
         end
 
-      else netmsg.Send( 'netmsg.SyncKey', { id= self.__tabID, k= key, v= value } ) end
+      else netmsg.Send( 'netmsg.SyncKey', { id= self.__id, k= key, v= value } ) end
 
     end,
     __index = function( self, key )
-      local id = rawget( self, '__tabID' )
+      local id = rawget( self, '__id' )
       if not id then return rawget( self, key ) end
 
       if key == '__tab' then return netmsg.Tables[id] end
@@ -169,11 +171,11 @@ if SERVER then
     if not IsValid( self ) then return end
     local plys
 
-    self.net_PubVars = self.net_PubVars or {}
-    self.net_PrivVars = self.net_PrivVars or {}
+    self.netmsg_PubVars = self.netmsg_PubVars or {}
+    self.netmsg_PrivVars = self.netmsg_PrivVars or {}
 
-    self.net_PubVars[ name ] = public
-    if self:IsPlayer() then self.net_PrivVars[ name ] = private end
+    self.netmsg_PubVars[ name ] = public
+    if self:IsPlayer() then self.netmsg_PrivVars[ name ] = private end
 
     if private and self:IsPlayer() then
       plys = player.GetAll()
@@ -189,20 +191,20 @@ if SERVER then
   -- TODO: Ensure that all entity/player vars are shared (private ones?)
   function EntityMeta:SyncNWVars()
     for k, ent in pairs( ents.GetAll() ) do
-      if not ent.net_PubVars then continue end
-      for name, val in pairs( ent.net_PubVars ) do
+      if not ent.netmsg_PubVars then continue end
+      for name, val in pairs( ent.netmsg_PubVars ) do
         netmsg.Send( 'netmsg.SyncVar', { name= name, val= val, ent= ent }, self )
       end
     end
 
-    if self.net_PubVars then
-      for name, val in pairs( self.net_PubVars ) do
+    if self.netmsg_PubVars then
+      for name, val in pairs( self.netmsg_PubVars ) do
         netmsg.Send( 'netmsg.SyncVar', { name= name, val= val, ent= self }, self )
       end
     end
 
-    if self.net_PrivVars then
-      for name, val in pairs( self.net_PrivVars ) do
+    if self.netmsg_PrivVars then
+      for name, val in pairs( self.netmsg_PrivVars ) do
         netmsg.Send( 'netmsg.SyncVar', { name= name, val= val, ent= self }, self )
       end
     end
@@ -227,8 +229,10 @@ if SERVER then
     local filtered = {}
     table.Merge( filtered, tab.__tab or tab )
 
-    for k, v in pairs( netmsg.safeTable( tab, true ) ) do
-      if tab.__filter then filtered[k] = tab:__filter( ply, k, v ) end
+    for k, v in pairs( netmsg.safeTable( tab ) ) do
+      if tab.__filter and not string.StartWith( k, '__' ) then
+        filtered[k] = tab:__filter( ply, k, v )
+      end
       if istable( tab[k] ) and tab[k].__filter then filtered[k] = filterTable( tab[k], ply ) end
     end
 
@@ -236,8 +240,8 @@ if SERVER then
   end
 
   -- Sync a table to a player so they have all the correct data
-  function netmsg.SyncTable( tab, plys, parent, key )
-    if not tab.__tabID then
+  function netmsg.SyncTable( tab, plys )
+    if not tab.__id then
       Error( '[NET] SyncTable given table with no network identifier' )
       return
     end
@@ -249,15 +253,11 @@ if SERVER then
         local sendTab = filterTable( tab, ply )
         sendTab = netmsg.safeTable( sendTab )
 
-        netmsg.Send( 'netmsg.SyncTable', parent
-          and {tab= sendTab, p= parent, k= key, __hasParent= true}
-          or sendTab, ply )
+        netmsg.Send( 'netmsg.SyncTable', sendTab, ply )
       end
 
     else
-      netmsg.Send( 'netmsg.SyncTable', parent
-        and {tab= netmsg.safeTable( tab ), p= parent, k= key, __hasParent= true}
-        or netmsg.safeTable( tab ), plys )
+      netmsg.Send( 'netmsg.SyncTable', tab, plys )
     end
   end
 
@@ -284,18 +284,18 @@ if CLIENT then
 
     if tab.v == nil then
       local v = netmsg.Tables[ tab.id ][ tab.k ]
-      if istable( v ) and v.__tabID then netmsg.Tables[ v.__tabID ] = nil end
+      if istable( v ) and v.__id then netmsg.Tables[ v.__id ] = nil end
     end
 
     netmsg.Tables[ tab.id ][ tab.k ] = tab.v
 
-    if netmsg.Tables[ tab.id ].__onKeySync then
+    if not reservedKeys[tab.k] and netmsg.Tables[ tab.id ].__onKeySync then
       netmsg.Tables[ tab.id ]:__onKeySync( tab.k, tab.v )
     end
   end )
 
   netmsg.Receive( 'netmsg.SyncTable', function( tab )
-    local id = tab.__hasParent and tab.tab.__tabID or tab.__tabID
+    local id, parent, key = tab.__id, tab.__parent, tab.__key
 
     if netmsg.Tables[id] then
       for k, v in pairs( netmsg.Tables[id] ) do
@@ -309,18 +309,15 @@ if CLIENT then
       if string.StartWith( k, id ..'.' ) then netmsg.Tables[k] = nil end
     end
 
-    table.CopyFromTo( tab.__hasParent and tab.tab or tab, netmsg.Tables[id] )
-    if tab.__hasParent then netmsg.Tables[tab.p][tab.k] = netmsg.Tables[id] end
+    table.CopyFromTo( tab, netmsg.Tables[id] )
+    if parent and key then netmsg.Tables[parent][key] = netmsg.Tables[id] end
 
-    if tab.p and netmsg.Tables[ tab.p ].__onKeySync then
-      netmsg.Tables[ tab.p ]:__onKeySync( tab.k, tab.tab )
-    elseif tab.__onKeySync then netmsg.Tables[ tab.__tabID ]:__onKeySync() end
+    -- Run __onKeySync for parent
+    if not reservedKeys[key] and netmsg.Tables[parent] and netmsg.Tables[parent].__onKeySync then
+      netmsg.Tables[parent]:__onKeySync( key, tab )
+    end
 
     findSubTables( netmsg.Tables[ id ] )
-  end )
-
-  netmsg.Receive( 'netmsg.LinkTables', function( tab )
-    netmsg.Tables[tab.id][tab.k] = netmsg.Tables[ tab.t ]
   end )
 
   netmsg.Receive( 'netmsg.SyncVar', function( tab )
@@ -328,10 +325,10 @@ if CLIENT then
     local ent = tab.ent
     if not IsValid( ent ) then return end
 
-    ent.net_PubVars = ent.net_PubVars or {}
-    ent.net_PrivVars = ent.net_PrivVars or {}
+    ent.netmsg_PubVars = ent.netmsg_PubVars or {}
+    ent.netmsg_PrivVars = ent.netmsg_PrivVars or {}
 
-    local index = 'net_'.. ( ent == LocalPlayer() and 'Priv' or 'Pub' ) ..'Vars'
+    local index = 'netmsg_'.. ( ent == LocalPlayer() and 'Priv' or 'Pub' ) ..'Vars'
     ent[index][tab.name] = tab.val
 
     hook.Run( 'netmsg.NWVarChange', ent, tab.val )

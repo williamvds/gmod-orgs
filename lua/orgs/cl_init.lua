@@ -184,80 +184,50 @@ orgs.ChatLog = function( ... )
 end
 netmsg.Receive( 'orgs.ChatLog', function( tab ) orgs.ChatLog( unpack( tab ) ) end )
 
--- hook.Add( 'PreDrawHalos', 'orgs.MemberHalos', function()
---   if not LocalPlayer():orgs_Org() then return end
---
---   for k, ply in pairs( netmsg.safeTable(orgs.Members, true) ) do
---     ply = player.GetBySteamID64( ply.SteamID )
---     if not ply or ply == LocalPlayer() then continue end
---
---     halo.Add( {ply}, Color(unpack(string.Explode(',',LocalPlayer():orgs_Org().Color ))), 1, 1, 0, true, true )
---   end
---
--- end )
--- hook.Add( 'OnPlayerChat', 'orgs.ChatTag', function( ply, txt )
---   local org = ply:orgs_Org()
---   if not org then return end
---
---   -- table.insert( )
---
---   return true
--- end )
+local lastChat, lastChatPly
+hook.Add( 'OnPlayerChat', 'orgs.ChatIntercept', function( ply, txt )
+  lastChat = txt
+  lastChatPly = ply
+end )
 
--- hook.Add( 'PreDrawHalos', 'orgs.MemberHalos', function()
---   if not LocalPlayer():orgs_Org() then return end
---
---   for k, ply in pairs( netmsg.safeTable(orgs.Members, true) ) do
---     ply = player.GetBySteamID64( ply.SteamID )
---     if not ply or ply == LocalPlayer() then continue end
---
---     cam.Start3D()
---       render.SetStencilEnable( true )
---         render.SuppressEngineLighting(true)
---         cam.IgnoreZ( entry.IgnoreZ )
---
---           render.SetStencilWriteMask( 1 )
---           render.SetStencilTestMask( 1 )
---           render.SetStencilReferenceValue( 1 )
---
---           render.SetStencilCompareFunction( STENCIL_ALWAYS )
---           render.SetStencilPassOperation( STENCIL_REPLACE )
---           render.SetStencilFailOperation( STENCIL_KEEP )
---           render.SetStencilZFailOperation( STENCIL_KEEP )
---
---
---             for k, v in pairs( entry.Ents ) do
---
---               if ( !IsValid( v ) ) then continue end
---
---               RenderEnt = v
---
---               v:DrawModel()
---
---             end
---
---             RenderEnt = NULL
---
---           render.SetStencilCompareFunction( STENCIL_EQUAL )
---           render.SetStencilPassOperation( STENCIL_KEEP )
---           -- render.SetStencilFailOperation( STENCIL_KEEP )
---           -- render.SetStencilZFailOperation( STENCIL_KEEP )
---
---             cam.Start2D()
---               surface.SetDrawColor( entry.Color )
---               surface.orgs.DrawRect( 0, 0, ScrW(), ScrH() )
---             cam.End2D()
---
---             render.SetStencilTestMask( 0 )
---             render.SetStencilWriteMask( 0 )
---             render.SetStencilReferenceValue( 0 )
---
---
---         cam.IgnoreZ( false )
---         render.SuppressEngineLighting(false)
---       render.SetStencilEnable( false )
---     cam.End3D()
---
---   end
---
--- end )
+local oldChatText = oldChatText or chat.AddText
+function chat.AddText( ... )
+  local tab, ply = {...}, false
+
+  if lastChat and lastChatPly and tab[#tab] == ': '.. lastChat then
+    ply = lastChatPly
+    lastChat, lastChatPly = nil, nil
+  end
+
+  if not ply or not ply:orgs_Org(0) then
+    oldChatText( unpack( tab ) )
+  return end
+
+  local org = ply:orgs_Org()
+
+  if org.Tag then
+    table.insert( tab, #tab -3, '[%s] ' %{ org.Tag } )
+    table.insert( tab, #tab -4, Color( unpack( string.Explode( ',', org.Color ) ) ) )
+  end
+
+  oldChatText( unpack( tab ) )
+
+  return true
+end
+
+hook.Add( 'PreDrawHalos', 'orgs.MemberHalos', function()
+  local org = LocalPlayer():orgs_Org()
+  if not org then return end
+
+  local plys = {}
+  for k, v in pairs( netmsg.safeTable( orgs.Members, true ) ) do
+    ply = player.GetBySteamID64( v.SteamID )
+    if not ply or ply == LocalPlayer() then continue end
+
+    table.insert( plys, ply )
+
+  end
+
+  halo.Add( plys, Color( unpack( string.Explode( ',', org.Color ) ) ), 1, 1, 5, true, true )
+
+end )

@@ -91,7 +91,7 @@ net.Receive( 'netmsg.Msg', function( _, ply )
   end
 
   lastNetmsg, lastPly = name, ply
-  done( data, ply )
+  done( data, ply, name )
   lastNetmsg, lastPly = nil, nil
 end )
 

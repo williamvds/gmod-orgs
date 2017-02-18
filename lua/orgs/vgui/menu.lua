@@ -112,7 +112,7 @@ function PANEL:Update()
 
   self.Org = LocalPlayer():orgs_Org()
   if not self.Org then return end
-  self.Org = table.Copy( self.Org ) self.Org.__tabID = nil
+  self.Org = netmsg.safeTable( self.Org )
 
   self.Name:orgs_SetText( self.Org.Name, _, _, true )
   self.ColorCube.Color = istable( self.Org.Color ) and self.Org.Color

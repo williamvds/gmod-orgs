@@ -89,7 +89,8 @@ local tables = {
     'Color', 'Public'},
   players  = TruthTable{'SteamID','Nick','OrgID','RankID','Perms','Salary'},
   ranks    = TruthTable{'OrgID','Name','Perms','BankLimit','BankCooldown','Immunity'},
-  events   = TruthTable{'OrgID','Type','ActionBy','ActionValue','ActionAgainst','Time'},
+  events   = TruthTable{'OrgID','Type','ActionBy','ActionValue','ActionAgainst',
+    'ActionAttribute','Time'},
   invites  = TruthTable{'OrgID','From','To'},
 }
 
@@ -148,7 +149,10 @@ end
 PROVIDER.insert = function( name, tab, done )
 
   for k, v in pairs( tab ) do
-    if not tables[name][k] then tab[k] = nil end
+    if not tables[name][k] then
+      orgs.LogError( false, 'Attempt to set value of unlisted field', k, 'in table', name )
+      tab[k] = nil
+    end
   end
   local cols, qs = columns( tab, name ), qmarks( tab )
   tab = table.ClearKeys( tab )
@@ -158,7 +162,10 @@ end
 
 PROVIDER.update = function( name, tab, where, whereParams, done )
   for k, v in pairs( tab ) do
-    if not tables[name][k] then tab[k] = nil end
+    if not tables[name][k] then
+      orgs.LogError( false, 'Attempt to set value of unlisted field', k, 'in table', name )
+      tab[k] = nil
+    end
   end
   local qs = qmarks( tab, true, name )
 

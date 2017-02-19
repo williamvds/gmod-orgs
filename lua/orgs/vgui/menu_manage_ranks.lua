@@ -81,9 +81,7 @@ function PANEL:Init()
             orgs.Menu:SetError( 'Failed set default rank because '.. orgs.ModifyFails[tab[1]] )
             return
           end
-          self.Lines[curDefault]:SetColumnText( 1, '' )
-          self.Lines[line.Rank]:SetColumnText( 1, '*' )
-          orgs.ChatLog( rankName ..' is now the group\'s default rank' )
+
         end )
 
       end )
@@ -97,7 +95,7 @@ function PANEL:Init()
             orgs.Menu:SetError( 'Failed to remove rank because '.. orgs.RemoveRankFails[tab[1]] )
             return
           end
-          orgs.ChatLog( 'Removed rank '.. rankName )
+
           self.List:RemoveLine( id )
         end )
 
@@ -178,7 +176,7 @@ function PANEL:Init()
     orgs.DrawRect( 0, 0, w, h, orgs.C_WHITE )
     p:DrawTextEntryText( orgs.C_DARKGRAY, orgs.C_GRAY, orgs.C_GRAY )
   end
-  self.Name:SetText( self.Rank.Name )
+  self.Name:orgs_SetText( self.Rank.Name )
 
   l = self:NewLine()
 
@@ -302,10 +300,7 @@ function PANEL:Init()
           orgs.Menu:SetError( 'Failed to alter rank because '.. orgs.EditRankFails[res[1]] )
           return
         end
-        if IsValid( orgs.Menu ) then
-          orgs.ChatLog( 'Successfully managed '.. self.Rank.Name )
-          -- orgs.Menu:Update()
-        end
+
         self:AnimateHide()
       end )
 
@@ -315,12 +310,8 @@ function PANEL:Init()
           orgs.Menu:SetError( 'Failed to add rank' )
           return
         end
-        if IsValid( orgs.Menu ) then
-          orgs.ChatLog( 'Successfully added rank '.. tab.Name )
-          -- orgs.Menu:Update()
-        end
-        self:AnimateHide()
 
+        self:AnimateHide()
       end )
 
     end

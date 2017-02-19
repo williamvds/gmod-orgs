@@ -41,8 +41,6 @@ function PANEL:Init()
       netmsg.Send( 'orgs.Menu.Bulletin', {self.Text:GetText()} )( function( tab )
         if tab[1] then
           orgs.Menu:SetError( 'Something went wrong - '.. orgs.ModifyFails[tab[1]] )
-        else
-          orgs.ChatLog( 'Edited the bulletin successfully' )
         end
       end)
     end

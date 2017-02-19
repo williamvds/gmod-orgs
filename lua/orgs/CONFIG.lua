@@ -197,6 +197,10 @@ orgs.EventStrings = {
     tab.ActionAttribute = tab.ActionAttribute:lower()
       :gsub( 'perms', 'permissions' ):gsub( 'rankid', 'rank' )
 
+    if CLIENT then
+      tab.ActionAgainst = tab.ActionAgainst:gsub( LocalPlayer():SteamID64(), '(Your)' )
+    end
+
     if tab.ActionAttribute == 'rank' then
       local rankID = tonumber( tab.ActionValue )
       if orgs.Ranks[rankID] then
@@ -209,8 +213,8 @@ orgs.EventStrings = {
 
     end
 
-    return CLIENT and tab.ActionBy == tab.ActionAgainst
-      and '[ActionBy] changed your [ActionAttribute] to [ActionValue]'
+    return CLIENT and tab.ActionAgainst == '(Your)'
+      and '[ActionBy] changed [ActionAgainst] [ActionAttribute] to [ActionValue]'
       or '[ActionBy] changed [ActionAgainst]\'s [ActionAttribute] to [ActionValue]'
   end,
 

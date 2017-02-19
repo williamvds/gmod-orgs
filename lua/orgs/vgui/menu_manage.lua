@@ -243,7 +243,6 @@ function PANEL:Init()
         return
       end
       -- orgs.Menu:Update()
-      orgs.ChatLog( 'Modified the group successfully' )
     end )
   end
 

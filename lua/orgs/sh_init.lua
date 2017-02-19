@@ -78,13 +78,16 @@ hook.Add( 'DarkRPFinishedLoading', 'orgs.DarkRPCompat', function()
 end )
 
 orgs.List.__subFilter = function( tab, ply, k, v )
+  if v == nil then return nil end
+
   if ( k == 'Bulletin' or k == 'Balance' ) and tab.OrgID ~= ply:orgs_Org(0) then return end
   return v
 end
 netmsg.NetworkTable( orgs.List, 'orgs.List' )
 
 local sameOrgIDFilter = function( tab, ply, k, v )
-  if v == nil then return v end
+  if v == nil then return nil end
+
   if ply:orgs_Org(0) ~= v.OrgID then return end
   return v
 end
@@ -96,11 +99,21 @@ orgs.Members.__filter = sameOrgIDFilter
 netmsg.NetworkTable( orgs.Members, 'orgs.Members' )
 
 orgs.Events.__filter = function( tab, ply, k, v )
-  if ply:orgs_Org(0) ~= v.OrgID or not ply:orgs_Has( orgs.PERM_EVENTS ) then return end
+  local steamID = ply:SteamID64()
+
+  -- Allow event sync if player has perms or was the actor/victim
+  if ply:orgs_Org(0) ~= v.OrgID or
+  ( not ply:orgs_Has( orgs.PERM_EVENTS )
+    and ( v.ActionBy and v.ActionBy ~= steamID )
+    and ( v.ActionAgainst and v.ActionAgainst ~= steamID )
+  ) then return end
+
   return v
 end
 
 orgs.Invites.__filter = function( tab, ply, k, v )
+  if v == nil then return nil end
+
   if ply:SteamID64() ~= tab.To
   and not ( ply:orgs_Org(0) == tab.OrgID and ply:orgs_Has( orgs.PERM_KICK ) ) then
     return
@@ -112,8 +125,17 @@ netmsg.NetworkTable( orgs.Invites, 'orgs.Invites' )
 
 if CLIENT then
   orgs.Events.__onKeySync = function( tab, k, v )
-    if not v or not orgs.Menu or not orgs.Menu:IsVisible() then return end
-    orgs.Menu:Update()
+    local string
+    if v and v.Time > os.time() -5 then
+      string = orgs.EventToString( table.Copy( v ), true )
+      orgs.ChatLog( unpack( string ) )
+    end
+
+    if IsValid( orgs.Menu ) and orgs.Menu:IsVisible() then
+      if string then orgs.Menu:SetMsg( table.concat( string ) ) end
+      orgs.Menu:Update()
+    end
+
   end
 end
 netmsg.NetworkTable( orgs.Events, 'orgs.Events' )

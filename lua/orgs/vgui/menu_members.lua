@@ -284,15 +284,9 @@ function PANEL:Init()
     netmsg.Send( 'orgs.Menu.Members.Manage', tab )( function( tab )
       if tab[1] and IsValid( orgs.Menu ) then
         orgs.Menu:SetError( 'Failed to manage member because '.. orgs.ManageFails[tab[1]] )
-        return
-      end
+      return end
       if IsValid( orgs.Menu ) then
-        orgs.ChatLog( 'Successfully managed '.. ( self.Player.SteamID
-          == LocalPlayer():SteamID64()
-          and 'yourself'
-          or self.Player.Nick )
-        )
-        orgs.Menu:Update()
+        orgs.Menu.Members:Update()
       end
       self:AnimateHide()
     end )

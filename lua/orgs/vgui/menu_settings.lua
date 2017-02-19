@@ -26,5 +26,5 @@ end
 vgui.Register( 'orgs.Menu.Settings', PANEL, 'EditablePanel' )
 
 hook.Add( 'orgs.LeftOrg', '', function()
-  if orgs.Menu then orgs.Menu:AnimateHide() end
+  if IsValid( orgs.Menu ) then orgs.Menu:AnimateHide() end
 end )

@@ -329,11 +329,6 @@ orgs.updatePlayer = function( ply, tab, ply2, done )
         orgs.LogEvent( orgs.EVENT_MEMBER_LEAVEKICK, {OrgID= member.OrgID,
           ActionBy= steamID2 or steamID, ActionAgainst= steamID2 and steamID or nil } )
 
-        -- check # of members and delete if empty
-        local oldOrgID = member.OrgID
-        orgs.getOrgMembers( oldOrgID, function( data, err )
-          if #data == 0 then orgs.removeOrg( oldOrgID ) end
-        end )
         orgs.List[member.OrgID].Members = orgs.List[member.OrgID].Members -1
 
       end
@@ -358,8 +353,8 @@ orgs.updatePlayer = function( ply, tab, ply2, done )
 
     for k, v in pairs( tab ) do
       if k == 'Name' or k == 'OrgID'
-      or ( k == 'RankID' and ( IsValid( ply ) and ply.orgs_GroupLock ) )
-      or orgs.List[member.OrgID] and orgs.List[member.OrgID].Forming then
+      or ( TruthTable{'RankID','Salary','Perms'}[k] and ( IsValid( ply ) and ply.orgs_GroupLock )
+      or ( not orgs.List[member.OrgID] or orgs.List[member.OrgID].Forming ) ) then
       continue end
 
       orgs.LogEvent( orgs.EVENT_MEMBER_EDIT, {ActionBy= steamID2, OrgID= member.OrgID,
@@ -374,6 +369,11 @@ orgs.updatePlayer = function( ply, tab, ply2, done )
       ply:SetNWVar( 'orgs.OrgID', member.OrgID )
 
       if oldMember and oldMember.OrgID then
+        -- Remove old group if necessary
+        if orgs.List[oldMember.OrgID].Members == 0 then
+          orgs.removeOrg( oldMember.OrgID, steamID, true )
+        end
+
         netmsg.SyncTable( orgs.List[oldMember.OrgID], ply )
       end
       if tab.OrgID ~= NULL then netmsg.SyncTable( orgs.List[tab.OrgID], ply ) end
@@ -447,24 +447,33 @@ orgs.addOrg = function( tab, ply, done )
 
 end
 
-orgs.removeOrg = function( orgID )
+orgs.removeOrg = function( orgID, ply, force )
+  -- TODO: Proper validation?
+  local org, ply = orgs.List[orgID], player.GetBySteamID64( getID( ply ) )
+  if not org or org.Forming then return 1
+  elseif ply and not IsValid( ply ) or ( orgID ~= ply:orgs_Org(0) and not force ) then return 2 end
 
-  orgs.Log( false, 'Removing organisation ', orgID )
+  org.Forming = true
 
   provider.removeOrg( orgID, function()
+    orgs.LogEvent( orgs.EVENT_ORG_REMOVE, {ActionBy= getID( ply ),
+      ActionAgainst= org.Name } )
+
     orgs.getOrgMembers( orgID, function( data )
-      for k, ply in pairs( data ) do orgs.updatePlayer( data.SteamID,
-        {OrgID= NULL, RankID= NULL, Salary= NULL, Perms= NULL} )
+      for k, ply in pairs( data ) do
+        orgs.updatePlayer( data.SteamID, {OrgID= NULL} )
+
+        orgs.List[orgID] = nil
+
+        for k, v in pairs( netmsg.safeTable( orgs.Events, true ) ) do
+          if v.OrgID == orgID then orgs.Events[k] = nil end
+        end
+        for k, v in pairs( netmsg.safeTable( orgs.Ranks, true ) ) do
+          if v.OrgID == orgID then orgs.Ranks[k] = nil end
+        end
+
       end
     end )
-
-    orgs.List[orgID] = nil
-    for k, v in pairs( netmsg.safeTable( orgs.Events, true ) ) do
-      if v.OrgID == orgID then orgs.Events[k] = nil end
-    end
-    for k, v in pairs( netmsg.safeTable( orgs.Ranks, true ) ) do
-      if v.OrgID == orgID then orgs.Ranks[k] = nil end
-    end
 
   end )
 

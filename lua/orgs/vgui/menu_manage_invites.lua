@@ -81,13 +81,12 @@ function PANEL:Init()
     self.Popup:AddOption( 'Withdraw invite', function()
       netmsg.Send( 'orgs.Menu.Members.RemoveInvite', line.Invite ) ( function( tab )
         if tab[1] then
-          print( tab[1] )
-          orgs.Menu:SetError( 'Failed to withdraw invite because ' )
+          orgs.Menu:SetError( 'Failed to withdraw invite because '..
+            orgs.RemoveInviteFails[tab[1]] )
           return
         end
-        orgs.ChatLog( 'Withdrew the invite to that player' )
-        self.List:RemoveLine( id )
 
+        self.List:RemoveLine( id )
       end )
 
     end )

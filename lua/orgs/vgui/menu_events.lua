@@ -71,7 +71,7 @@ function PANEL:Init()
     rt:SetMouseInputEnabled( false )
 
     local col = orgs.TextCol
-    for k, v in pairs( orgs.EventToString( orgs.ParseEvent( nil, table.Copy( event ) ), true ) ) do
+    for k, v in pairs( orgs.EventToString( table.Copy( event ), true ) ) do
       rt:InsertColorChange( col.r, col.g, col.b, col.a )
       rt:AppendText( v )
       col = col == orgs.TextCol and orgs.HighlightCol or orgs.TextCol
@@ -105,12 +105,7 @@ function PANEL:Init()
     end
 
     if event.ActionAgainst and event.ActionAgainst ~= event.ActionBy
-    and not TruthTable{ orgs.EVENT_BANK_TRANSFER,
-      orgs.EVENT_RANK_RENAME,
-      orgs.EVENT_RANK_IMMUNITY,
-      orgs.EVENT_RANK_PERMS,
-      orgs.EVENT_RANK_BANKLIMIT,
-      orgs.EVENT_RANK_BANKCOOLDOWN }[event.Type] then
+    and not TruthTable{ orgs.EVENT_BANK_TRANSFER, orgs.EVENT_RANK_EDIT }[event.Type] then
 
       self.Popup:AddOption( 'Target: View Steam profile', function()
         gui.OpenURL( 'https://steamcommunity.com/profiles/'.. event.ActionAgainst )

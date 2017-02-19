@@ -60,12 +60,12 @@ netmsg.Receive( 'orgs.Menu.Members.Kick', function( tab, ply, msg )
   if err then netmsg.Respond( err ) end
 end )
 
-netmsg.Receive( 'orgs.Menu.Members.Manage', function( tab, ply )
+netmsg.Receive( 'orgs.Menu.Members.Manage', function( tab, ply, msg )
   local ply2 = tab.Player
   tab.Player = nil
 
-  local err = orgs.updatePlayer( ply2, tab, ply, function( data, err, msg )
-     netmsg.Send( msg, err and true or false, ply )
+  local err = orgs.updatePlayer( ply2, tab, ply, function( data, err )
+    netmsg.Send( msg, err and true or false, ply )
   end )
 
   if err then netmsg.Respond( err ) end
@@ -96,7 +96,7 @@ local bankHandler = function( tab, ply, msg )
   return end
 
   local err = orgs.updateOrg( orgID,
-  {Balance= org.Balance +( msg:find('Deposit') and tab.Val or -tab.Val ) }, ply,
+    {Balance= org.Balance +( msg:find('Deposit') and tab.Val or -tab.Val ) }, ply,
   function( _, err, msg )
     netmsg.Send( msg, err and true or false, ply )
   end )
@@ -144,13 +144,6 @@ netmsg.Receive( 'orgs.Menu.Manage.AddRank', function( tab, ply, msg )
 
   if err then netmsg.Respond( err ) end
 end )
-
--- netmsg.Receive( 'orgs.Menu.Manage_Upgrade', function( tab, ply )
---   if not orgs.Has( ply, orgs.PERM_MODIFY ) then
---     netmsg.Respond( )
---   local err = orgs.updateOrg( ply:orgs_Org(0), tab, )
---
--- end
 
 -- JOIN
 

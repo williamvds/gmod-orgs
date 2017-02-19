@@ -114,32 +114,33 @@ orgs.Types = {
 -- It is recommended that you only change the strings (unless you know Lua)
 orgs.EventStrings = {
   -- Group
-  [orgs.EVENT_ORG_CREATED] = '[ActionBy] created a new organisation called [OrgID]',
-  [orgs.EVENT_ORG_DESTROYED] = '[ActionBy] dissolved the organisation [OrgID]',
-  [orgs.EVENT_ORG_TYPE] = function( tab )
-    tab.ActionValue = orgs.Types[tonumber( tab.ActionValue )].Name
-    return '[ActionBy] changed [OrgID]\'s type to [ActionValue]'
-  end,
-  [orgs.EVENT_ORG_NAME] = '[ActionBy] changed [OrgID]\'s name to [ActionValue]',
-  [orgs.EVENT_ORG_MOTTO] = '[ActionBy] changed [OrgID]\'s motto to [ActionValue]',
-  [orgs.EVENT_ORG_TAG] = '[ActionBy] changed [OrgID]\'s tag to [ActionValue]',
-  [orgs.EVENT_ORG_COLOR] = '[ActionBy] changed [OrgID]\'s color to [ActionValue]',
-  [orgs.EVENT_ORG_BULLETIN] = '[ActionBy] changed [OrgID]\'s bulletin',
-  [orgs.EVENT_ORG_DEFAULTRANK] = function( tab )
-    local rankID = tonumber( tab.ActionValue )
-    if orgs.Ranks[rankID] then
+  [orgs.EVENT_ORG_CREATE] = '[ActionBy] created a new organisation called [OrgID]',
+  [orgs.EVENT_ORG_REMOVE] = '[ActionBy] dissolved the organisation [ActionAgainst]',
+  [orgs.EVENT_ORG_EDIT] = function( tab )
+    tab.ActionAttribute = tab.ActionAttribute:lower()
+
+    if tab.ActionAttribute == 'type' then
+      tab.ActionValue = orgs.Types[tonumber( tab.ActionValue )].Name
+
+    elseif tab.ActionAttribute == 'defaultrank' then
+      tab.ActionAttribute = 'default rank'
       tab.ActionValue = (orgs.Debug and '%s [%s]' or '%s')
-        %{orgs.Ranks[rankID].Name, orgs.Debug and rankID or nil}
+        %{orgs.Ranks[tonumber( tab.ActionValue )].Name, orgs.Debug and tab.ActionValue or nil}
+
+    elseif tab.ActionAttribute == 'public' then
+      tab.ActionValue = tobool( tab.ActionValue ) and 'public' or 'private'
+      return '[ActionBy] made [OrgID] [ActionValue]'
+
+    elseif tab.ActionAttribute == 'bulletin' then
+      return '[ActionBy] changed [OrgID]\'s [ActionAttribute]'
+
     end
-    return '[ActionBy] changed [OrgID]\'s default rank to [ActionValue]'
-  end,
-  [orgs.EVENT_ORG_OPEN] = function( tab )
-    tab.ActionValue = tobool( tab.ActionValue ) and 'public' or 'private'
-    return '[ActionBy] made [OrgID] [ActionValue]'
+
+    return '[ActionBy] changed [OrgID]\'s [ActionAttribute] to [ActionValue]'
   end,
 
   -- Rank
-  [orgs.EVENT_RANK_ADDED] = function( tab )
+  [orgs.EVENT_RANK_ADD] = function( tab )
     local rankID = tonumber( tab.ActionValue )
     if orgs.Ranks[rankID] then
       tab.ActionValue = (orgs.Debug and '%s [%s]' or '%s')
@@ -147,47 +148,7 @@ orgs.EventStrings = {
     end
     return '[ActionBy] added new rank [ActionValue] to [OrgID]'
   end,
-  [orgs.EVENT_RANK_RENAME] = function( tab )
-    local rankID = tonumber( tab.ActionAgainst )
-    if orgs.Ranks[rankID] then
-      tab.ActionAgainst = (orgs.Debug and '%s [%s]' or '%s')
-        %{orgs.Ranks[rankID].Name, orgs.Debug and rankID or nil}
-    end
-    return '[ActionBy] renamed rank [ActionAgainst] to [ActionValue]'
-  end,
-  [orgs.EVENT_RANK_PERMS] = function( tab )
-    local rankID = tonumber( tab.ActionAgainst )
-    if orgs.Ranks[rankID] then
-      tab.ActionAgainst = (orgs.Debug and '%s [%s]' or '%s')
-        %{orgs.Ranks[rankID].Name, orgs.Debug and rankID or nil}
-    end
-    return '[ActionBy] set the permissions of rank [ActionAgainst] to [ActionValue]'
-  end,
-  [orgs.EVENT_RANK_IMMUNITY] = function( tab )
-    local rankID = tonumber( tab.ActionAgainst )
-    if orgs.Ranks[rankID] then
-      tab.ActionAgainst = (orgs.Debug and '%s [%s]' or '%s')
-        %{orgs.Ranks[rankID].Name, orgs.Debug and rankID or nil}
-    end
-    return '[ActionBy] set the immunity of rank [ActionAgainst] to [ActionValue]'
-  end,
-  [orgs.EVENT_RANK_BANKLIMIT] = function( tab )
-    local rankID = tonumber( tab.ActionAgainst )
-    if orgs.Ranks[rankID] then
-      tab.ActionAgainst = (orgs.Debug and '%s [%s]' or '%s')
-        %{orgs.Ranks[rankID].Name, orgs.Debug and rankID or nil}
-    end
-    return '[ActionBy] set the withdraw limit of [ActionAgainst] to [ActionValue]'
-  end,
-  [orgs.EVENT_RANK_BANKCOOLDOWN] = function( tab )
-    local rankID = tonumber( tab.ActionAgainst )
-    if orgs.Ranks[rankID] then
-      tab.ActionAgainst = (orgs.Debug and '%s [%s]' or '%s')
-        %{orgs.Ranks[rankID].Name, orgs.Debug and rankID or nil}
-    end
-    return '[ActionBy] set the withdraw cooldown of [ActionAgainst] to [ActionValue]'
-  end,
-  [orgs.EVENT_RANK_REMOVED] = function( tab )
+  [orgs.EVENT_RANK_REMOVE] = function( tab )
     local rankID = tonumber( tab.ActionAgainst )
     if orgs.Ranks[rankID] then
       tab.ActionAgainst = (orgs.Debug and '%s [%s]' or '%s')
@@ -195,31 +156,63 @@ orgs.EventStrings = {
     end
     return '[ActionBy] removed rank [ActionValue] from [OrgID]'
   end,
+  [orgs.EVENT_RANK_EDIT] = function( tab )
+    tab.ActionAttribute = tab.ActionAttribute:lower():gsub( 'perms', 'permissions' )
+    :gsub( 'banklimit', 'withdraw limit' ):gsub( 'bankcooldown', 'withdraw cooldown' )
+
+    local rankID = tonumber( tab.ActionAgainst )
+    if orgs.Ranks[rankID] then
+      tab.ActionAgainst = (orgs.Debug and '%s [%s]' or '%s')
+        %{orgs.Ranks[rankID].Name, orgs.Debug and rankID or nil}
+    end
+
+    if tab.ActionAttribute == 'withdraw limit' then
+      tab.ActionValue = orgs.FormatCurrency( tab.ActionValue )
+
+    elseif tab.ActionAttribute == 'withdraw cooldown' then
+      tab.ActionValue = tab.ActionValue ..'mins'
+
+    end
+
+    return '[ActionBy] changed [ActionAgainst]\'s [ActionAttribute] to [ActionValue]'
+  end,
 
   -- Invite
   [orgs.EVENT_INVITE] = function( tab )
     tab.ActionAgainst = util.SteamIDFrom64( tab.ActionAgainst )
     return '[ActionAgainst] was invited to [OrgID] by [ActionBy]'
   end,
-  [orgs.EVENT_INVITE_WITHDRAWN] = function( tab )
+  [orgs.EVENT_INVITE_WITHDRAW] = function( tab )
     tab.ActionAgainst = util.SteamIDFrom64( tab.ActionAgainst )
     return '[ActionAgainst]\'s invitation to [OrgID] was withdrawn by [ActionBy]'
   end,
 
   -- Member
-  [orgs.EVENT_MEMBER_ADDED] = '[ActionBy] joined organisation [OrgID]',
-  [orgs.EVENT_MEMBER_LEFT] = '[ActionBy] left organisation [OrgID]',
-  [orgs.EVENT_MEMBER_KICKED] = '[ActionBy] kicked [ActionAgainst] from organisation [OrgID]',
-  [orgs.EVENT_MEMBER_RANK] = function( tab )
+  [orgs.EVENT_MEMBER_JOIN] = '[ActionBy] joined [OrgID]',
+  [orgs.EVENT_MEMBER_LEAVEKICK] = function( tab )
+    return tab.ActionAgainst and '[ActionBy] kicked [ActionAgainst] from [OrgID]'
+      or '[ActionBy] left [OrgID]'
+  end,
+  [orgs.EVENT_MEMBER_EDIT] = function( tab )
+    tab.ActionAttribute = tab.ActionAttribute:lower()
+      :gsub( 'perms', 'permissions' ):gsub( 'rankid', 'rank' )
+
+    if tab.ActionAttribute == 'rank' then
       local rankID = tonumber( tab.ActionValue )
       if orgs.Ranks[rankID] then
         tab.ActionValue = (orgs.Debug and '%s [%s]' or '%s')
           %{orgs.Ranks[rankID].Name, orgs.Debug and rankID or nil}
       end
-      return tab.ActionBy == tab.ActionAgainst
-        and '[ActionBy] changed their rank to [ActionValue]'
-        or '[ActionBy] changed [ActionAgainst]\'s rank to [ActionValue]'
-    end,
+
+    elseif tab.ActionAttribute == 'salary' then
+      tab.ActionValue = orgs.FormatCurrency( tab.ActionValue )
+
+    end
+
+    return CLIENT and tab.ActionBy == tab.ActionAgainst
+      and '[ActionBy] changed your [ActionAttribute] to [ActionValue]'
+      or '[ActionBy] changed [ActionAgainst]\'s [ActionAttribute] to [ActionValue]'
+  end,
 
   -- Bank
   [orgs.EVENT_BANK_DEPOSIT] = function( tab )

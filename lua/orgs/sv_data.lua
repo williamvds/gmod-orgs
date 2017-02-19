@@ -109,7 +109,7 @@ orgs.removeInvite = function( id, ply )
 
     if not ply then return end
 
-    orgs.LogEvent( orgs.EVENT_INVITE_WITHDRAWN,
+    orgs.LogEvent( orgs.EVENT_INVITE_WITHDRAW,
       {ActionBy= ply, ActionAgainst= ply2, OrgID= orgID } )
   end )
 
@@ -318,7 +318,7 @@ orgs.updatePlayer = function( ply, tab, ply2, done )
         orgs.List[tab.OrgID].Members = orgs.List[tab.OrgID].Members +1
 
         if not orgs.List[tab.OrgID].Forming then
-          orgs.LogEvent( orgs.EVENT_MEMBER_ADDED, {ActionBy= steamID, OrgID= tab.OrgID} )
+          orgs.LogEvent( orgs.EVENT_MEMBER_JOIN, {ActionBy= steamID, OrgID= tab.OrgID} )
         end
 
         if not orgs.List[tab.OrgID].Loaded then
@@ -326,18 +326,15 @@ orgs.updatePlayer = function( ply, tab, ply2, done )
         end
 
       elseif member and member.OrgID then
-        if steamID2 then orgs.LogEvent( orgs.EVENT_MEMBER_KICKED,
-          {ActionBy= steamID2, ActionAgainst= steamID, OrgID= member2.OrgID} )
-        else orgs.LogEvent( orgs.EVENT_MEMBER_LEFT,
-          {ActionBy= steamID, OrgID= member.OrgID} )
-        end
-        orgs.List[member.OrgID].Members = orgs.List[member.OrgID].Members -1
+        orgs.LogEvent( orgs.EVENT_MEMBER_LEAVEKICK, {OrgID= member.OrgID,
+          ActionBy= steamID2 or steamID, ActionAgainst= steamID2 and steamID or nil } )
 
         -- check # of members and delete if empty
         local oldOrgID = member.OrgID
         orgs.getOrgMembers( oldOrgID, function( data, err )
           if #data == 0 then orgs.removeOrg( oldOrgID ) end
         end )
+        orgs.List[member.OrgID].Members = orgs.List[member.OrgID].Members -1
 
       end
 
@@ -359,15 +356,14 @@ orgs.updatePlayer = function( ply, tab, ply2, done )
         member[k] = v ~= NULL and v or nil
     end
 
-    -- Log rank change
-    if tab.RankID and tab.RankID ~= NULL
-    and ( orgs.List[member.OrgID] and not orgs.List[member.OrgID].Forming )
-    and not ( IsValid( ply ) and ply.orgs_GroupLock ) then
-      orgs.LogEvent( orgs.EVENT_MEMBER_RANK, {
-        ActionBy= steamID2,
-        OrgID= member.OrgID,
-        ActionAgainst= steamID,
-        ActionValue= member.RankID } )
+    for k, v in pairs( tab ) do
+      if k == 'Name' or k == 'OrgID'
+      or ( k == 'RankID' and ( IsValid( ply ) and ply.orgs_GroupLock ) )
+      or orgs.List[member.OrgID] and orgs.List[member.OrgID].Forming then
+      continue end
+
+      orgs.LogEvent( orgs.EVENT_MEMBER_EDIT, {ActionBy= steamID2, OrgID= member.OrgID,
+        ActionAgainst= steamID, ActionValue= v, ActionAttribute= k } )
     end
 
     -- Resync shared group tables for player
@@ -444,7 +440,7 @@ orgs.addOrg = function( tab, ply, done )
       end )
     end
 
-    orgs.LogEvent( orgs.EVENT_ORG_CREATED, {ActionBy= steamID, OrgID= orgID} )
+    orgs.LogEvent( orgs.EVENT_ORG_CREATE, {ActionBy= steamID, OrgID= orgID} )
 
     if done then done( data, err ) end
   end )
@@ -527,7 +523,7 @@ orgs.addRank = function( orgID, tab, ply, done )
     orgs.Ranks[rankID] = tab
 
     if not orgs.List[ tab.OrgID ].Forming then
-      orgs.LogEvent( orgs.EVENT_RANK_ADDED, {ActionBy= steamID, OrgID= orgID,
+      orgs.LogEvent( orgs.EVENT_RANK_ADD, {ActionBy= steamID, OrgID= orgID,
         ActionValue= tab.RankID} )
     end
 
@@ -535,13 +531,6 @@ orgs.addRank = function( orgID, tab, ply, done )
   end )
 end
 
-local rankEvents = {
-  Name = orgs.EVENT_RANK_RENAME,
-  Perms = orgs.EVENT_RANK_PERMS,
-  Immunity = orgs.EVENT_RANK_IMMUNITY,
-  BankLimit = orgs.EVENT_RANK_BANKLIMIT,
-  BankCooldown = orgs.EVENT_RANK_BANKCOOLDOWN,
-}
 orgs.updateRank = function( rankID, tab, ply, done )
   if not rankID or not tab or not istable( tab ) or table.Count( tab ) < 1 then return 1 end
   local rank, member, steamID = orgs.Ranks[ rankID ]
@@ -582,11 +571,9 @@ orgs.updateRank = function( rankID, tab, ply, done )
 
     for k, v in pairs( tab ) do
       rank[k] = v ~= NULL and v or nil
-      if rankEvents[k] then
-        if v == NULL then v = '' end
-        orgs.LogEvent( rankEvents[k],
-        {OrgID= rank.OrgID, ActionAgainst= rankID, ActionBy= steamID, ActionValue= v} )
-      end
+      if v == NULL then v = '' end
+      orgs.LogEvent( orgs.EVENT_RANK_EDIT, {OrgID= rank.OrgID, ActionAgainst= rankID,
+        ActionBy= steamID, ActionAttribute= k, ActionValue= v,} )
     end
 
     if done then done( tab, err ) end
@@ -619,7 +606,7 @@ orgs.removeRank = function( rankID, ply, done )
   end
 
   provider.removeRank( rankID, function( data, err )
-    orgs.LogEvent( orgs.EVENT_RANK_REMOVED,
+    orgs.LogEvent( orgs.EVENT_RANK_REMOVE,
       {ActionBy= steamID, OrgID= orgID, ActionValue= orgs.Ranks[rankID].Name} )
       orgs.Ranks[rankID] = nil
     if done then done( data, err ) end
@@ -637,15 +624,6 @@ orgs.getOrgRanks = function( orgID, done )
 
 end
 
-local orgEvents = {
-  Type= orgs.EVENT_ORG_TYPE,
-  Name= orgs.EVENT_ORG_NAME,
-  Motto= orgs.EVENT_ORG_MOTTO,
-  Tag= orgs.EVENT_ORG_TAG,
-  Color= orgs.EVENT_ORG_COLOR,
-  DefaultRank= orgs.EVENT_ORG_DEFAULTRANK,
-  Public= orgs.EVENT_ORG_OPEN,
-}
 orgs.updateOrg = function( orgID, tab, ply, done )
   local org, steamID, member = orgs.List[orgID]
   if not orgID or not org or not tab or table.Count( tab ) < 1 then return 1 end
@@ -808,20 +786,17 @@ orgs.updateOrg = function( orgID, tab, ply, done )
     end
 
     if not orgs.List[orgID].Forming then
+      -- Attribute change events
       for k, v in pairs( tab ) do
-        if not orgEvents[k] then continue end
-        if v == NULL then v = '' end
-        orgs.LogEvent( orgEvents[k],
-          {OrgID= orgID, ActionBy= steamID, ActionValue= v} )
+        if k == 'Balance' then continue end
+        if v == NULL or k == 'Bulletin' then v = '' end
+        orgs.LogEvent( orgs.EVENT_ORG_EDIT,
+          {OrgID= orgID, ActionBy= steamID, ActionValue= v, ActionAttribute= k} )
       end
     end
 
     for k, v in pairs( tab ) do
       org[k] = v ~= NULL and v or nil
-    end
-
-    if tab.Bulletin then
-      orgs.LogEvent( orgs.EVENT_ORG_BULLETIN, {OrgID= orgID, ActionBy= steamID} )
     end
 
     if done then done( data, err ) end

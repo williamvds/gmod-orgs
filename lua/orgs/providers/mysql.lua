@@ -66,6 +66,7 @@ CREATE TABLE IF NOT EXISTS events(
   OrgID bigint UNSIGNED,
   Type tinyint NOT NULL,
   ActionBy bigint UNSIGNED,
+  ActionAttribute varchar( 12 ),
   ActionValue varchar( 100 ),
   ActionAgainst bigint UNSIGNED,
   Time bigint,

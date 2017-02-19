@@ -33,14 +33,17 @@ netmsg.Receive( 'orgs.JoinMenu.Create', function( tab, ply )
 end )
 
 netmsg.Receive( 'orgs.LeaveOrg', function( _, ply )
-  orgs.updatePlayer( ply, {OrgID= NULL}, nil, function() netmsg.Call( ply, 'orgs.LeftOrg' ) end )
+  orgs.updatePlayer( ply, {OrgID= NULL}, nil, function()
+    if not IsValid( ply ) then return end
+    netmsg.Call( ply, 'orgs.LeftOrg' )
+  end )
 end )
 
 -- BULLETIN
 
-netmsg.Receive( 'orgs.Menu.Bulletin', function( tab, ply )
+netmsg.Receive( 'orgs.Menu.Bulletin', function( tab, ply, msg )
   local err = orgs.updateOrg( ply:orgs_Org(0), {Bulletin= tab[1]}, ply, function()
-    netmsg.Send( 'orgs.Menu.Bulletin', false, ply )
+    netmsg.Send( msg, false, ply )
   end )
 
   if err then netmsg.Respond( err ) end
@@ -48,10 +51,10 @@ end )
 
 -- MEMBERS
 
-netmsg.Receive( 'orgs.Menu.Members.Kick', function( tab, ply )
+netmsg.Receive( 'orgs.Menu.Members.Kick', function( tab, ply, msg )
 
   local err = orgs.updatePlayer( tab[1], {OrgID= NULL}, ply, function()
-    netmsg.Send( 'orgs.Menu.Members.Kick', false, ply )
+    netmsg.Send( msg, false, ply )
   end )
 
   if err then netmsg.Respond( err ) end
@@ -61,24 +64,24 @@ netmsg.Receive( 'orgs.Menu.Members.Manage', function( tab, ply )
   local ply2 = tab.Player
   tab.Player = nil
 
-  local err = orgs.updatePlayer( ply2, tab, ply, function()
-    netmsg.Send( 'orgs.Menu.Members.Manage', false, ply )
+  local err = orgs.updatePlayer( ply2, tab, ply, function( data, err, msg )
+     netmsg.Send( msg, err and true or false, ply )
   end )
 
   if err then netmsg.Respond( err ) end
 end )
 
-netmsg.Receive( 'orgs.Menu.Members.Invite', function( tab, ply )
+netmsg.Receive( 'orgs.Menu.Members.Invite', function( tab, ply, msg )
   local err = orgs.addInvite( tab[1], ply, function( _, err )
-    netmsg.Send( 'orgs.Menu.Members.Invite', err and true or false, ply )
+    netmsg.Send( msg, err and true or false, ply )
   end )
 
   if err then netmsg.Respond( err ) end
 end )
 
-netmsg.Receive( 'orgs.Menu.Members.RemoveInvite', function( tab, ply )
+netmsg.Receive( 'orgs.Menu.Members.RemoveInvite', function( tab, ply, msg )
   local err = orgs.removeInvite( tab[1], ply, function( _, err )
-    netmsg.Send( 'orgs.Menu.Members.RemoveInvite', err and true or false, ply )
+    netmsg.Send( msg, err and true or false, ply )
   end )
 
   if err then netmsg.Respond( err ) end
@@ -106,37 +109,37 @@ netmsg.Receive( 'orgs.Menu.Bank.Withdraw', bankHandler )
 
 -- MANAGE
 
-netmsg.Receive( 'orgs.Menu.Manage.Edit', function( tab, ply )
+netmsg.Receive( 'orgs.Menu.Manage.Edit', function( tab, ply, msg )
 
   local err = orgs.updateOrg( ply:orgs_Org(0), tab, ply, function( _, err )
-    netmsg.Send( 'orgs.Menu.Manage.Edit', err or false, ply )
+    netmsg.Send( msg, err or false, ply )
   end )
 
   if err then netmsg.Respond( err ) end
 end )
 
-netmsg.Receive( 'orgs.Menu.Manage.EditRank', function( tab, ply )
+netmsg.Receive( 'orgs.Menu.Manage.EditRank', function( tab, ply, msg )
 
   local rankID = tab.RankID
   tab.RankID = nil
   local err = orgs.updateRank( rankID, tab, ply, function( _, err )
-    netmsg.Send( 'orgs.Menu.Manage.EditRank', err or false, ply )
+    netmsg.Send( msg, err or false, ply )
   end )
 
   if err then netmsg.Respond( err ) end
 end )
 
-netmsg.Receive( 'orgs.Menu.Manage.RemoveRank', function( tab, ply )
+netmsg.Receive( 'orgs.Menu.Manage.RemoveRank', function( tab, ply, msg )
   local err = orgs.removeRank( tab[1], ply, function( _, err )
-    netmsg.Send( 'orgs.Menu.Manage.RemoveRank', err or false, ply )
+    netmsg.Send( msg, err or false, ply )
   end )
 
   if err then netmsg.Respond( err ) end
 end )
 
-netmsg.Receive( 'orgs.Menu.Manage.AddRank', function( tab, ply )
+netmsg.Receive( 'orgs.Menu.Manage.AddRank', function( tab, ply, msg )
   local err = orgs.addRank( ply:orgs_Org(0), tab, ply, function( _, err )
-    netmsg.Send( 'orgs.Menu.Manage.AddRank', err or false, ply )
+    netmsg.Send( msg, err or false, ply )
   end )
 
   if err then netmsg.Respond( err ) end

@@ -86,6 +86,10 @@ orgs.InviteFails = { -- Inviting players
   'you can\'t invite players',
   'that player has already been invited to this group',
 }
+orgs.RemoveInviteFails = { -- Inviting players
+  'that invite does not exist',
+  'you are not allowed to withdraw that invite',
+}
 
 orgs.EditRankFails = { -- Altering ranks
   'you haven\'t changed anything',
@@ -109,7 +113,7 @@ orgs.ModifyFails = { -- Altering group information
   'you don\'t belong to a group',
   'you\'re not allowed to change the bulletin',
   'you\'re not allowed to modify the group',
-  'the group would go into debt',
+  'the group cannot afford that',
   'the desired name is invalid',
   'the desired name is too long',
   'the desired tag is too long',
@@ -122,6 +126,8 @@ orgs.ModifyFails = { -- Altering group information
   'your group has too few members',
   'your group has too many members',
   'you\'re not allowed to withdraw money',
+  'your group\'s account cannot contain that much money',
+  'you would exceed your withdrawal limit',
 }
 
 orgs.PermCheckboxes = {

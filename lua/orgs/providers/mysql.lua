@@ -150,7 +150,7 @@ PROVIDER.insert = function( name, tab, done )
 
   for k, v in pairs( tab ) do
     if not tables[name][k] then
-      orgs.LogError( false, 'Attempt to set value of unlisted field', k, 'in table', name )
+      orgs.LogError( false, 'Attempt to set value of unlisted field ', k, ' in ', name )
       tab[k] = nil
     end
   end
@@ -300,8 +300,8 @@ db.onConnected = function()
   PROVIDER.DoneFirstConnect = true
 end
 
-db.onConnectionFailed = function()
-  orgs.LogError( false, 'Failed to connect to database %s@%s' %{user, database} )
+db.onConnectionFailed = function( db, err )
+  orgs.LogError( false, 'Failed to connect to database %s@%s' %{user, database}, err )
   PROVIDER.Failed = true
 end
 

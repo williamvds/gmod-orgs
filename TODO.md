@@ -1,20 +1,17 @@
 ### Bugs and improvements
-- [ ] settings: rename to 'You', show rank, settings
+- [ ] settings: rename to 'You', show rank, settings, dock tab right?, add to joinmenu?
 - [ ] add tooltips to panels where it makes sense
-- [ ] give players chat log when something happens to them
-- [ ] don't share group balance with all players, only members (create rank property for joinmenu?)
 - [ ] more graceful handling of provider failure
 - [ ] use a table column for each permission?
-- [ ] stop bulletin changes being wiped if menu updates while editing
-- [ ] limit message when withdrawing more than bank contains
-- [ ] events not syncing for players when they are promoted
+- [ ] data: events not syncing for players when they are promoted
 - [ ] random clientside duplication of ranks when you make an org, probably syncing issues
-- [ ] show org type in joinmenu list
-- [ ] spamming allows duplicate withdrawls/deposit
+- [ ] joinmenu: show org type in list
+- [ ] spamming allows duplicate withdrawals/deposit
+- [ ] vgui: use panel:PaintAt for tab transition animations
+- [ ] mysql: use triggers to reset player values when a group is deleted
 
 ### Features to implement
 - [ ] upgrade: remove allegiances if necessary, warning if group is hidden
-- [ ] invites
 - [ ] group hiding
 - [ ] alliances and allegiances
 - [ ] admin system
@@ -25,10 +22,8 @@
 - [ ] mysql: Use transactions for updating ranks?
 - [ ] ranks: Allow rank shorthand
 - [ ] multiple language support
-- [ ] bank limits for group types
-- [ ] allow requests for withdrawls, add permission for it?
+- [ ] allow requests for withdrawals, add permission for it?
 - [ ] drop shadows in menus
 - [ ] default rank salary
-- [ ] allow highlighting allies with halos
 - [ ] color playermodels based on their org for certain roles
 - [ ] can be public property for org types

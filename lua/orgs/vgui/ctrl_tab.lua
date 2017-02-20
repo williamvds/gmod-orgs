@@ -8,14 +8,14 @@ function PANEL:Init()
   self.Header:Dock( TOP )
 
   self.Body = self:Add( 'DPanel' )
-  self.Body:orgs_BGR( orgs.C_GRAY )
+  self.Body:orgs_BGR( orgs.Colors.MenuBackgroundAlt )
   self.Body:Dock( FILL )
 
   local bar = self:Add( 'DPanel' )
   bar:orgs_Dock( TOP, {u=5} )
   bar:MoveToFront()
   bar:SetTall( 3 )
-  bar:orgs_BGR( orgs.C_BLUE )
+  bar:orgs_BGR( orgs.Colors.MenuPrimaryAlt )
 
   self.Tabs = {}
   self:Dock( FILL )
@@ -33,10 +33,10 @@ function PANEL:AddTab( name, panel, col, altCol, id )
   id = id or #self.Tabs +1
 
   local tab = self.Header:Add( 'DButton' )
-  tab:orgs_SetText( name, 'orgs.Medium', orgs.C_WHITE )
+  tab:orgs_SetText( name, 'orgs.Medium', orgs.Colors.Text )
 
   tab:SetContentAlignment( 5 )
-  tab:orgs_BGR( col or orgs.C_DARKBLUE, altCol or orgs.C_BLUE )
+  tab:orgs_BGR( col or orgs.Colors.MenuPrimary, altCol or orgs.Colors.MenuPrimaryAlt )
   tab.DoClick = function( tab ) self:SetActiveTab( id ) end
   tab.ID = id
 
@@ -112,14 +112,15 @@ function PANEL:SetActiveTab( id )
   local id = id or next(self.Tabs)
   local old, new = self:GetActiveTab(), self:GetTab( id )
 
-  new.Tab:orgs_SetText( new.Name, _, orgs.C_DARKGRAY )
-  new.Tab:orgs_BGR( orgs.C_WHITE )
+  new.Tab:orgs_SetText( new.Name, _, orgs.Colors.MenuBackground )
+  new.Tab:orgs_BGR( orgs.Colors.Text )
 
   if self.ActiveTab == id then return end
 
   if old and IsValid( old.Panel ) then
-    old.Tab:orgs_SetText( old.Name, _, orgs.C_WHITE )
-    old.Tab:orgs_BGR( old.Color or orgs.C_DARKBLUE, old.AltColor or orgs.C_BLUE )
+    old.Tab:orgs_SetText( old.Name, _, orgs.Colors.Text )
+    old.Tab:orgs_BGR( old.Color or orgs.Colors.MenuPrimary,
+      old.AltColor or orgs.Colors.MenuPrimaryAlt )
 
     local alpha1 = old.Panel:GetAlpha()
     old.Panel:AlphaTo( 0, .075, 0, function()

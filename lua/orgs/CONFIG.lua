@@ -36,10 +36,24 @@ orgs.MaxBulletinLength  = 1000
 orgs.MaxRanks           = 20   -- Maximum number of ranks any group can have
 
 -- Colors used in logs
-orgs.PrimaryCol    = Color( 52, 152, 219 )
-orgs.TextCol       = Color( 245, 245, 245 )
-orgs.HighlightCol  = Color( 46, 204, 113 )
-orgs.ErrorCol      = Color( 228, 42, 46 )
+orgs.Colors.Primary   = Color( 52, 152, 219 )
+orgs.Colors.Secondary = Color( 46, 204, 113 )
+orgs.Colors.Text      = Color( 245, 245, 245 )
+orgs.Colors.Error     = Color( 228, 42, 46 )
+
+if CLIENT then
+  orgs.Colors.MenuPrimary       = Color( 54, 120, 172 )  -- Theme main
+  orgs.Colors.MenuPrimaryAlt    = Color( 74, 140, 192 )  -- Hover/highlight against primary
+  orgs.Colors.MenuActive        = Color( 127, 140, 141 ) -- Highlighted/selected lines
+  orgs.Colors.MenuBackground    = Color( 34, 34, 34 )    -- Background
+  orgs.Colors.MenuBackgroundAlt = Color( 51, 51, 51 )    -- Alternate background
+  orgs.Colors.MenuBank          = Color( 0, 40, 0 )      -- Bank background
+  orgs.Colors.MenuBankAlt       = Color( 0, 203, 0 )     -- Bank background highlight
+  orgs.Colors.MenuIndicatorOn   = Color( 41, 235, 82 )   -- Online player indicator
+  orgs.Colors.MenuIndicatorOff  = Color( 228, 42, 46 )   -- Offline player indicator
+  orgs.Colors.Close             = Color( 207, 28, 27 )   -- Close/highlighted buttons
+  orgs.Colors.CloseAlt          = Color( 228, 42, 46 )   -- Close/highlighted buttons hover
+end
 
 --[[ Default ranks, follow the existing structure
 Permission numbers:

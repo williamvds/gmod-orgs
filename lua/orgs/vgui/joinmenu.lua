@@ -7,18 +7,19 @@ function PANEL:Init()
   self:SetKeyboardInputEnabled( true )
   self:SetFocusTopLevel( true )
 
-  self.SubText = self:orgs_AddLabel( 'You don\'t currently belong to any group: you can join or create one',
-  'orgs.Small', orgs.C_WHITE, true )
+  self.SubText = self:orgs_AddLabel( 'You don\'t currently belong to any group: you can join '
+    ..' or create one',
+    'orgs.Small', orgs.Colors.Text, true )
   self.SubText:orgs_Dock( TOP, {l=15, r=15, d=5} )
   self.SubText:SetAutoStretchVertical( true )
 
   self.Divider = self:Add( 'DPanel' )
-  self.Divider:orgs_BGR( orgs.C_BLUE )
+  self.Divider:orgs_BGR( orgs.Colors.MenuPrimaryAlt )
   self.Divider:SetTall( 4 )
   self.Divider:Dock( TOP )
 
   self.Body = self:Add( 'DPanel' )
-  self.Body:orgs_BGR( orgs.C_DARKGRAY )
+  self.Body:orgs_BGR( orgs.Colors.MenuBackground )
   self.Body:MoveToBack()
   self.Body:SetTall( 300 )
   self.Body:Dock( FILL )
@@ -33,7 +34,7 @@ function PANEL:Init()
   local txt = 'INVITES'.. ( count > 0 and ' (%s)'  %{count} or '' )
   self.Invites = self.TabMenu:AddTab( txt, vgui.Create( 'orgs.JoinMenu_Invites' ) )
 
-  self.Msg = self:orgs_AddLabel( '', 'orgs.Small', orgs.C_WHITE )
+  self.Msg = self:orgs_AddLabel( '', 'orgs.Small', orgs.Colors.Text )
   self.Msg:Hide()
   self.Msg:SetContentAlignment( 5 )
   self.Msg:MoveToBack()
@@ -57,12 +58,12 @@ function PANEL:SetMsg( text, col, time )
 
   if self.Msg:IsVisible() then
     self.Msg:AlphaTo( 0, .2, 0, function()
-      self.Msg:orgs_SetText( text, nil, col or orgs.C_WHITE )
+      self.Msg:orgs_SetText( text, nil, col or orgs.Colors.Text )
       self.Msg:AlphaTo( 255, .2, 0 )
     end )
 
   else
-    self.Msg:SetTextColor( col or orgs.C_WHITE )
+    self.Msg:SetTextColor( col or orgs.Colors.Text )
     self.Msg:orgs_SetText( text )
     self.Msg:SetAlpha( 0 )
     self.Msg:Show()
@@ -85,7 +86,7 @@ function PANEL:SetMsg( text, col, time )
 end
 
 function PANEL:SetError( text, time )
-  self:SetMsg( text, orgs.C_RED, time )
+  self:SetMsg( text, orgs.Colors.Error, time )
 end
 
 function PANEL:Think()
@@ -104,7 +105,7 @@ function PANEL:Update()
   end
 end
 
-function PANEL:Paint( w, h ) orgs.DrawRect( 0, 0, w, h, orgs.C_DARKGRAY ) end
+function PANEL:Paint( w, h ) orgs.DrawRect( 0, 0, w, h, orgs.Colors.MenuBackground ) end
 
 vgui.Register( 'orgs.JoinMenu', PANEL, 'orgs.Frame' )
 

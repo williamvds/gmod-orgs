@@ -1,4 +1,5 @@
-orgs = orgs or { List = {}, Loaded = {}, Ranks = {}, Members = {}, Invites = {}, Events = {} }
+orgs = orgs or { List = {}, Loaded = {}, Ranks = {}, Members = {}, Invites = {}, Events = {},
+  Colors= {} }
 
 if SERVER then
   AddCSLuaFile 'vendor/sh_vercas_von.lua'

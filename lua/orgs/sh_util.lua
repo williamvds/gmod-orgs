@@ -7,29 +7,29 @@ orgs.Log = function( debug, ... )
 
   if debug and not orgs.Debug then return end
 
-  local col, tab = orgs.TextCol, {}
+  local col, tab = orgs.Colors.Text, {}
   for k, str in pairs( {...} ) do
     if k == #{...} then str = (str or '') ..'\n' end
     table.insert( tab, col )
     table.insert( tab, str )
-    col = col == orgs.TextCol and orgs.HighlightCol or orgs.TextCol
+    col = col == orgs.Colors.Text and orgs.Colors.Secondary or orgs.Colors.Text
   end
 
-  MsgC( orgs.PrimaryCol, 'ORGS: ', unpack( tab ) )
+  MsgC( orgs.Colors.Primary, 'ORGS: ', unpack( tab ) )
 end
 
 orgs.LogError = function( debug, ... )
   if debug and not orgs.Debug then return end
 
-  local col, tab = orgs.ErrorCol, {}
+  local col, tab = orgs.Colors.Error, {}
   for k, str in pairs( {...} ) do
     if k == #{...} then str = str ..'\n' end
     table.insert( tab, col )
     table.insert( tab, str )
-    col = col == orgs.ErrorCol and orgs.HighlightCol or orgs.TextCol
+    col = col == orgs.Colors.Error and orgs.Colors.Secondary or orgs.Colors.Error
   end
 
-  MsgC( orgs.PrimaryCol, 'ORGS ERROR: ', unpack( tab ) )
+  MsgC( orgs.Colors.Primary, 'ORGS ERROR: ', unpack( tab ) )
 end
 
 orgs.Get = function( id ) return orgs.List[id] end

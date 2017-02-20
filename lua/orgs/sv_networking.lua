@@ -9,7 +9,7 @@ hook.Add( 'PlayerSay', 'orgs.ChatCommand', function( ply, text )
 
   if string.lower( text ) == orgs.CommandPrefix..orgs.Command then
     if orgs._Provider.Failed then
-      orgs.ChatLog( ply, orgs.C_RED, 'Organisations couldn\'t connect to the database - '
+      orgs.ChatLog( ply, orgs.Colors.Error, 'Organisations couldn\'t connect to the database - '
         ..'please warn an admin as soon as possible!' )
       return false
     end

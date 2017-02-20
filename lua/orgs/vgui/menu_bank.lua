@@ -5,7 +5,7 @@ local function altButton( text, parent, right )
   local b = vgui.Create( 'DButton', parent )
   b:SetText( '' )
   b.Paint = function( b, w, h )
-    surface.SetDrawColor( orgs.C_GREEN )
+    surface.SetDrawColor( orgs.Colors.MenuBankAlt )
     if b.Active or (b.HollowOnHover and b:IsHovered()) then
       surface.DrawOutlinedRect( right and b:GetWide() -b:GetTall() or 0, 0, b:GetTall(),
         b:GetTall() )
@@ -16,7 +16,7 @@ local function altButton( text, parent, right )
     end
   end
 
-  b.Label = b:orgs_AddLabel( text, 'orgs.Medium', orgs.C_GREEN )
+  b.Label = b:orgs_AddLabel( text, 'orgs.Medium', orgs.Colors.MenuBankAlt )
   b.Label:orgs_Dock( right and RIGHT or LEFT, right and {r=30} or {l=30} )
 
   b:SizeToChildren( true, true )
@@ -33,18 +33,19 @@ end
 
 local bankActions = {'Deposit', 'Withdraw', 'Transfer'}
 function PANEL:Init()
-  self:orgs_BGR( orgs.C_DARKGREEN )
+  self:orgs_BGR( orgs.Colors.MenuBank )
 
-  self.BankName = self:orgs_AddLabel( string.upper(orgs.BankName), 'orgs.Large', orgs.C_GREEN )
+  self.BankName = self:orgs_AddLabel( string.upper(orgs.BankName), 'orgs.Large',
+    orgs.Colors.MenuBankAlt )
   self.BankName:SetContentAlignment(5)
   self.BankName:orgs_Dock( TOP, {u=15} )
 
-  self.AccountName = self:orgs_AddLabel( '', 'orgs.Medium', orgs.C_GREEN )
+  self.AccountName = self:orgs_AddLabel( '', 'orgs.Medium', orgs.Colors.MenuBankAlt )
   self.AccountName:SetContentAlignment( 5 )
   self.AccountName:orgs_Dock( TOP, {u=-2} )
 
   self.Left = self:Add( 'DPanel' )
-  self.Left:orgs_BGR( orgs.C_NONE )
+  self.Left:orgs_BGR( orgs.COLOR_NONE )
   self.Left:SetWide( 185 )
   self.Left:orgs_Dock( LEFT, nil, {l=15} )
 
@@ -65,26 +66,26 @@ function PANEL:Init()
   -- RIGHT PANEL
 
   self.Right = self:Add( 'DPanel' )
-  self.Right:orgs_BGR( orgs.C_NONE )
+  self.Right:orgs_BGR( orgs.COLOR_NONE )
   self.Right:SetWide( 185 )
   self.Right:orgs_Dock( RIGHT, nil, {u=25,r=15} )
 
   for k, v in pairs( {Balance= 'Balance', In= 'Last 24 HR in', Out= 'Last 24 HR out'} ) do
-    self[k ..'Label'] = self.Right:orgs_AddLabel( v:upper(), 'orgs.Small', orgs.C_GREEN )
+    self[k ..'Label'] = self.Right:orgs_AddLabel( v:upper(), 'orgs.Small', orgs.Colors.MenuBankAlt )
     self[k ..'Label']:SetContentAlignment( 5 )
     self[k ..'Label']:Dock( TOP )
-    self[k] = self.Right:orgs_AddLabel( '', 'orgs.Medium', orgs.C_GREEN )
+    self[k] = self.Right:orgs_AddLabel( '', 'orgs.Medium', orgs.Colors.MenuBankAlt )
     self[k]:SetContentAlignment( 5 )
     self[k]:orgs_Dock( TOP, {d=25} )
   end
 
-  self.ActionLabel = self:orgs_AddLabel( 'DEPOSIT', 'orgs.Medium', orgs.C_GREEN )
+  self.ActionLabel = self:orgs_AddLabel( 'DEPOSIT', 'orgs.Medium', orgs.Colors.MenuBankAlt )
   self.ActionLabel:SetContentAlignment( 5 )
   self.ActionLabel:orgs_Dock( TOP, {u=35} )
 
   self.TransferTo = self:Add( 'orgs.ComboBox' )
-  self.TransferTo.Color = orgs.C_GREEN
-  self.TransferTo.AltColor = orgs.C_DARKGREEN
+  self.TransferTo.Color = orgs.Colors.MenuBankAlt
+  self.TransferTo.AltColor = orgs.Colors.MenuBank
   self.TransferTo:Hide()
   self.TransferTo:orgs_Dock( TOP, {u=5,d=5,l=75,r=75} )
 
@@ -94,8 +95,8 @@ function PANEL:Init()
   self.Value:SetNumeric( true )
   self.Value:orgs_Dock( TOP, {u=5,l=75,r=75} )
   self.Value.Paint = function( p, w, h )
-    orgs.DrawRect( 0, 0, w, h, orgs.C_GREEN )
-    p:DrawTextEntryText( orgs.C_DARKGREEN, orgs.C_DARKGREEN, orgs.C_DARKGREEN )
+    orgs.DrawRect( 0, 0, w, h, orgs.Colors.MenuBankAlt )
+    p:DrawTextEntryText( orgs.Colors.MenuBank, orgs.Colors.MenuBank, orgs.Colors.MenuBank )
   end
   self.Value.AllowInput = function( p, val )
     local num = tonumber( p:GetText() ..val )

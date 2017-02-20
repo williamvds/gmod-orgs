@@ -16,7 +16,7 @@ function Panel:orgs_AddLabel( text, font, col, wrap, noresize )
     l:SetWrap( true )
     l:SetAutoStretchVertical( true )
   end
-  l:orgs_SetText( text, font, col or orgs.C_WHITE, not noresize )
+  l:orgs_SetText( text, font, col or orgs.Colors.Text, not noresize )
 
   return l
 end
@@ -34,7 +34,7 @@ function Panel:Debug()
 
   self.oldPaint = self.Paint
   self.Paint = function( self, w, h )
-    orgs.DrawRect( 0, 0, w, h, orgs.C_RED )
+    orgs.DrawRect( 0, 0, w, h, orgs.Colors.Close )
     if self.oldPaint then self:oldPaint( w, h ) end
   end
 
@@ -43,20 +43,21 @@ end
 function Panel:orgs_BGR( col, hover, depressed )
 
   self.Paint = function( self, w, h )
-    local col = ( depressed and self.IsDown() ) and depressed or ( hover and self:IsHovered() ) and hover or col
+    local col = ( depressed and self.IsDown() ) and depressed
+      or ( hover and self:IsHovered() ) and hover or col
     orgs.DrawRect( 0, 0, w, h, col )
   end
 
 end
 
 local SKIN = {}
-SKIN.colNumberWangBG = orgs.C_WHITE
-SKIN.control_color_bright = orgs.C_WHITE
-SKIN.tooltip = orgs.C_WHITE
+SKIN.colNumberWangBG = orgs.Colors.Text
+SKIN.control_color_bright = orgs.Colors.Text
+SKIN.tooltip = orgs.Colors.Text
 derma.DefineSkin( 'orgs.default', '', SKIN )
 
 SKIN = {}
-SKIN.colTextEntryTextHighlight  = orgs.C_NONE
-SKIN.colTextEntryTextCursor = orgs.C_NONE
+SKIN.colTextEntryTextHighlight  = orgs.COLOR_NONE
+SKIN.colTextEntryTextCursor = orgs.COLOR_NONE
 
 derma.DefineSkin( 'orgs.blankTextBox', '', SKIN )

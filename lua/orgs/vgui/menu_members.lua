@@ -26,16 +26,16 @@ end
 
 function PANEL:Init()
   self.Players = {}
-  self:orgs_BGR( orgs.C_GRAY )
+  self:orgs_BGR( orgs.Colors.MenuBackgroundAlt )
 
   self.Desc = self:orgs_AddLabel( 'For more actions double click members',
-    'orgs.Small', orgs.C_WHITE )
+    'orgs.Small', orgs.Colors.Text )
   self.Desc:orgs_Dock( BOTTOM, {u=5,d=5} )
   self.Desc:SetContentAlignment(5)
 
   self.Invite = self:Add( 'DButton' )
-  self.Invite:orgs_BGR( orgs.C_DARKBLUE, orgs.C_BLUE )
-  self.Invite:orgs_SetText( 'Invite', 'orgs.Medium', orgs.C_WHITE )
+  self.Invite:orgs_BGR( orgs.Colors.MenuPrimary, orgs.Colors.MenuPrimaryAlt )
+  self.Invite:orgs_SetText( 'Invite', 'orgs.Medium', orgs.Colors.Text )
   self.Invite:orgs_Dock( BOTTOM, {l=260, r=260} )
   self.Invite:SetTall( 30 )
   self.Invite.DoClick = function( b )
@@ -50,7 +50,7 @@ function PANEL:Init()
   self.List:SetHeaderHeight( 25 )
   self.List:SetDataHeight( 24 )
   self.List:SetMultiSelect( false )
-  self.List:orgs_BGR( orgs.C_GRAY )
+  self.List:orgs_BGR( orgs.Colors.MenuBackgroundAlt )
 
   local c
   for k, v in pairs( {
@@ -61,8 +61,8 @@ function PANEL:Init()
   } ) do
     c = self.List:AddColumn( v.txt )
     if v.w then c:SetFixedWidth( v.w ) end
-    c.Header:orgs_SetText( nil, 'orgs.Medium', orgs.C_WHITE )
-    c.Header:orgs_BGR( orgs.C_DARKBLUE )
+    c.Header:orgs_SetText( nil, 'orgs.Medium', orgs.Colors.Text )
+    c.Header:orgs_BGR( orgs.Colors.MenuPrimary )
   end
 
   self.List.AddLine = function( self, ply, ... )
@@ -73,14 +73,15 @@ function PANEL:Init()
     l.Player = ply
 
     l.Paint = function( self, w, h )
-      local col = orgs.C_NONE
-      if self:IsSelected() then col = orgs.C_LIGHTGRAY end
+      local col = orgs.COLOR_NONE
+      if self:IsSelected() then col = orgs.Colors.MenuActive end
       orgs.DrawRect( 0, 0, w, h, col )
     end
 
-    l.Columns[1].Color = self:GetText() == '' and orgs.C_LIGHTGREEN or orgs.C_RED
+    l.Columns[1].Color = self:GetText() == '' and orgs.Colors.MenuIndicatorOn
+      or orgs.Colors.MenuIndicatorOn
     l.Columns[1].PaintOver = function( p, w, h )
-      local col = p:GetText() == '' and orgs.C_LIGHTGREEN or orgs.C_RED
+      local col = p:GetText() == '' and orgs.Colors.MenuIndicatorOn or orgs.Colors.MenuIndicatorOn
       col.a = 63
       drawCircle( 12, 12, 8, 24, col )
       col.a = 255
@@ -94,7 +95,7 @@ function PANEL:Init()
     end
 
     for k, c in pairs( l.Columns ) do
-      c:orgs_SetText( nil, 'orgs.SmallLight', orgs.C_WHITE )
+      c:orgs_SetText( nil, 'orgs.SmallLight', orgs.Colors.Text )
       c:SetContentAlignment(5)
     end
 
@@ -106,7 +107,7 @@ function PANEL:Init()
   self.List.OnRowRightClick = function( self, id, line )
 
     self.Popup = DermaMenu( self )
-    self.Popup:orgs_BGR( orgs.C_WHITE )
+    self.Popup:orgs_BGR( orgs.Colors.Text )
 
     self.Popup:AddOption( 'View Steam profile', function()
       gui.OpenURL( 'https://steamcommunity.com/profiles/'.. line.Player )
@@ -135,9 +136,9 @@ function PANEL:Init()
 
     for k, opt in pairs( self.Popup:GetCanvas():GetChildren() ) do
       if opt.ThisClass ~= 'DMenuOption' then continue end
-      opt:orgs_SetText( nil, 'orgs.Small', orgs.C_DARKGRAY )
+      opt:orgs_SetText( nil, 'orgs.Small', orgs.Colors.MenuBackground )
       opt:SetTextInset( 10, 0 )
-      opt:orgs_BGR( orgs.C_NONE )
+      opt:orgs_BGR( orgs.COLOR_NONE )
     end
 
     self.Popup:Open()
@@ -187,7 +188,7 @@ function PANEL:Init()
 
   l = self:NewLine()
 
-  self.RankLabel = l:orgs_AddLabel( 'Rank', 'orgs.Medium', orgs.C_WHITE, true )
+  self.RankLabel = l:orgs_AddLabel( 'Rank', 'orgs.Medium', orgs.Colors.Text, true )
   self.RankLabel:orgs_Dock( LEFT, {l=20} )
   self.RankLabel:SetWide( 50 )
   self.RankLabel:SetContentAlignment( 6 )
@@ -205,7 +206,7 @@ function PANEL:Init()
 
   l = self:NewLine()
 
-  self.SalaryLabel = l:orgs_AddLabel( 'Salary', 'orgs.Medium', orgs.C_WHITE, true )
+  self.SalaryLabel = l:orgs_AddLabel( 'Salary', 'orgs.Medium', orgs.Colors.Text, true )
   self.SalaryLabel:orgs_Dock( LEFT, {l=20} )
   self.SalaryLabel:SetWide( 50 )
   self.SalaryLabel:SetContentAlignment( 6 )
@@ -216,15 +217,16 @@ function PANEL:Init()
   self.Salary:SetFont( 'orgs.Medium' )
   self.Salary:SetNumeric( true )
   self.Salary.Paint = function( p, w, h )
-    orgs.DrawRect( 0, 0, w, h, orgs.C_WHITE )
-    p:DrawTextEntryText( orgs.C_DARKGRAY, orgs.C_GRAY, orgs.C_GRAY )
+    orgs.DrawRect( 0, 0, w, h, orgs.Colors.Text )
+    p:DrawTextEntryText( orgs.Colors.MenuBackground, orgs.Colors.MenuBackgroundAlt,
+      orgs.Colors.MenuBackgroundAlt )
   end
   self.Salary:orgs_SetText( self.Player.Salary )
 
   l = self:NewLine()
 
   self.PermsLabel = l:Add( 'DLabel' )
-  self.PermsLabel:orgs_SetText( 'Permissions', 'orgs.Medium', orgs.C_WHITE )
+  self.PermsLabel:orgs_SetText( 'Permissions', 'orgs.Medium', orgs.Colors.Text )
   self.PermsLabel:orgs_Dock( LEFT, {l=-15}, nil, true )
 
   l = self:NewLine()
@@ -233,7 +235,7 @@ function PANEL:Init()
     self[v[1]] = l:Add( 'DCheckBoxLabel' )
     local box = self[v[1]]
     box:Dock( k %2 ~= 0 and LEFT or RIGHT )
-    box.Label:orgs_SetText( v[2], 'orgs.Small', orgs.C_WHITE )
+    box.Label:orgs_SetText( v[2], 'orgs.Small', orgs.Colors.Text )
     box.Label:orgs_Dock( LEFT, {l=20} )
     box.Label:SetContentAlignment(4)
     if k %2 ~= 0 then box:SizeToContents()
@@ -251,10 +253,10 @@ function PANEL:Init()
   end
 
   self.Save = self.Body:Add( 'DButton' )
-  self.Save:orgs_BGR( orgs.C_DARKBLUE, orgs.C_BLUE )
+  self.Save:orgs_BGR( orgs.Colors.MenuPrimary, orgs.Colors.MenuPrimaryAlt )
   self.Save:orgs_Dock( BOTTOM, {l=150,r=150} )
   self.Save:SetTall( 30 )
-  self.Save:orgs_SetText( 'Save', 'orgs.Medium', orgs.C_WHITE )
+  self.Save:orgs_SetText( 'Save', 'orgs.Medium', orgs.Colors.Text )
   self.Save.DoClick = function( p )
     local perms, tab = {}, {}
 
@@ -298,7 +300,7 @@ function PANEL:NewLine()
 
   local l = self.Body:Add( 'DPanel' )
   l:orgs_Dock( TOP, {u=10}, {l=25,r=25} )
-  l:orgs_BGR( orgs.C_NONE )
+  l:orgs_BGR( orgs.COLOR_NONE )
 
   return l
 end
@@ -315,13 +317,13 @@ function PANEL:Init()
   self:AnimateShow()
 
   self.Desc = self.Body:orgs_AddLabel( 'Invite a player to join the group',
-    'orgs.Small', orgs.C_WHITE )
+    'orgs.Small', orgs.Colors.Text )
   self.Desc:Dock( TOP, {u=5,d=5} )
   self.Desc:SetContentAlignment(5)
 
   l = self:NewLine()
 
-  self.PlayerLabel = l:orgs_AddLabel( 'Select player', 'orgs.Medium', orgs.C_WHITE )
+  self.PlayerLabel = l:orgs_AddLabel( 'Select player', 'orgs.Medium', orgs.Colors.Text )
   self.PlayerLabel:Dock( LEFT )
   self.PlayerLabel:SetWide( 105 )
   self.PlayerLabel:SetContentAlignment( 6 )
@@ -346,7 +348,7 @@ function PANEL:Init()
 
   self.SteamIDLine = self:NewLine()
 
-  self.SteamIDLabel = self.SteamIDLine:orgs_AddLabel( 'Steam ID', 'orgs.Medium', orgs.C_WHITE )
+  self.SteamIDLabel = self.SteamIDLine:orgs_AddLabel( 'Steam ID', 'orgs.Medium', orgs.Colors.Text )
   self.SteamIDLabel:Dock( LEFT )
   self.SteamIDLabel:SetWide( 105 )
   self.SteamIDLabel:SetContentAlignment( 6 )
@@ -356,8 +358,9 @@ function PANEL:Init()
   self.SteamID:SetSize( 185, 25 )
   self.SteamID:SetFont( 'orgs.Medium' )
   self.SteamID.Paint = function( p, w, h )
-    orgs.DrawRect( 0, 0, w, h, orgs.C_WHITE )
-    p:DrawTextEntryText( orgs.C_DARKGRAY, orgs.C_GRAY, orgs.C_GRAY )
+    orgs.DrawRect( 0, 0, w, h, orgs.Colors.Text )
+    p:DrawTextEntryText( orgs.Colors.MenuBackground, orgs.Colors.MenuBackgroundAlt,
+      orgs.Colors.MenuBackgroundAlt )
   end
   self.SteamID.OnChange = function( p )
 
@@ -399,18 +402,19 @@ function PANEL:Init()
     return to
   end
 
-  self.SteamIDErr = self.Body:orgs_AddLabel( 'Invalid Steam ID', 'orgs.Small', orgs.C_RED )
+  self.SteamIDErr = self.Body:orgs_AddLabel( 'Invalid Steam ID', 'orgs.Small', orgs.Colors.Error )
   self.SteamIDErr:orgs_Dock( TOP, {u=10} )
   self.SteamIDErr:SetWide( 100 )
   self.SteamIDErr:SetContentAlignment( 5 )
 
   self.Send = self.Body:Add( 'DButton' )
-  self.Send:orgs_BGR( orgs.C_DARKBLUE, orgs.C_BLUE )
+  self.Send:orgs_BGR( orgs.Colors.MenuPrimary, orgs.Colors.MenuPrimaryAlt )
   self.Send:orgs_Dock( BOTTOM, {l=135,r=135,d=5} )
   self.Send:SetTall( 30 )
-  self.Send:orgs_SetText( 'Send', 'orgs.Medium', orgs.C_WHITE )
+  self.Send:orgs_SetText( 'Send', 'orgs.Medium', orgs.Colors.Text )
   self.Send.Paint = function( p, w, h )
-    orgs.DrawRect( 0, 0, w, h, p:GetDisabled() and orgs.C_LIGHTGRAY  or orgs.C_BLUE )
+    orgs.DrawRect( 0, 0, w, h, p:GetDisabled() and orgs.Colors.MenuActive
+      or orgs.Colors.MenuPrimaryAlt )
   end
   self.Send.DoClick = function( p )
 
@@ -436,7 +440,7 @@ function PANEL:NewLine()
 
   local l = self.Body:Add( 'DPanel' )
   l:orgs_Dock( TOP, {u=10}, {l=10,r=10} )
-  l:orgs_BGR( orgs.C_NONE )
+  l:orgs_BGR( orgs.COLOR_NONE )
 
   return l
 end

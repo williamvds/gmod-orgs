@@ -3,15 +3,15 @@ local PANEL = {}
 function PANEL:Init()
   self.Lines = {}
   self:Dock( FILL )
-  self:orgs_BGR( orgs.C_GRAY )
+  self:orgs_BGR( orgs.Colors.MenuBackgroundAlt )
 
   self.NoEvents = self:orgs_AddLabel( 'There are no events visible to you',
-  'orgs.Medium', orgs.C_WHITE )
+  'orgs.Medium', orgs.Colors.Text )
   self.NoEvents:Dock( FILL )
   self.NoEvents:SetContentAlignment(5)
 
   self.Desc = self:orgs_AddLabel( 'For more information double click events',
-    'orgs.Small', orgs.C_WHITE )
+    'orgs.Small', orgs.Colors.Text )
   self.Desc:orgs_Dock( BOTTOM, {u=5} )
   self.Desc:SetContentAlignment(5)
 
@@ -20,7 +20,7 @@ function PANEL:Init()
   self.List:SetHeaderHeight( 25 )
   self.List:SetDataHeight( 20 )
   self.List:SortByColumn( 1, true )
-  self.List:orgs_BGR( orgs.C_GRAY )
+  self.List:orgs_BGR( orgs.Colors.MenuBackgroundAlt )
   self.List.oldAddLine = vgui.GetControlTable( 'DListView' ).AddLine
 
   for k, v in pairs( {
@@ -29,8 +29,8 @@ function PANEL:Init()
   } ) do
     local c = self.List:AddColumn( v.txt )
     if v.w then c:SetFixedWidth( v.w ) end
-    c.Header:orgs_SetText( nil, 'orgs.Medium', orgs.C_WHITE )
-    c.Header:orgs_BGR( orgs.C_DARKBLUE )
+    c.Header:orgs_SetText( nil, 'orgs.Medium', orgs.Colors.Text )
+    c.Header:orgs_BGR( orgs.Colors.MenuPrimary )
   end
 
   self.List.Think = function( self )
@@ -45,13 +45,13 @@ function PANEL:Init()
     l.Event = event
 
     l.Paint = function( p, w, h )
-      local col = orgs.C_NONE
-      if p:IsSelected() then col = orgs.C_LIGHTGRAY end
+      local col = orgs.COLOR_NONE
+      if p:IsSelected() then col = orgs.Colors.MenuActive end
       orgs.DrawRect( 0, 0, w, h, col )
     end
 
     for k, c in pairs( l.Columns ) do
-      c:orgs_SetText( nil, 'orgs.Tiny', orgs.C_WHITE )
+      c:orgs_SetText( nil, 'orgs.Tiny', orgs.Colors.Text )
     end
 
     l.Columns[1]:SetContentAlignment( 6 )
@@ -65,23 +65,23 @@ function PANEL:Init()
     rt.ApplySchemeSettings = function() end
     rt.PerformLayout = function( p )
       p:SetFontInternal( 'orgs.Tiny' )
-      p:SetFGColor( orgs.C_WHITE )
+      p:SetFGColor( orgs.Colors.Text )
     end
     rt:SetVerticalScrollbarEnabled( false )
     rt:SetMouseInputEnabled( false )
 
-    local col = orgs.TextCol
+    local col = orgs.Colors.Text
     for k, v in pairs( orgs.EventToString( table.Copy( event ), true ) ) do
       rt:InsertColorChange( col.r, col.g, col.b, col.a )
       rt:AppendText( v )
-      col = col == orgs.TextCol and orgs.HighlightCol or orgs.TextCol
+      col = col == orgs.Colors.Text and orgs.Colors.Secondary or orgs.Colors.Text
     end
 
     l.Columns[2]:Remove()
     l.Columns[2] = rt
     l:SetSortValue( 2, tonumber( event.ActionBy ) or 0 )
 
-    l:orgs_BGR( orgs.C_NONE, orgs.C_DARKGRAY )
+    l:orgs_BGR( orgs.COLOR_NONE, orgs.Colors.MenuBackground )
     self:GetParent().Lines[event.EventID] = l
     self.doLayout = true
 
@@ -93,7 +93,7 @@ function PANEL:Init()
     if not event then return end
 
     self.Popup = DermaMenu( self )
-    self.Popup:orgs_BGR( orgs.C_WHITE, Color( 30, 30, 30 ) )
+    self.Popup:orgs_BGR( orgs.Colors.Text, Color( 30, 30, 30 ) )
 
     if event.ActionBy then
       self.Popup:AddOption( 'Actor: View Steam profile', function()
@@ -117,9 +117,9 @@ function PANEL:Init()
 
     for k, opt in pairs( self.Popup:GetCanvas():GetChildren() ) do
       if opt.ThisClass ~= 'DMenuOption' then continue end
-      opt:orgs_SetText( nil, 'orgs.Small', orgs.C_DARKGRAY )
+      opt:orgs_SetText( nil, 'orgs.Small', orgs.Colors.MenuBackground )
       opt:SetTextInset( 10, 0 )
-      opt:orgs_BGR( orgs.C_NONE )
+      opt:orgs_BGR( orgs.COLOR_NONE )
     end
 
     self.Popup:Open()

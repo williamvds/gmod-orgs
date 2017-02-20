@@ -13,7 +13,7 @@ function PANEL:Init()
   self.List:orgs_Dock( FILL, {l=-1,r=-1} )
   self.List:SetHeaderHeight( 25 )
   self.List:SetDataHeight( 65 )
-  self.List:orgs_BGR( orgs.C_NONE )
+  self.List:orgs_BGR( orgs.COLOR_NONE )
   self.List:Hide()
 
   for k, v in pairs( {
@@ -24,8 +24,8 @@ function PANEL:Init()
   } ) do
     c = self.List:AddColumn( v.txt )
     if v.w then c:SetFixedWidth( v.w ) end
-    c.Header:orgs_SetText( nil, 'orgs.Medium', orgs.C_WHITE )
-    c.Header:orgs_BGR( orgs.C_DARKBLUE )
+    c.Header:orgs_SetText( nil, 'orgs.Medium', orgs.Colors.Text )
+    c.Header:orgs_BGR( orgs.Colors.MenuPrimary )
   end
 
   self.List.Columns[2]:SetWidth( -100 )
@@ -40,7 +40,7 @@ function PANEL:AddLine( org )
   l.OrgID = org.OrgID
 
   for i= 1, 3 do
-    l.Columns[i]:orgs_SetText( nil, 'orgs.Large', orgs.C_WHITE )
+    l.Columns[i]:orgs_SetText( nil, 'orgs.Large', orgs.Colors.Text )
     l.Columns[i]:SetContentAlignment( 5 )
     l.Columns[i]:Dock( i < 2 and LEFT or i < 3 and FILL or RIGHT )
   end
@@ -52,13 +52,13 @@ function PANEL:AddLine( org )
   if not org.Motto then l.Motto:Hide() end
 
   l.JoinPanel = l:Add( 'DPanel' )
-  l.JoinPanel:orgs_BGR( orgs.C_NONE )
+  l.JoinPanel:orgs_BGR( orgs.COLOR_NONE )
   l.JoinPanel:Dock( RIGHT )
   l.JoinPanel:SetZPos( -2 )
 
   l.Join = l.JoinPanel:Add( 'DButton' )
-  l.Join:orgs_SetText( 'Join', 'orgs.Medium', orgs.C_WHITE )
-  l.Join:orgs_BGR( orgs.C_DARKBLUE, orgs.C_BLUE )
+  l.Join:orgs_SetText( 'Join', 'orgs.Medium', orgs.Colors.Text )
+  l.Join:orgs_BGR( orgs.Colors.MenuPrimary, orgs.Colors.MenuPrimaryAlt )
   l.Join:orgs_Dock( FILL, {l=22,r=22,u=17,d=17} )
   l.Join.DoClick = function( p )
     netmsg.Send( 'orgs.JoinMenu_Join.Join', {org.OrgID} ) ( function( tab )
@@ -79,7 +79,7 @@ function PANEL:AddLine( org )
     l.JoinPanel:SetWide( ListView:ColumnWidth( 4 ) )
   end
 
-  l:orgs_BGR( orgs.C_NONE, orgs.C_DARKGRAY )
+  l:orgs_BGR( orgs.COLOR_NONE, orgs.Colors.MenuBackground )
 
   self.Lines[org.OrgID] = l
 

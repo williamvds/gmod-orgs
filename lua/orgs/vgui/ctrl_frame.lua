@@ -3,15 +3,15 @@ local HEADER = { Base = 'Panel' }
 function HEADER:Init()
   self:orgs_Dock( TOP, nil, {r=5, l=5, d=5} )
 
-  self.Title = self:orgs_AddLabel( 'Title', 'orgs.Medium', orgs.C_WHITE )
+  self.Title = self:orgs_AddLabel( 'Title', 'orgs.Medium', orgs.Colors.Text )
   self.Title:orgs_Dock( FILL, {l=5, r=self:GetParent():GetCloseWide()+5}, nil, true )
   self.Title:SetContentAlignment(4)
   self.Title:SetAutoStretchVertical( true )
 
   self.Close = self:Add( 'DButton' )
-  self.Close:orgs_SetText( '×', 'orgs.SmallLight', orgs.C_WHITE )
+  self.Close:orgs_SetText( '×', 'orgs.SmallLight', orgs.Colors.Text )
   self.Close:SetContentAlignment(8)
-  self.Close:orgs_BGR( orgs.C_DARKRED, orgs.C_RED )
+  self.Close:orgs_BGR( orgs.Colors.Close, orgs.Colors.CloseAlt )
   self.Close.DoClick = function() self:GetParent():AnimateHide() end
   self.Close:SetSize( self:GetParent():GetCloseWide(), 20 )
 
@@ -69,8 +69,8 @@ function FRAME:Init()
 
   self._createdTime = SysTime()
 
-  self:SetColor( orgs.C_DARKGRAY )
-  self:SetHeaderColor( orgs.C_NONE )
+  self:SetColor( orgs.Colors.MenuBackground )
+  self:SetHeaderColor( orgs.COLOR_NONE )
   self:SetCloseWide( 40 )
   self:SetSize( 150, 100 )
 

@@ -7,22 +7,23 @@ function PANEL:Init()
   self.NoBulletin:SetContentAlignment( 5 )
 
   self.Text = self:Add( 'DTextEntry' )
-  self.Text:orgs_SetText( '', 'orgs.SmallLight', orgs.C_WHITE )
+  self.Text:orgs_SetText( '', 'orgs.SmallLight', orgs.Colors.Text )
   self.Text:SetVerticalScrollbarEnabled( true )
   self.Text:SetMultiline( true )
   self.Text:SetWrap( true )
   self.Text:SetCursor( 'arrow' )
   self.Text.Paint = function( p, w, h )
-    orgs.DrawRect( 0, 0, w, h, self.Editing and orgs.C_WHITE or orgs.C_NONE )
-    p:DrawTextEntryText( self.Editing and orgs.C_DARKGRAY or orgs.C_WHITE, orgs.C_GRAY, orgs.C_GRAY )
+    orgs.DrawRect( 0, 0, w, h, self.Editing and orgs.Colors.Text or orgs.COLOR_NONE )
+    p:DrawTextEntryText( self.Editing and orgs.Colors.MenuBackground or orgs.Colors.Text,
+      orgs.Colors.MenuBackgroundAlt, orgs.Colors.MenuBackgroundAlt )
   end
   self.Text.AllowInput = function( p )
     return not self.Editing or p:GetText():len() +1 > orgs.MaxBulletinLength
   end
 
   self.Edit = self:Add( 'DButton' )
-  self.Edit:orgs_SetText( 'Edit', 'orgs.Medium', orgs.C_WHITE, true )
-  self.Edit:orgs_BGR( orgs.C_DARKBLUE, orgs.C_BLUE )
+  self.Edit:orgs_SetText( 'Edit', 'orgs.Medium', orgs.Colors.Text, true )
+  self.Edit:orgs_BGR( orgs.Colors.MenuPrimary, orgs.Colors.MenuPrimaryAlt )
   self.Edit:SetTall( 30 )
   self.Edit:SetVisible( false )
   self.Edit.DoClick = function()

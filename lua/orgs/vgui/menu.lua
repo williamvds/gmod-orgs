@@ -14,22 +14,22 @@ function PANEL:Init()
   self.Header:SetTall( 35 )
 
   self.ColorCube = self.Header:Add( 'DPanel' )
-  self.ColorCube.Color = orgs.C_WHITE
+  self.ColorCube.Color = orgs.Colors.Text
   self.ColorCube.Paint = function( p, w, h )
-    orgs.DrawRect( 0, 0, w, h, orgs.C_WHITE )
+    orgs.DrawRect( 0, 0, w, h, orgs.Colors.Text )
     orgs.DrawRect( 1, 1, w -2, h -2, p.Color )
   end
   self.ColorCube:SetSize( 20, 20 )
   self.ColorCube:SetPos( 0, 7 )
 
-  self.Name = self.Header:orgs_AddLabel( '', 'orgs.Large', orgs.C_WHITE )
+  self.Name = self.Header:orgs_AddLabel( '', 'orgs.Large', orgs.Colors.Text )
   self.Name:orgs_Dock( LEFT, {l=20,u=2}, _, true )
   self.Name:SetAutoStretchVertical( true )
 
-  self.Tag = self.Header:orgs_AddLabel( '', 'orgs.Large', orgs.C_WHITE )
+  self.Tag = self.Header:orgs_AddLabel( '', 'orgs.Large', orgs.Colors.Text )
   self.Tag:orgs_Dock( LEFT, {l=5,u=2}, _, true )
 
-  self.Motto = self:orgs_AddLabel( '', 'orgs.Small', orgs.C_WHITE, true )
+  self.Motto = self:orgs_AddLabel( '', 'orgs.Small', orgs.Colors.Text, true )
   self.Motto:SetWide( mottoWidth )
   self.Motto:Dock( LEFT )
 
@@ -37,13 +37,13 @@ function PANEL:Init()
   self.Divider:SetTall( 4 )
   self.Divider:MoveToBack()
   self.Divider:Dock( BOTTOM )
-  self.Divider:orgs_BGR( orgs.C_BLUE )
+  self.Divider:orgs_BGR( orgs.Colors.MenuPrimaryAlt )
 
   self.Body = self:Add( 'DPanel' )
   self.Body:MoveToBack()
   self.Body:SetTall( bodyHeight )
   self.Body:Dock( BOTTOM )
-  self.Body:orgs_BGR( orgs.C_DARKGRAY )
+  self.Body:orgs_BGR( orgs.Colors.MenuBackground )
 
   self.TabMenu = self.Body:Add( 'orgs.TabMenu' )
   self.Bulletin = self.TabMenu:AddTab( 'BULLETIN', vgui.Create( 'orgs.Menu.Bulletin' ) )
@@ -53,7 +53,7 @@ function PANEL:Init()
     nil, nil, 'manage' )
   self.TabMenu:AddTab( 'SETTINGS', vgui.Create( 'orgs.Menu.Settings' ) )
 
-  self.Msg = self:orgs_AddLabel( '', 'orgs.Small', orgs.C_WHITE )
+  self.Msg = self:orgs_AddLabel( '', 'orgs.Small', orgs.Colors.Text )
   self.Msg:Hide()
   self.Msg:SetContentAlignment( 5 )
   self.Msg:MoveToBack()
@@ -72,7 +72,7 @@ function PANEL:BuildStats()
     self.Stats = self:Add( 'DPanel' )
     self.Stats:SetSize( statsWidth )
     self.Stats:orgs_Dock( RIGHT, nil, {l=5} )
-    self.Stats:orgs_BGR( orgs.C_DARKBLUE )
+    self.Stats:orgs_BGR( orgs.Colors.MenuPrimary )
 
     self.StatTab = {
       { label = 'RANK', func = function() return self.Org.Rank end },
@@ -85,15 +85,15 @@ function PANEL:BuildStats()
     for k, stat in pairs( self.StatTab ) do
 
       local pnl = self.Stats:Add( 'DPanel' )
-      pnl:orgs_BGR( orgs.C_DARKBLUE )
+      pnl:orgs_BGR( orgs.Colors.MenuPrimary )
       pnl:orgs_Dock( LEFT, {r=5} )
       pnl:SetWide( (statsWidth/#self.StatTab) -5 -(3/#self.StatTab) )
 
-      pnl.Label = pnl:orgs_AddLabel( stat.label, 'orgs.Small', orgs.C_WHITE )
+      pnl.Label = pnl:orgs_AddLabel( stat.label, 'orgs.Small', orgs.Colors.Text )
       pnl.Label:orgs_Dock( TOP, {u=9} )
       pnl.Label:SetContentAlignment( 5 )
 
-      pnl.Value = pnl:orgs_AddLabel( '', 'orgs.Medium', orgs.C_WHITE )
+      pnl.Value = pnl:orgs_AddLabel( '', 'orgs.Medium', orgs.Colors.Text )
       pnl.Value:Dock( TOP )
       pnl.Value:SetContentAlignment( 5 )
       self.Stats[ stat.label ] = pnl
@@ -154,12 +154,12 @@ function PANEL:SetMsg( text, col, time )
 
   if self.Msg:IsVisible() then
     self.Msg:AlphaTo( 0, .2, 0, function()
-      self.Msg:orgs_SetText( text, nil, col or orgs.C_WHITE )
+      self.Msg:orgs_SetText( text, nil, col or orgs.Colors.Text )
       self.Msg:AlphaTo( 255, .2, 0 )
     end )
 
   else
-    self.Msg:SetTextColor( col or orgs.C_WHITE )
+    self.Msg:SetTextColor( col or orgs.Colors.Text )
     self.Msg:SetText( text )
     self.Msg:SetAlpha( 0 )
     self.Msg:Show()
@@ -182,7 +182,7 @@ function PANEL:SetMsg( text, col, time )
 end
 
 function PANEL:SetError( text, time )
-  self:SetMsg( text, orgs.C_RED, time )
+  self:SetMsg( text, orgs.Colors.Error, time )
 end
 
 vgui.Register( 'orgs.Menu', PANEL, 'orgs.Frame' )

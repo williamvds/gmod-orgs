@@ -4,7 +4,7 @@ function PANEL:Init()
   self:orgs_Dock( FILL, {u=5,d=5} )
 
   self.Selector = self:Add( 'DColumnSheet' )
-  self.Selector:orgs_BGR( orgs.C_NONE )
+  self.Selector:orgs_BGR( orgs.COLOR_NONE )
   self.Selector:orgs_Dock( FILL, {r=5} )
   self.Selector.Navigation:orgs_Dock( LEFT, {l=5,r=5} )
 
@@ -22,20 +22,21 @@ function PANEL:Init()
 
   self.Selector.Content.PerformLayout = function( p )
     for k, b in pairs( self.Selector.Navigation.pnlCanvas:GetChildren() ) do
-      b:orgs_SetText( nil, nil, orgs.C_WHITE )
+      b:orgs_SetText( nil, nil, orgs.Colors.Text )
     end
     if IsValid( self.Selector.ActiveButton ) then
-      self.Selector.ActiveButton:orgs_SetText( nil, nil, orgs.C_DARKGRAY )
+      self.Selector.ActiveButton:orgs_SetText( nil, nil, orgs.Colors.MenuBackground )
     end
   end
 
   for k, b in pairs( self.Selector.Navigation.pnlCanvas:GetChildren() ) do
     b.Paint = function()
       orgs.DrawRect( 0, 0, b:GetWide(), b:GetTall(),
-        b.m_bSelected and orgs.C_WHITE or b.Hovered and orgs.C_BLUE or orgs.C_DARKBLUE )
+        b.m_bSelected and orgs.Colors.Text or b.Hovered and orgs.Colors.MenuPrimaryAlt
+          or orgs.Colors.MenuPrimary )
     end
     b:orgs_Dock( TOP, {d=10} )
-    b:orgs_SetText( nil, 'orgs.Medium', orgs.C_WHITE, true )
+    b:orgs_SetText( nil, 'orgs.Medium', orgs.Colors.Text, true )
     b:SetTall( 30 )
   end
 
@@ -77,12 +78,12 @@ function PANEL:Init()
   self:Dock( FILL )
 
   self.Desc = self:orgs_AddLabel( 'Control your group\'s appearance and information',
-    'orgs.Small', orgs.C_WHITE )
+    'orgs.Small', orgs.Colors.Text )
   self.Desc:Dock( TOP )
   self.Desc:SetContentAlignment(5)
 
   local l = self:NewLine()
-  self.NameLabel = l:orgs_AddLabel( 'Name', 'orgs.Medium', orgs.C_WHITE )
+  self.NameLabel = l:orgs_AddLabel( 'Name', 'orgs.Medium', orgs.Colors.Text )
   self.NameLabel:Dock( LEFT )
   self.NameLabel:SetWide( 50 )
   self.NameLabel:SetContentAlignment( 6 )
@@ -92,8 +93,9 @@ function PANEL:Init()
   self.Name:SetSize( 250, 25 )
   self.Name:SetFont( 'orgs.Medium' )
   self.Name.Paint = function( p, w, h )
-    orgs.DrawRect( 0, 0, w, h, orgs.C_WHITE )
-    p:DrawTextEntryText( orgs.C_DARKGRAY, orgs.C_GRAY, orgs.C_GRAY )
+    orgs.DrawRect( 0, 0, w, h, orgs.Colors.Text )
+    p:DrawTextEntryText( orgs.Colors.MenuBackground, orgs.Colors.MenuBackgroundAlt,
+      orgs.Colors.MenuBackgroundAlt )
   end
   self.Name.AllowInput = function( p )
     return p:GetText():len() +1 > orgs.MaxNameLength
@@ -101,16 +103,16 @@ function PANEL:Init()
 
   l = self:NewLine()
 
-  self.ColorLabel = l:orgs_AddLabel( 'Color', 'orgs.Medium', orgs.C_WHITE )
+  self.ColorLabel = l:orgs_AddLabel( 'Color', 'orgs.Medium', orgs.Colors.Text )
   self.ColorLabel:Dock( LEFT )
   self.ColorLabel:SetWide( 50 )
   self.ColorLabel:SetContentAlignment( 6 )
 
   self.ColorCube = l:Add( 'DButton' )
   self.ColorCube:SetText( '' )
-  self.ColorCube.Color = orgs.C_WHITE
+  self.ColorCube.Color = orgs.Colors.Text
   self.ColorCube.Paint = function( p, w, h )
-    orgs.DrawRect( 0, 0, w, h, orgs.C_WHITE )
+    orgs.DrawRect( 0, 0, w, h, orgs.Colors.Text )
     orgs.DrawRect( 1, 1, w -2, h -2, p.Color )
   end
   self.ColorCube:SetSize( 20, 20 )
@@ -139,17 +141,17 @@ function PANEL:Init()
     end
 
     pop.Select = pop.Body:Add( 'DButton' )
-    pop.Select:orgs_SetText( 'Select', 'orgs.Medium', orgs.C_WHITE )
+    pop.Select:orgs_SetText( 'Select', 'orgs.Medium', orgs.Colors.Text )
     pop.Select:orgs_Dock( BOTTOM, {l=105,r=105} )
     pop.Select:SetTall( 30 )
-    pop.Select:orgs_BGR( orgs.C_DARKBLUE, orgs.C_BLUE )
+    pop.Select:orgs_BGR( orgs.Colors.MenuPrimary, orgs.Colors.MenuPrimaryAlt )
     pop.Select.DoClick= function( p )
       orgs.Menu.Manage.Modify.ColorCube.Color = pop.Color:GetColor()
       pop:AnimateHide()
     end
   end
 
-  self.TagLabel = l:orgs_AddLabel( 'Tag', 'orgs.Medium', orgs.C_WHITE )
+  self.TagLabel = l:orgs_AddLabel( 'Tag', 'orgs.Medium', orgs.Colors.Text )
   self.TagLabel:orgs_Dock( LEFT, {l=25} )
   self.TagLabel:SetContentAlignment( 6 )
 
@@ -158,8 +160,9 @@ function PANEL:Init()
   self.Tag:SetSize( 75, 25 )
   self.Tag:SetFont( 'orgs.Medium' )
   self.Tag.Paint = function( p, w, h )
-    orgs.DrawRect( 0, 0, w, h, orgs.C_WHITE )
-    p:DrawTextEntryText( orgs.C_DARKGRAY, orgs.C_GRAY, orgs.C_GRAY )
+    orgs.DrawRect( 0, 0, w, h, orgs.Colors.Text )
+    p:DrawTextEntryText( orgs.Colors.MenuBackground, orgs.Colors.MenuBackgroundAlt,
+      orgs.Colors.MenuBackgroundAlt )
   end
   self.Tag.AllowInput = function( p )
     return p:GetText():len() +1 > orgs.MaxTagLength
@@ -167,7 +170,7 @@ function PANEL:Init()
 
   l = self:NewLine()
 
-  self.MottoLabel = l:orgs_AddLabel( 'Motto', 'orgs.Medium', orgs.C_WHITE )
+  self.MottoLabel = l:orgs_AddLabel( 'Motto', 'orgs.Medium', orgs.Colors.Text )
   self.MottoLabel:Dock( LEFT )
   self.MottoLabel:SetWide( 50 )
   self.MottoLabel:SetContentAlignment( 6 )
@@ -177,8 +180,9 @@ function PANEL:Init()
   self.Motto:SetSize( 350, 25 )
   self.Motto:SetFont( 'orgs.Medium' )
   self.Motto.Paint = function( p, w, h )
-    orgs.DrawRect( 0, 0, w, h, orgs.C_WHITE )
-    p:DrawTextEntryText( orgs.C_DARKGRAY, orgs.C_GRAY, orgs.C_GRAY )
+    orgs.DrawRect( 0, 0, w, h, orgs.Colors.Text )
+    p:DrawTextEntryText( orgs.Colors.MenuBackground, orgs.Colors.MenuBackgroundAlt,
+      orgs.Colors.MenuBackgroundAlt )
   end
   self.Motto.AllowInput = function( p )
     return p:GetText():len() +1 > orgs.MaxMottoLength
@@ -186,7 +190,7 @@ function PANEL:Init()
 
   l = self:NewLine()
 
-  self.PublicLabel = l:orgs_AddLabel( 'Public ', 'orgs.Medium', orgs.C_WHITE )
+  self.PublicLabel = l:orgs_AddLabel( 'Public ', 'orgs.Medium', orgs.Colors.Text )
   self.PublicLabel:SetTall( 22 )
   self.PublicLabel:orgs_Dock( LEFT, {r=10} )
   self.PublicLabel:SetContentAlignment(6)
@@ -196,8 +200,10 @@ function PANEL:Init()
   self.Public:Dock( LEFT )
   self.Public:SetSize( 22, 22 )
   self.Public.Paint = function( p, w, h )
-    orgs.DrawRect( 0, 0, w, h, p:GetDisabled() and orgs.C_LIGHTGRAY or orgs.C_BLUE )
-    orgs.DrawRect( 3, 3, w -6, h -6, p:GetChecked() and orgs.C_LIGHTGREEN or orgs.C_DARKRED )
+    orgs.DrawRect( 0, 0, w, h, p:GetDisabled() and orgs.Colors.MenuActive
+      or orgs.Colors.MenuPrimaryAlt )
+    orgs.DrawRect( 3, 3, w -6, h -6, p:GetChecked() and orgs.Colors.MenuIndicatorOn
+      or orgs.Colors.MenuIndicatorOff )
   end
   self.PublicLabel.DoClick = function() self.Public:Toggle() end
 
@@ -207,19 +213,19 @@ function PANEL:Init()
   self.Bottom:SetTall( 30 )
 
   self.Upgrade = self.Bottom:Add( 'DButton' )
-  self.Upgrade:orgs_BGR( orgs.C_DARKBLUE, orgs.C_BLUE )
+  self.Upgrade:orgs_BGR( orgs.Colors.MenuPrimary, orgs.Colors.MenuPrimaryAlt )
   self.Upgrade:SetTall( 30 )
   self.Upgrade:orgs_Dock( LEFT, {l=125} )
-  self.Upgrade:orgs_SetText( 'Upgrade group', 'orgs.Medium', orgs.C_WHITE, true )
+  self.Upgrade:orgs_SetText( 'Upgrade group', 'orgs.Medium', orgs.Colors.Text, true )
   self.Upgrade.DoClick = function( p )
     vgui.Create( 'orgs.Menu.Manage_Upgrade')
   end
 
   self.Save = self.Bottom:Add( 'DButton' )
-  self.Save:orgs_BGR( orgs.C_DARKBLUE, orgs.C_BLUE )
+  self.Save:orgs_BGR( orgs.Colors.MenuPrimary, orgs.Colors.MenuPrimaryAlt )
   self.Save:SetTall( 30 )
   self.Save:orgs_Dock( RIGHT, {r=125} )
-  self.Save:orgs_SetText( 'Save', 'orgs.Medium', orgs.C_WHITE )
+  self.Save:orgs_SetText( 'Save', 'orgs.Medium', orgs.Colors.Text )
   self.Save.DoClick = function( p )
     local org, tab = LocalPlayer():orgs_Org(), {}
 
@@ -252,7 +258,7 @@ function PANEL:NewLine()
 
   local l = self:Add( 'DPanel' )
   l:orgs_Dock( TOP, {u=10}, {l=15,r=15} )
-  l:orgs_BGR( orgs.C_NONE )
+  l:orgs_BGR( orgs.COLOR_NONE )
 
   return l
 end

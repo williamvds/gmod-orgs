@@ -5,12 +5,12 @@ function COMBOBOX:Init()
   self.Options = {}
 
   self:SetFont( 'orgs.Medium' )
-  self:SetTextColor( orgs.C_DARKGRAY )
+  self:SetTextColor( orgs.Colors.MenuBackground )
   self:SetText( '' )
   self:SetContentAlignment( 4 )
   self:SetTextInset( 4, 0 )
   self.Paint = function( p, w, h )
-    orgs.DrawRect( 0, 0, w, h, self.Color or orgs.C_WHITE )
+    orgs.DrawRect( 0, 0, w, h, self.Color or orgs.Colors.Text )
   end
 
   self.Arrow = self:Add( 'DPanel' )
@@ -18,7 +18,7 @@ function COMBOBOX:Init()
   self.Arrow:orgs_Dock( RIGHT, {r=8, u=10} )
   self.Arrow:SetSize( 10, 10 )
   self.Arrow.Paint = function( p, w, h )
-    surface.SetDrawColor( p:GetParent().AltColor or orgs.C_DARKGRAY )
+    surface.SetDrawColor( p:GetParent().AltColor or orgs.Colors.MenuBackground )
     draw.NoTexture()
     surface.DrawPoly{
       {x=0, y=0}, {x=10, y=0}, {x=5, y=5}
@@ -31,7 +31,7 @@ function COMBOBOX:ShowList()
 
   self.List = self:Add( 'DScrollPanel' )
   self.List:SetWide( self:GetWide() )
-  --self.List.VBar.Paint = self.List.VBar:orgs_BGR( orgs.C_WHITE )
+  --self.List.VBar.Paint = self.List.VBar:orgs_BGR( orgs.Colors.Text )
 
   self.List.Think = function()
 
@@ -50,8 +50,8 @@ function COMBOBOX:ShowList()
   table.SortByMember( tab, 2, true )
 
   for id, opt in ipairs( tab ) do
-    local label = self.List:orgs_AddLabel( opt[1], 'orgs.Medium', orgs.C_DARKGRAY )
-    label:orgs_BGR( orgs.C_WHITE, orgs.C_LIGHTGRAY )
+    local label = self.List:orgs_AddLabel( opt[1], 'orgs.Medium', orgs.Colors.MenuBackground )
+    label:orgs_BGR( orgs.Colors.Text, orgs.Colors.MenuActive )
     label:SetContentAlignment( 4 )
     label:SetTextInset( 4, 0 )
     label.DoClick = function() self:Select( opt[3] ) end
@@ -94,7 +94,8 @@ function COMBOBOX:AddOptions( tab )
 end
 
 function COMBOBOX:AddOption( label, value, sortValue )
-  table.insert( self.Options, {Label= label, Value= (value and value or label), SortValue= sortValue} )
+  table.insert( self.Options, {Label= label, Value= value and value or label,
+    SortValue= sortValue} )
 end
 
 vgui.Register( 'orgs.ComboBox', COMBOBOX, 'DButton' )

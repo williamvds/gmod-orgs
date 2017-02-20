@@ -1,15 +1,4 @@
-orgs.C_DARKGRAY   = Color( 34, 34, 34 )
-orgs.C_GRAY       = Color( 51, 51, 51 )
-orgs.C_LIGHTGRAY  = Color( 127, 140, 141 )
-orgs.C_DARKBLUE   = Color( 54, 120, 172 )
-orgs.C_BLUE       = Color( 74, 140, 192 )
-orgs.C_LIGHTGREEN = Color( 41, 235, 82 )
-orgs.C_GREEN      = Color( 0, 203, 0 )
-orgs.C_DARKGREEN  = Color( 0, 40, 0 )
-orgs.C_RED        = Color( 228, 42, 46 )
-orgs.C_DARKRED    = Color( 207, 28, 27 )
-orgs.C_WHITE      = Color( 238, 238, 238 )
-orgs.C_NONE       = Color( 0, 0, 0, 0 )
+orgs.COLOR_NONE = Color( 0, 0, 0, 0 )
 
 surface.CreateFont( 'orgs.Menu', {
   font      = 'Roboto',
@@ -178,9 +167,9 @@ orgs.ChatLog = function( ... )
   local args, chatTab = {...}, {}
   for k, v in pairs( args ) do
     table.insert( chatTab, v )
-    table.insert( chatTab, k %2 == 1 and orgs.HighlightCol or orgs.TextCol )
+    table.insert( chatTab, k %2 == 1 and orgs.Colors.Secondary or orgs.Colors.Text )
   end
-  chat.AddText( orgs.PrimaryCol, 'ORGS: ', orgs.TextCol, unpack( chatTab ) )
+  chat.AddText( orgs.Colors.Primary, 'ORGS: ', orgs.Colors.Text, unpack( chatTab ) )
 
   if IsValid( orgs.Menu ) then
     orgs.Menu:SetMsg( table.concat( args ) )

@@ -303,7 +303,7 @@ db.onConnected = function()
 end
 
 db.onConnectionFailed = function( db, err )
-  orgs.LogError( false, 'Failed to connect to database %s@%s' %{user, database}, err )
+  orgs.LogError( false, 'Failed to connect to database %s@%s: ' %{user, database}, err )
   PROVIDER.Failed = true
 end
 

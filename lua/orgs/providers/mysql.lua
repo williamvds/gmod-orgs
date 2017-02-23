@@ -1,8 +1,9 @@
-local host = 'localhost'
-local user = 'root'
-local pass = 'root'
-local database = 'orgs_test'
-local port = 3306
+local host       = 'localhost'
+local user       = 'root'
+local pass       = 'root'
+local database   = 'orgs_test'
+local port       = 3306
+local unixSocket = '/var/run/mysqld/mysqld.sock'
 
 -- End of config
 
@@ -18,7 +19,8 @@ if not mysqloo then
   end
 end
 
-local db = db or mysqloo.connect( host, user, pass, database, port )
+local db = db or mysqloo.connect( host, user, pass, database, port,
+  system.IsLinux() and unixSocket or nil )
 db:setMultiStatements( false )
 hook.Add( 'InitPostEntity', 'orgs.connectToDB', function()
   db:connect()
@@ -37,7 +39,7 @@ CREATE TABLE IF NOT EXISTS orgs(
   DefaultRank bigint UNSIGNED,
   Color varchar( 11 ) DEFAULT '255,255,255',
   Public boolean DEFAULT false,
-  CONSTRAINT FOREIGN KEY ( DefaultRank ) REFERENCES Ranks( RankID )
+  CONSTRAINT FOREIGN KEY ( DefaultRank ) REFERENCES ranks( RankID )
     ON DELETE SET NULL
 );
 CREATE TABLE IF NOT EXISTS players(

@@ -457,7 +457,7 @@ orgs.removeOrg = function( orgID, ply, force )
 
   provider.removeOrg( orgID, function()
     orgs.LogEvent( orgs.EVENT_ORG_REMOVE, {ActionBy= getID( ply ),
-      ActionAgainst= org.Name } )
+      ActionValue= org.Name } )
 
     orgs.getOrgMembers( orgID, function( data )
       for k, ply in pairs( data ) do

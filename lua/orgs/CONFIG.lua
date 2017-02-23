@@ -129,7 +129,7 @@ orgs.Types = {
 orgs.EventStrings = {
   -- Group
   [orgs.EVENT_ORG_CREATE] = '[ActionBy] created a new organisation called [OrgID]',
-  [orgs.EVENT_ORG_REMOVE] = '[ActionBy] dissolved the organisation [ActionAgainst]',
+  [orgs.EVENT_ORG_REMOVE] = '[ActionBy] dissolved the organisation [ActionValue]',
   [orgs.EVENT_ORG_EDIT] = function( tab )
     tab.ActionAttribute = tab.ActionAttribute:lower()
 

@@ -25,7 +25,11 @@ end
 
 function PANEL:Update( org )
   local invites = netmsg.safeTable( orgs.Invites, true )
+  for k, v in pairs( invites ) do
+    if v.To ~= LocalPlayer():SteamID64() then table.remove( invites, k ) end
+  end
 
+  PrintTable( invites )
   self.NoGroups:SetVisible( table.Count( invites ) < 1 )
   self.List:SetVisible( table.Count( invites ) > 0 )
 
@@ -39,7 +43,6 @@ function PANEL:Update( org )
   end
 
   for k, inv in pairs( invites ) do
-    if inv.To ~= LocalPlayer():SteamID64() then continue end
     local org, l = orgs.List[inv.OrgID], self.Lines[inv.InviteID]
 
     if not IsValid( l ) then

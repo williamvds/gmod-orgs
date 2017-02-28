@@ -33,7 +33,7 @@ function PANEL:AddTab( name, panel, col, altCol, id )
   id = id or #self.Tabs +1
 
   local tab = self.Header:Add( 'DButton' )
-  tab:orgs_SetText( name, 'orgs.Medium', orgs.Colors.Text )
+  tab:orgs_SetText( name, 'orgs.Medium', orgs.Colors.MenuTextAlt )
 
   tab:SetContentAlignment( 5 )
   tab:orgs_BGR( col or orgs.Colors.MenuPrimary, altCol or orgs.Colors.MenuPrimaryAlt )
@@ -112,13 +112,12 @@ function PANEL:SetActiveTab( id )
   local id = id or next(self.Tabs)
   local old, new = self:GetActiveTab(), self:GetTab( id )
 
-  new.Tab:orgs_SetText( new.Name, _, orgs.Colors.MenuBackground )
-  new.Tab:orgs_BGR( orgs.Colors.Text )
+  new.Tab:orgs_BGR( orgs.Colors.MenuPrimaryAlt )
 
   if self.ActiveTab == id then return end
 
   if old and IsValid( old.Panel ) then
-    old.Tab:orgs_SetText( old.Name, _, orgs.Colors.Text )
+    old.Tab:orgs_SetText( old.Name, nil, orgs.Colors.MenuTextAlt )
     old.Tab:orgs_BGR( old.Color or orgs.Colors.MenuPrimary,
       old.AltColor or orgs.Colors.MenuPrimaryAlt )
 

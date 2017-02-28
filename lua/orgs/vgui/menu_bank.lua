@@ -83,11 +83,16 @@ function PANEL:Init()
   self.ActionLabel:SetContentAlignment( 5 )
   self.ActionLabel:orgs_Dock( TOP, {u=35} )
 
-  self.TransferTo = self:Add( 'orgs.ComboBox' )
-  self.TransferTo.Color = orgs.Colors.MenuBankAlt
-  self.TransferTo.AltColor = orgs.Colors.MenuBank
-  self.TransferTo:Hide()
+  self.TransferTo = self:Add( 'DComboBox' )
   self.TransferTo:orgs_Dock( TOP, {u=5,d=5,l=75,r=75} )
+  self.TransferTo:orgs_BGR( orgs.Colors.MenuBankAlt )
+  self.TransferTo.DropButton.Paint = function( p, w, h )
+    surface.SetDrawColor( orgs.Colors.MenuBank )
+    draw.NoTexture()
+    surface.DrawPoly{
+      {x=0, y=5}, {x=10, y=5}, {x=5, y=10}
+    }
+  end
 
   self.Value = self:Add( 'DTextEntry' )
   self.Value:SetFont( 'orgs.Medium' )

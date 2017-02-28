@@ -5,12 +5,12 @@ function PANEL:Init()
   self:Dock( FILL )
 
   self.NoInvites = self:orgs_AddLabel( 'No players are currently invited to the organisation',
-    'orgs.Medium', orgs.Colors.Text )
+    'orgs.Medium' )
   self.NoInvites:Dock( FILL )
   self.NoInvites:SetContentAlignment(5)
 
   self.Tip = self:orgs_AddLabel( 'Double click an invitation to withdraw it',
-    'orgs.Small', orgs.Colors.Text )
+    'orgs.Small' )
   self.Tip:Dock( BOTTOM, {u=5} )
   self.Tip:SetContentAlignment(5)
 
@@ -19,7 +19,6 @@ function PANEL:Init()
   self.List:SetHeaderHeight( 25 )
   self.List:SetDataHeight( 24 )
   self.List:SetMultiSelect( false )
-  self.List:orgs_BGR( orgs.Colors.MenuBackgroundAlt )
 
   local c
   for k, v in pairs( {
@@ -28,8 +27,6 @@ function PANEL:Init()
   } ) do
     c = self.List:AddColumn( v.txt )
     if v.w then c:SetFixedWidth( v.w ) end
-    c.Header:orgs_SetText( nil, 'orgs.Medium', orgs.Colors.Text )
-    c.Header:orgs_BGR( orgs.Colors.MenuPrimary )
   end
 
   local oldAddLine = vgui.GetControlTable( 'DListView' ).AddLine
@@ -49,17 +46,6 @@ function PANEL:Init()
     l.To = inv.To
     l.From = inv.From
 
-    l.Paint = function( self, w, h )
-      local col = orgs.COLOR_NONE
-      if self:IsSelected() then col = orgs.Colors.MenuActive end
-      orgs.DrawRect( 0, 0, w, h, col )
-    end
-
-    for k, c in pairs( l.Columns ) do
-      c:orgs_SetText( nil, 'orgs.SmallLight', orgs.Colors.Text )
-      c:SetContentAlignment(5)
-    end
-
     self.Lines[ inv.InviteID ] = l
 
     return l
@@ -67,8 +53,8 @@ function PANEL:Init()
 
   self.List.OnRowRightClick = function( p, id, line )
 
-    self.Popup = DermaMenu( p )
-    self.Popup:orgs_BGR( orgs.Colors.Text )
+    CloseDermaMenus()
+    self.Popup = self:Add( 'DMenu' )
 
     self.Popup:AddOption( 'To: View Steam profile', function()
       gui.OpenURL( 'https://steamcommunity.com/profiles/'.. line.To )
@@ -90,13 +76,6 @@ function PANEL:Init()
       end )
 
     end )
-
-    for k, opt in pairs( self.Popup:GetCanvas():GetChildren() ) do
-      if opt.ThisClass ~= 'DMenuOption' then continue end
-      opt:orgs_SetText( nil, 'orgs.Small', orgs.Colors.MenuBackground )
-      opt:SetTextInset( 10, 0 )
-      opt:orgs_BGR( orgs.COLOR_NONE )
-    end
 
     self.Popup:Open()
   end

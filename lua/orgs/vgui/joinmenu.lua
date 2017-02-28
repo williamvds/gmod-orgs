@@ -9,7 +9,7 @@ function PANEL:Init()
 
   self.SubText = self:orgs_AddLabel( 'You don\'t currently belong to any group: you can join '
     ..' or create one',
-    'orgs.Small', orgs.Colors.Text, true )
+    'orgs.Small', orgs.Colors.MenuText, true )
   self.SubText:orgs_Dock( TOP, {l=15, r=15, d=5} )
   self.SubText:SetAutoStretchVertical( true )
 
@@ -30,16 +30,15 @@ function PANEL:Init()
   self.Join = self.TabMenu:AddTab( 'JOIN', vgui.Create( 'orgs.JoinMenu_Join' ) )
   self.Create = self.TabMenu:AddTab( 'CREATE', vgui.Create( 'orgs.JoinMenu_Create' ) )
 
-  local count = table.Count( netmsg.safeTable( orgs.Invites, true ) )
-  local txt = 'INVITES'.. ( count > 0 and ' (%s)'  %{count} or '' )
-  self.Invites = self.TabMenu:AddTab( txt, vgui.Create( 'orgs.JoinMenu_Invites' ) )
+  self.Invites = self.TabMenu:AddTab( 'INVITES', vgui.Create( 'orgs.JoinMenu_Invites' ) )
 
-  self.Msg = self:orgs_AddLabel( '', 'orgs.Small', orgs.Colors.Text )
+  self.Msg = self:orgs_AddLabel( '', 'orgs.Small' )
   self.Msg:Hide()
   self.Msg:SetContentAlignment( 5 )
   self.Msg:MoveToBack()
   self.Msg:orgs_Dock( BOTTOM, {u=2} )
 
+  self:Update()
   self:AnimateShow()
 end
 
@@ -58,12 +57,12 @@ function PANEL:SetMsg( text, col, time )
 
   if self.Msg:IsVisible() then
     self.Msg:AlphaTo( 0, .2, 0, function()
-      self.Msg:orgs_SetText( text, nil, col or orgs.Colors.Text )
+      self.Msg:orgs_SetText( text, nil, col or orgs.Colors.MenuText )
       self.Msg:AlphaTo( 255, .2, 0 )
     end )
 
   else
-    self.Msg:SetTextColor( col or orgs.Colors.Text )
+    self.Msg:SetTextColor( col or orgs.Colors.MenuText )
     self.Msg:orgs_SetText( text )
     self.Msg:SetAlpha( 0 )
     self.Msg:Show()
@@ -94,8 +93,13 @@ function PANEL:Think()
 end
 
 function PANEL:Update()
-  local count = table.Count( netmsg.safeTable( orgs.Invites, true ) )
-  local txt = 'INVITES'.. ( count > 0 and ' (%s)'  %{count} or '' )
+  local invites = netmsg.safeTable( orgs.Invites, true )
+  for k, v in pairs( invites ) do
+    if v.To ~= LocalPlayer():SteamID64() then table.remove( invites, k ) end
+  end
+
+  local txt = 'INVITES'..
+    ( table.Count( invites ) > 0 and ' (%s)'  %{table.Count( invites )} or '' )
   self.TabMenu.Tabs[3].Tab:orgs_SetText( txt )
   self.TabMenu.Tabs[3].Tab.Name = txt
   self.TabMenu:RepositionTabs()

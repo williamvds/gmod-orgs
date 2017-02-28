@@ -1,42 +1,52 @@
 local menuSize = {720,500}
 local bodyHeight = menuSize[2] -100
-local statsWidth = 242
+local statsWidth = 245
 local mottoWidth = menuSize[1] -statsWidth -15
 
 local PANEL = {}
 
 function PANEL:Init()
+  self:orgs_Frame()
   self:SetSize( unpack(menuSize) )
-  self:DockPadding( 5, 0, 5, 5 )
   self.Org = LocalPlayer():orgs_Org()
+  self:DockPadding( 0, 0, 0, 5 )
 
-  self.Header.Title:Remove()
+  -- Header
   self.Header:SetTall( 35 )
+  self.Header:DockMargin( 5, 0, 0, 0 )
 
   self.ColorCube = self.Header:Add( 'DPanel' )
-  self.ColorCube.Color = orgs.Colors.Text
+  self.ColorCube.Color = orgs.Colors.MenuText
   self.ColorCube.Paint = function( p, w, h )
-    orgs.DrawRect( 0, 0, w, h, orgs.Colors.Text )
+    orgs.DrawRect( 0, 0, w, h, Color( 255, 255, 255 ) )
     orgs.DrawRect( 1, 1, w -2, h -2, p.Color )
   end
   self.ColorCube:SetSize( 20, 20 )
-  self.ColorCube:SetPos( 0, 7 )
+  self.ColorCube:SetPos( 0, 5 )
 
-  self.Name = self.Header:orgs_AddLabel( '', 'orgs.Large', orgs.Colors.Text )
-  self.Name:orgs_Dock( LEFT, {l=20,u=2}, _, true )
-  self.Name:SetAutoStretchVertical( true )
+  self.Name = self.lblTitle
+  self.Name:orgs_Dock( LEFT, {l=25} )
+  self.Name:SetContentAlignment( 7 )
+  self.Name:orgs_SetText( '', 'orgs.Large' )
 
-  self.Tag = self.Header:orgs_AddLabel( '', 'orgs.Large', orgs.Colors.Text )
-  self.Tag:orgs_Dock( LEFT, {l=5,u=2}, _, true )
+  self.Tag = self.Header:orgs_AddLabel( '', 'orgs.Large' )
+  self.Tag:orgs_Dock( LEFT, {l=10}, _, true )
+  self.Tag:SetContentAlignment( 7 )
+  self.Tag:SetTextInset( 0, 2 )
+  self.Tag:Debug()
 
-  self.Motto = self:orgs_AddLabel( '', 'orgs.Small', orgs.Colors.Text, true )
+  -- Body
+  self.Motto = self:orgs_AddLabel( '', 'orgs.Small' )
   self.Motto:SetWide( mottoWidth )
-  self.Motto:Dock( LEFT )
+  self.Motto:orgs_Dock( LEFT, {l=5, u=10} )
+  self.Motto:SetContentAlignment( 1 )
+  self.Motto:SetAutoStretchVertical( true )
+  self.Motto:SetWrap( true )
 
   self.Divider = self:Add( 'DPanel' )
   self.Divider:SetTall( 4 )
   self.Divider:MoveToBack()
-  self.Divider:Dock( BOTTOM )
+  self.Divider:orgs_Dock( BOTTOM, {l=5, r=5} )
   self.Divider:orgs_BGR( orgs.Colors.MenuPrimaryAlt )
 
   self.Body = self:Add( 'DPanel' )
@@ -46,6 +56,8 @@ function PANEL:Init()
   self.Body:orgs_BGR( orgs.Colors.MenuBackground )
 
   self.TabMenu = self.Body:Add( 'orgs.TabMenu' )
+  self.TabMenu:DockMargin( 5, 0, 5, 0 )
+
   self.Bulletin = self.TabMenu:AddTab( 'BULLETIN', vgui.Create( 'orgs.Menu.Bulletin' ) )
   self.Members = self.TabMenu:AddTab( 'MEMBERS', vgui.Create( 'orgs.Menu.Members' ) )
   self.Bank = self.TabMenu:AddTab( 'BANK', vgui.Create( 'orgs.Menu.Bank' ) )
@@ -53,7 +65,7 @@ function PANEL:Init()
     nil, nil, 'manage' )
   self.TabMenu:AddTab( 'SETTINGS', vgui.Create( 'orgs.Menu.Settings' ) )
 
-  self.Msg = self:orgs_AddLabel( '', 'orgs.Small', orgs.Colors.Text )
+  self.Msg = self:orgs_AddLabel( '', 'orgs.Small' )
   self.Msg:Hide()
   self.Msg:SetContentAlignment( 5 )
   self.Msg:MoveToBack()
@@ -71,8 +83,9 @@ function PANEL:BuildStats()
 
     self.Stats = self:Add( 'DPanel' )
     self.Stats:SetSize( statsWidth )
-    self.Stats:orgs_Dock( RIGHT, nil, {l=5} )
-    self.Stats:orgs_BGR( orgs.Colors.MenuPrimary )
+    self.Stats:orgs_Dock( RIGHT, {r=5}, {l=5} )
+    self.Stats:orgs_BGR( orgs.UsePrimaryInStats and orgs.Colors.MenuPrimary
+      or orgs.Colors.MenuSecondary )
 
     self.StatTab = {
       { label = 'RANK', func = function() return self.Org.Rank end },
@@ -85,15 +98,15 @@ function PANEL:BuildStats()
     for k, stat in pairs( self.StatTab ) do
 
       local pnl = self.Stats:Add( 'DPanel' )
-      pnl:orgs_BGR( orgs.Colors.MenuPrimary )
+      pnl:orgs_BGR( orgs.COLOR_NONE )
       pnl:orgs_Dock( LEFT, {r=5} )
       pnl:SetWide( (statsWidth/#self.StatTab) -5 -(3/#self.StatTab) )
 
-      pnl.Label = pnl:orgs_AddLabel( stat.label, 'orgs.Small', orgs.Colors.Text )
+      pnl.Label = pnl:orgs_AddLabel( stat.label, 'orgs.Small' )
       pnl.Label:orgs_Dock( TOP, {u=9} )
       pnl.Label:SetContentAlignment( 5 )
 
-      pnl.Value = pnl:orgs_AddLabel( '', 'orgs.Medium', orgs.Colors.Text )
+      pnl.Value = pnl:orgs_AddLabel( '', 'orgs.Medium' )
       pnl.Value:Dock( TOP )
       pnl.Value:SetContentAlignment( 5 )
       self.Stats[ stat.label ] = pnl
@@ -154,12 +167,12 @@ function PANEL:SetMsg( text, col, time )
 
   if self.Msg:IsVisible() then
     self.Msg:AlphaTo( 0, .2, 0, function()
-      self.Msg:orgs_SetText( text, nil, col or orgs.Colors.Text )
+      self.Msg:orgs_SetText( text, nil, col or orgs.Colors.MenuText )
       self.Msg:AlphaTo( 255, .2, 0 )
     end )
 
   else
-    self.Msg:SetTextColor( col or orgs.Colors.Text )
+    self.Msg:SetTextColor( col or orgs.Colors.MenuText )
     self.Msg:SetText( text )
     self.Msg:SetAlpha( 0 )
     self.Msg:Show()
@@ -185,7 +198,7 @@ function PANEL:SetError( text, time )
   self:SetMsg( text, orgs.Colors.Error, time )
 end
 
-vgui.Register( 'orgs.Menu', PANEL, 'orgs.Frame' )
+vgui.Register( 'orgs.Menu', PANEL, 'DFrame' )
 
 concommand.Add( 'orgs_newmenu', function()
   orgs.Menu = vgui.Create( 'orgs.Menu' )

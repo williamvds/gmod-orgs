@@ -9,6 +9,8 @@
 - [ ] spamming allows duplicate withdrawals/deposit
 - [ ] vgui: use panel:PaintAt for tab transition animations
 - [ ] mysql: use triggers to reset player values when a group is deleted
+- [ ] org table not being removed once dissolved
+- [ ] don't log leave event when a player dissolves a group?
 
 ### Features to implement
 - [ ] upgrade: remove allegiances if necessary, warning if group is hidden

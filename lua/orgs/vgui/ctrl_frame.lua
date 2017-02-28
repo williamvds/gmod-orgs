@@ -3,15 +3,15 @@ local HEADER = { Base = 'Panel' }
 function HEADER:Init()
   self:orgs_Dock( TOP, nil, {r=5, l=5, d=5} )
 
-  self.Title = self:orgs_AddLabel( 'Title', 'orgs.Medium', orgs.Colors.Text )
+  self.Title = self:orgs_AddLabel( 'Title', 'orgs.Medium' )
   self.Title:orgs_Dock( FILL, {l=5, r=self:GetParent():GetCloseWide()+5}, nil, true )
   self.Title:SetContentAlignment(4)
   self.Title:SetAutoStretchVertical( true )
 
   self.Close = self:Add( 'DButton' )
-  self.Close:orgs_SetText( '×', 'orgs.SmallLight', orgs.Colors.Text )
+  self.Close:orgs_SetText( '✕', 'orgs.SmallLight', orgs.Colors.MenuText )
   self.Close:SetContentAlignment(8)
-  self.Close:orgs_BGR( orgs.Colors.Close, orgs.Colors.CloseAlt )
+  self.Close:orgs_BGR( orgs.COLOR_NONE, orgs.Colors.Close )
   self.Close.DoClick = function() self:GetParent():AnimateHide() end
   self.Close:SetSize( self:GetParent():GetCloseWide(), 20 )
 
@@ -64,7 +64,19 @@ AccessorFunc( FRAME, 'b_drawbgblur', 'BackgroundBlur', FORCE_BOOL )
 AccessorFunc( FRAME, 'b_remove_on_close', 'RemoveOnHide', FORCE_BOOL )
 AccessorFunc( FRAME, 'n_close_button_wide', 'CloseWide', FORCE_NUMBER )
 
+-- Automatically set the skin of child panels
+local frameAdd = function( self, p )
+  local new = FindMetaTable'Panel'.Add( self, p )
+  if new.SetSkin then new:SetSkin( 'orgs' ) end
+  new.Add = frameAdd
+
+  return new
+end
+
 function FRAME:Init()
+  self.Add = frameAdd
+
+  self:SetSkin( 'orgs' )
   self:orgs_Dock( nil, nil, {r=5, l=5, d=5} )
 
   self._createdTime = SysTime()
@@ -113,6 +125,7 @@ function FRAME:AnimateHide( done )
       if done then done() end
   end )
 
+  CloseDermaMenus()
 end
 
 function FRAME:Think()

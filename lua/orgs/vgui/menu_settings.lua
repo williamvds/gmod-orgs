@@ -3,8 +3,8 @@ local PANEL = {}
 function PANEL:Init()
 
   self.Leave = self:Add( 'DButton' )
-  self.Leave:orgs_SetText( 'Leave group', 'orgs.Medium', orgs.Colors.Text, true )
-  self.Leave:orgs_BGR( orgs.Colors.Close, orgs.Colors.CloseAlt  )
+  self.Leave:orgs_SetText( 'Leave group' )
+  self.Leave:orgs_BGR( orgs.Colors.Close, orgs.Colors.CloseAlt, orgs.Colors.MenuSecondary )
   self.Leave:orgs_Dock( BOTTOM, {l=235,r=235,u=5,d=5} )
   self.Leave:SetTall( 30 )
   self.Leave.DoClick = function()

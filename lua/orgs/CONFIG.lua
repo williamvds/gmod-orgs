@@ -42,17 +42,35 @@ orgs.Colors.Text      = Color( 245, 245, 245 )
 orgs.Colors.Error     = Color( 228, 42, 46 )
 
 if CLIENT then
-  orgs.Colors.MenuPrimary       = Color( 54, 120, 172 )  -- Theme main
-  orgs.Colors.MenuPrimaryAlt    = Color( 74, 140, 192 )  -- Hover/highlight against primary
-  orgs.Colors.MenuActive        = Color( 127, 140, 141 ) -- Highlighted/selected lines
-  orgs.Colors.MenuBackground    = Color( 34, 34, 34 )    -- Background
-  orgs.Colors.MenuBackgroundAlt = Color( 51, 51, 51 )    -- Alternate background
-  orgs.Colors.MenuBank          = Color( 0, 40, 0 )      -- Bank background
-  orgs.Colors.MenuBankAlt       = Color( 0, 203, 0 )     -- Bank background highlight
-  orgs.Colors.MenuIndicatorOn   = Color( 41, 235, 82 )   -- Online player indicator
-  orgs.Colors.MenuIndicatorOff  = Color( 228, 42, 46 )   -- Offline player indicator
-  orgs.Colors.Close             = Color( 207, 28, 27 )   -- Close/highlighted buttons
-  orgs.Colors.CloseAlt          = Color( 228, 42, 46 )   -- Close/highlighted buttons hover
+  orgs.Colors.MenuPrimary       = Color( 27, 201, 224 )       -- Theme main
+  orgs.Colors.MenuPrimaryAlt    = Color( 8, 147, 166 )        -- Hover/highlight against primary
+  orgs.Colors.MenuSecondary     = Color( 42, 42, 61 )         -- Secondary background (see below)
+  orgs.Colors.MenuBackground    = Color( 14, 14, 24 )         -- Background
+  orgs.Colors.MenuBackgroundAlt = Color( 22, 22, 34 )         -- Alternate background
+  orgs.Colors.Close             = Color( 0, 0, 0, 0 )         -- Close buttons
+  orgs.Colors.CloseAlt          = orgs.Colors.Error           -- Close buttons hover
+  orgs.Colors.CloseText         = orgs.Colors.Text            -- Close buttons text
+
+  orgs.Colors.MenuActive        = Color( 221, 162, 29 )       -- Highlighted/selected lines
+
+  orgs.Colors.MenuButton        = orgs.Colors.MenuPrimary     -- Normal button (not including tabs)
+  orgs.Colors.MenuButtonAlt     = orgs.Colors.MenuActive      -- Button hovered
+
+  orgs.Colors.MenuIndicatorOn   = Color( 41, 235, 82 )        -- Online player indicator
+  orgs.Colors.MenuIndicatorOff  = orgs.Colors.Error           -- Offline player indicator
+
+  orgs.Colors.MenuBank          = Color( 0, 40, 0 )           -- Bank background
+  orgs.Colors.MenuBankAlt       = Color( 0, 203, 0 )          -- Bank background highlight
+
+  orgs.Colors.MenuText          = Color( 173, 173, 198 )      -- Normal text on background
+  orgs.Colors.MenuTextAlt       = orgs.Colors.MenuBackground  -- Text on primary
+
+  -- Secondary color settings: false to use Primary, true to use Secondary
+  -- Group statistics (Balance, Members, etc) table
+  orgs.UsePrimaryInStats = false
+  -- Table headers
+  orgs.UsePrimaryInTables = false
+
 end
 
 --[[ Default ranks, follow the existing structure

@@ -130,11 +130,6 @@ orgs.PermCheckboxes = {
   {'Events',   'View events'},
 }
 
-function orgs.DrawRect( x, y, w, h, col )
-  surface.SetDrawColor( col )
-  surface.DrawRect( x, y, w, h )
-end
-
 for _, f in pairs( file.Find( 'orgs/vgui/*.lua', 'LUA' ) ) do  include( 'orgs/vgui/'.. f ) end
 
 netmsg.Receive( 'orgs.OpenMenu', function()

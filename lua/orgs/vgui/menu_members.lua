@@ -26,16 +26,14 @@ end
 
 function PANEL:Init()
   self.Players = {}
-  self:orgs_BGR( orgs.Colors.MenuBackgroundAlt )
 
   self.Desc = self:orgs_AddLabel( 'For more actions double click members',
-    'orgs.Small', orgs.Colors.Text )
+    'orgs.Small' )
   self.Desc:orgs_Dock( BOTTOM, {u=5,d=5} )
   self.Desc:SetContentAlignment(5)
 
   self.Invite = self:Add( 'DButton' )
-  self.Invite:orgs_BGR( orgs.Colors.MenuPrimary, orgs.Colors.MenuPrimaryAlt )
-  self.Invite:orgs_SetText( 'Invite', 'orgs.Medium', orgs.Colors.Text )
+  self.Invite:orgs_SetText( 'Invite' )
   self.Invite:orgs_Dock( BOTTOM, {l=260, r=260} )
   self.Invite:SetTall( 30 )
   self.Invite.DoClick = function( b )
@@ -50,7 +48,6 @@ function PANEL:Init()
   self.List:SetHeaderHeight( 25 )
   self.List:SetDataHeight( 24 )
   self.List:SetMultiSelect( false )
-  self.List:orgs_BGR( orgs.Colors.MenuBackgroundAlt )
 
   local c
   for k, v in pairs( {
@@ -61,8 +58,6 @@ function PANEL:Init()
   } ) do
     c = self.List:AddColumn( v.txt )
     if v.w then c:SetFixedWidth( v.w ) end
-    c.Header:orgs_SetText( nil, 'orgs.Medium', orgs.Colors.Text )
-    c.Header:orgs_BGR( orgs.Colors.MenuPrimary )
   end
 
   self.List.AddLine = function( self, ply, ... )
@@ -71,12 +66,6 @@ function PANEL:Init()
 
     local l = self:oldAddLine( player.GetBySteamID64( ply ) and '' or ' ', unpack( text ) )
     l.Player = ply
-
-    l.Paint = function( self, w, h )
-      local col = orgs.COLOR_NONE
-      if self:IsSelected() then col = orgs.Colors.MenuActive end
-      orgs.DrawRect( 0, 0, w, h, col )
-    end
 
     l.Columns[1].Color = self:GetText() == '' and orgs.Colors.MenuIndicatorOn
       or orgs.Colors.MenuIndicatorOn
@@ -94,11 +83,6 @@ function PANEL:Init()
       if istable(v) and v[2] then l:SetSortValue( k, v[2] ) end
     end
 
-    for k, c in pairs( l.Columns ) do
-      c:orgs_SetText( nil, 'orgs.SmallLight', orgs.Colors.Text )
-      c:SetContentAlignment(5)
-    end
-
     self:GetParent().Players[ ply ] = l
 
     return l
@@ -106,13 +90,12 @@ function PANEL:Init()
 
   self.List.OnRowRightClick = function( self, id, line )
 
-    self.Popup = DermaMenu( self )
-    self.Popup:orgs_BGR( orgs.Colors.Text )
+    CloseDermaMenus()
+    self.Popup = self:Add( 'DMenu' )
 
     self.Popup:AddOption( 'View Steam profile', function()
       gui.OpenURL( 'https://steamcommunity.com/profiles/'.. line.Player )
     end )
-
 
     if line.Player ~= LocalPlayer():SteamID64()
     and LocalPlayer():orgs_Has( orgs.PERM_KICK ) then
@@ -132,13 +115,6 @@ function PANEL:Init()
         vgui.Create( 'orgs.Menu.Members.Manage' )
         orgs._managePlayer = nil
       end )
-    end
-
-    for k, opt in pairs( self.Popup:GetCanvas():GetChildren() ) do
-      if opt.ThisClass ~= 'DMenuOption' then continue end
-      opt:orgs_SetText( nil, 'orgs.Small', orgs.Colors.MenuBackground )
-      opt:SetTextInset( 10, 0 )
-      opt:orgs_BGR( orgs.COLOR_NONE )
     end
 
     self.Popup:Open()
@@ -188,25 +164,26 @@ function PANEL:Init()
 
   l = self:NewLine()
 
-  self.RankLabel = l:orgs_AddLabel( 'Rank', 'orgs.Medium', orgs.Colors.Text, true )
+  self.RankLabel = l:orgs_AddLabel( 'Rank' )
   self.RankLabel:orgs_Dock( LEFT, {l=20} )
   self.RankLabel:SetWide( 50 )
   self.RankLabel:SetContentAlignment( 6 )
 
-  self.Rank = l:Add( 'orgs.ComboBox' )
+  self.Rank = l:Add( 'DComboBox' )
   self.Rank:orgs_Dock( LEFT, {l=15} )
+  self.Rank:orgs_SetText( nil, 'orgs.Medium', orgs.Colors.MenuText )
   self.Rank:SetSize( 175, 25 )
-  self.Rank.OnSelect = function( p, id )
+  self.Rank.OnSelect = function( p, id, value, data )
     for k, v in pairs( orgs.PermCheckboxes ) do
       local box, perm = self[v[1]], orgs['PERM_'.. string.upper( v[1] )]
-      box:SetChecked( orgs.RankHas( p.Value, perm ) or orgs.Has( orgs._managePlayer, perm ) )
-      box:SetDisabled( orgs.RankHas( p.Value, perm ) or not orgs.Has( LocalPlayer(), perm ) )
+      box:SetChecked( orgs.RankHas( data, perm ) or orgs.Has( orgs._managePlayer, perm ) )
+      box:SetDisabled( orgs.RankHas( data, perm ) or not orgs.Has( LocalPlayer(), perm ) )
     end
   end
 
   l = self:NewLine()
 
-  self.SalaryLabel = l:orgs_AddLabel( 'Salary', 'orgs.Medium', orgs.Colors.Text, true )
+  self.SalaryLabel = l:orgs_AddLabel( 'Salary' )
   self.SalaryLabel:orgs_Dock( LEFT, {l=20} )
   self.SalaryLabel:SetWide( 50 )
   self.SalaryLabel:SetContentAlignment( 6 )
@@ -214,19 +191,13 @@ function PANEL:Init()
   self.Salary = l:Add( 'DTextEntry' )
   self.Salary:orgs_Dock( LEFT, {l=15} )
   self.Salary:SetSize( 150, 25 )
-  self.Salary:SetFont( 'orgs.Medium' )
   self.Salary:SetNumeric( true )
-  self.Salary.Paint = function( p, w, h )
-    orgs.DrawRect( 0, 0, w, h, orgs.Colors.Text )
-    p:DrawTextEntryText( orgs.Colors.MenuBackground, orgs.Colors.MenuBackgroundAlt,
-      orgs.Colors.MenuBackgroundAlt )
-  end
   self.Salary:orgs_SetText( self.Player.Salary )
 
   l = self:NewLine()
 
   self.PermsLabel = l:Add( 'DLabel' )
-  self.PermsLabel:orgs_SetText( 'Permissions', 'orgs.Medium', orgs.Colors.Text )
+  self.PermsLabel:orgs_SetText( 'Permissions' )
   self.PermsLabel:orgs_Dock( LEFT, {l=-15}, nil, true )
 
   l = self:NewLine()
@@ -235,7 +206,7 @@ function PANEL:Init()
     self[v[1]] = l:Add( 'DCheckBoxLabel' )
     local box = self[v[1]]
     box:Dock( k %2 ~= 0 and LEFT or RIGHT )
-    box.Label:orgs_SetText( v[2], 'orgs.Small', orgs.Colors.Text )
+    box.Label:orgs_SetText( v[2], 'orgs.Small' )
     box.Label:orgs_Dock( LEFT, {l=20} )
     box.Label:SetContentAlignment(4)
     if k %2 ~= 0 then box:SizeToContents()
@@ -244,19 +215,15 @@ function PANEL:Init()
     if k %2 == 0 then l = self:NewLine() end
   end
 
-  local id = 1
   for k, rank in pairs( netmsg.safeTable( orgs.Ranks, true ) ) do
     if rank.Immunity > LocalPlayer():orgs_Rank().Immunity then continue end
-    self.Rank:AddOption( rank.Name, rank.RankID, rank.Immunity )
-    if rank.RankID == self.Player.RankID then self.Rank:Select( id ) end
-    id = id +1
+    self.Rank:AddChoice( rank.Name, rank.RankID, rank.RankID == self.Player.RankID )
   end
 
   self.Save = self.Body:Add( 'DButton' )
-  self.Save:orgs_BGR( orgs.Colors.MenuPrimary, orgs.Colors.MenuPrimaryAlt )
+  self.Save:orgs_SetText( 'Save' )
   self.Save:orgs_Dock( BOTTOM, {l=150,r=150} )
   self.Save:SetTall( 30 )
-  self.Save:orgs_SetText( 'Save', 'orgs.Medium', orgs.Colors.Text )
   self.Save.DoClick = function( p )
     local perms, tab = {}, {}
 
@@ -274,7 +241,8 @@ function PANEL:Init()
       and math.floor( sal )
       or nil
 
-    tab.RankID = self.Rank.Value ~= self.Player.RankID and self.Rank.Value or nil
+    local _, rankID = self.Rank:GetSelected()
+    tab.RankID = rankID ~= self.Player.RankID and rankID or nil
 
     if table.Count( tab ) < 1 then
       self:AnimateHide()
@@ -317,29 +285,29 @@ function PANEL:Init()
   self:AnimateShow()
 
   self.Desc = self.Body:orgs_AddLabel( 'Invite a player to join the group',
-    'orgs.Small', orgs.Colors.Text )
+    'orgs.Small' )
   self.Desc:Dock( TOP, {u=5,d=5} )
   self.Desc:SetContentAlignment(5)
 
   l = self:NewLine()
 
-  self.PlayerLabel = l:orgs_AddLabel( 'Select player', 'orgs.Medium', orgs.Colors.Text )
+  self.PlayerLabel = l:orgs_AddLabel( 'Select player' )
   self.PlayerLabel:Dock( LEFT )
   self.PlayerLabel:SetWide( 105 )
   self.PlayerLabel:SetContentAlignment( 6 )
 
-  self.Player = l:Add( 'orgs.ComboBox' )
+  self.Player = l:Add( 'DComboBox' )
   self.Player:orgs_Dock( LEFT, {l=15} )
+  self.Player:orgs_SetText( nil, 'orgs.Medium', orgs.Colors.MenuText )
   self.Player:SetWide( 185 )
-  self.Player:AddOption( 'Send by Steam ID', -1, 0 )
-  self.Player:Select(1)
+  self.Player:AddChoice( 'Send by Steam ID', -1 )
   for k, ply in pairs( player.GetHumans() ) do
     if orgs.Members[ply:SteamID64()] then continue end
-    self.Player:AddOption( ply:Nick(), ply:SteamID64(), ply:Nick() )
+    self.Player:AddChoice( ply:Nick(), ply:SteamID64() )
   end
-  self.Player.OnSelect = function( p )
-    self.SteamIDLine:SetVisible( self.Player.Value == -1 )
-    local to = not isnumber( self.Player.Value ) and self.Player.Value or
+  self.Player.OnSelect = function( p, _, _, val )
+    self.SteamIDLine:SetVisible( val == -1 )
+    local to = not isnumber( val ) and val or
       tonumber( self.SteamID:GetValue() ) and self.SteamID:GetValue()
       or util.SteamIDTo64( self.SteamID:GetValue() )
     self.SteamIDErr:SetVisible( to == '0' )
@@ -348,7 +316,7 @@ function PANEL:Init()
 
   self.SteamIDLine = self:NewLine()
 
-  self.SteamIDLabel = self.SteamIDLine:orgs_AddLabel( 'Steam ID', 'orgs.Medium', orgs.Colors.Text )
+  self.SteamIDLabel = self.SteamIDLine:orgs_AddLabel( 'Steam ID' )
   self.SteamIDLabel:Dock( LEFT )
   self.SteamIDLabel:SetWide( 105 )
   self.SteamIDLabel:SetContentAlignment( 6 )
@@ -356,18 +324,12 @@ function PANEL:Init()
   self.SteamID = self.SteamIDLine:Add( 'DTextEntry' )
   self.SteamID:orgs_Dock( LEFT, {l=15} )
   self.SteamID:SetSize( 185, 25 )
-  self.SteamID:SetFont( 'orgs.Medium' )
-  self.SteamID.Paint = function( p, w, h )
-    orgs.DrawRect( 0, 0, w, h, orgs.Colors.Text )
-    p:DrawTextEntryText( orgs.Colors.MenuBackground, orgs.Colors.MenuBackgroundAlt,
-      orgs.Colors.MenuBackgroundAlt )
-  end
   self.SteamID.OnChange = function( p )
 
-    local val, to = p:GetValue()
-    if not isnumber( self.Player.Value ) then
+    local val, ply, to = p:GetValue(), ({self.Player:GetSelected()})[2]
+    if not isnumber( ply ) then
       -- SteamID from combobox
-      to = self.Player.Value
+      to = ply
 
     elseif tonumber( val ) then
       -- SteamID64 validation
@@ -407,15 +369,11 @@ function PANEL:Init()
   self.SteamIDErr:SetWide( 100 )
   self.SteamIDErr:SetContentAlignment( 5 )
 
+
   self.Send = self.Body:Add( 'DButton' )
-  self.Send:orgs_BGR( orgs.Colors.MenuPrimary, orgs.Colors.MenuPrimaryAlt )
   self.Send:orgs_Dock( BOTTOM, {l=135,r=135,d=5} )
   self.Send:SetTall( 30 )
-  self.Send:orgs_SetText( 'Send', 'orgs.Medium', orgs.Colors.Text )
-  self.Send.Paint = function( p, w, h )
-    orgs.DrawRect( 0, 0, w, h, p:GetDisabled() and orgs.Colors.MenuActive
-      or orgs.Colors.MenuPrimaryAlt )
-  end
+  self.Send:orgs_SetText( 'Send' )
   self.Send.DoClick = function( p )
 
     local to = self.SteamID:IsVisible() and self.SteamID.Value
@@ -425,15 +383,13 @@ function PANEL:Init()
     netmsg.Send( 'orgs.Menu.Members.Invite', {to} ) ( function( tab )
       if tab[1] then
         orgs.Menu:SetError( 'Couldn\'t invite because ' ..orgs.InviteFails[tab[1]] )
-      else
-        orgs.Menu:SetMsg( 'Successfully invited '..
-          ( IsValid( toPly ) and toPly:Nick() or 'that player' ) )
-        self:AnimateHide()
       end
+
+      self:AnimateHide()
     end )
   end
 
-  self.Player:OnSelect()
+  self.Player:ChooseOptionID(1)
 end
 
 function PANEL:NewLine()

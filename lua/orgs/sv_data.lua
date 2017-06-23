@@ -304,7 +304,7 @@ orgs.updatePlayer = function( ply, tab, ply2, done )
     elseif org.Members >= orgs.Types[org.Type].MaxMembers then
       -- Target group full
       return 11
-    elseif not org.Forming then
+    elseif not org.Public and not org.Forming then
       for k, inv in pairs( netmsg.safeTable( orgs.Invites, true ) ) do
         if inv.OrgID == tab.OrgID and inv.To == steamID then
           inviteID = inv.InviteID; break

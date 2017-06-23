@@ -11,6 +11,7 @@
 - [ ] mysql: use triggers to reset player values when a group is deleted
 - [ ] org table not being removed once dissolved
 - [ ] don't log leave event when a player dissolves a group?
+- [ ] data: non-members receiving ranks from other created orgs
 
 ### Features to implement
 - [ ] upgrade: remove allegiances if necessary, warning if group is hidden
@@ -29,3 +30,4 @@
 - [ ] default rank salary
 - [ ] color playermodels based on their org for certain roles
 - [ ] can be public property for org types
+- [ ] initial member is marked 'Owner' and can override all permission checks, transferable

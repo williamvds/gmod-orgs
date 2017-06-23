@@ -124,26 +124,84 @@ orgs.DefaultRanks = {
 
 orgs.Types = {
   { Name            = 'Group', -- Name shown in menus
+    Class           = 0,       -- Class to 'group' tiers
     Price           = 0,       -- Price to upgrade to (n/a for lowest type)
-    MembersRequired = 0,       -- Members needed to upgrade to this type
-    MaxMembers      = 10,      -- Max number of members groups of this type can have
-    MaxBalance      = 30000,   -- Max balance groups of this type can have in the bank
-    Tax             = 0,       -- Tax on salary for members (percentage as decimal - 10% = 0.1)
+    MaxMembers      = 12,      -- Max number of members groups of this type can have
+    MaxBalance      = 1000000, -- Max balance groups of this type can have in the bank
+    Tax             = 0,       -- Tax on salary for members (percentage as decimal: 10% = 0.1)
     CanAlly         = false,   -- Can form formal alliances
+    CanJoinAlly     = false,   -- Can join formal alliances
     CanHide         = true,    -- Can hide - tag is not shown in chat or in hover information
+    CanBePublic     = false,   -- Can be publicly listed in the join menu
+    PublicCanJoin   = false,   -- Allow members of public to join without invite
+    CanDeclareWar   = false,   -- Can publicly declare war against other groups
+    WarLength       = 0,       -- Time in mins that declared wars last
+    WarCooldown     = 0,       -- Time in mins that group must wait before delaring war again
+  },
+
+  { Name            = 'Gang',
+    Class           = 1,
+    Price           = 640000,
+    MaxMembers      = 14,
+    MaxBalance      = 4000000,
+    Tax             = 0.015,
+    CanAlly         = false,
+    CanJoinAlly     = false,
+    CanHide         = true,
+    CanBePublic     = false,
+    PublicCanJoin   = false,
+    CanDeclareWar   = false,
+    WarLength       = 0,
+    WarCooldown     = 0,
+  },
+
+  { Name            = 'Association',
+    Class           = 1,
+    Price           = 1400000,
+    MaxMembers      = 16,
+    MaxBalance      = 6500000,
+    Tax             = 0.025,
+    CanAlly         = false,
+    CanJoinAlly     = false,
+    CanHide         = true,
+    CanBePublic     = false,
+    PublicCanJoin   = false,
+    CanDeclareWar   = false,
+    WarLength       = 0,
+    WarCooldown     = 0,
   },
 
   { Name            = 'Organisation',
-    Price           = 10000,
-    MembersRequired = 15,
-    MaxMembers      = 30,
-    MaxBalance      = 100000,
-    Tax             = 0.015,
-    CanAlly         = true,
-    CanJoinAlliance = false,
-    CanFormAlliance = false,
-    MaxAlliances    = 0,
-    CanHide         = true },
+    Class           = 1,
+    Price           = 2800000,
+    MaxMembers      = 18,
+    MaxBalance      = 6500000,
+    Tax             = 0.040,
+    CanAlly         = false,
+    CanJoinAlly     = false,
+    CanHide         = true,
+    CanBePublic     = false,
+    PublicCanJoin   = false,
+    CanDeclareWar   = false,
+    WarLength       = 0,
+    WarCooldown     = 0,
+  },
+
+  { Name            = 'Institution',
+    Class           = 1,
+    Price           = 4200000,
+    MaxMembers      = 20,
+    MaxBalance      = 6500000,
+    Tax             = 0.055,
+    CanAlly         = false,
+    CanJoinAlly     = false,
+    CanHide         = true,
+    CanBePublic     = false,
+    PublicCanJoin   = false,
+    CanDeclareWar   = false,
+    WarLength       = 0,
+    WarCooldown     = 0,
+  },
 }
 
 -- If you really want to change the format of messages
@@ -231,7 +289,7 @@ orgs.EventStrings = {
   end,
   [orgs.EVENT_MEMBER_EDIT] = function( tab )
     tab.ActionAttribute = tab.ActionAttribute:lower()
-      :gsub( 'perms', 'permissions' ):gsub( 'rankid', 'rank' )
+      :gsub( 'perms', 'additional permissions' ):gsub( 'rankid', 'rank' )
 
     if CLIENT then
       tab.ActionAgainst = tab.ActionAgainst:gsub( LocalPlayer():SteamID64(), '(Your)' )

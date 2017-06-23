@@ -3,7 +3,7 @@ getmetatable''.__mod = function( self, tab )
   return string.format( self, unpack( tab ) )
 end
 
-orgs.Log = function( debug, ... )
+orgs.Log = function( ... )
 
   if debug and not orgs.Debug then return end
 
@@ -16,6 +16,12 @@ orgs.Log = function( debug, ... )
   end
 
   MsgC( orgs.Colors.Primary, 'ORGS: ', unpack( tab ) )
+end
+
+orgs.DebugLog = function( ... )
+  if not orgs.Debug then return end
+
+  orgs.Log( ... )
 end
 
 orgs.LogError = function( debug, ... )
@@ -37,7 +43,7 @@ orgs.Get = function( id ) return orgs.List[id] end
 orgs.LogEvent = function( type, tab )
   local event = orgs.ParseEvent( type, tab )
   orgs.addEvent( type, event )
-  orgs.Log( false, unpack( orgs.EventToString( table.Copy(event), true ) ) )
+  orgs.Log( unpack( orgs.EventToString( table.Copy(event), true ) ) )
 end
 
 orgs.ParseEvent = function( type, tab )
@@ -58,7 +64,7 @@ end
 
 orgs.EventToString = function( tab, explode )
   local str = orgs.EventStrings[ tab.Type ]
-  if not str then orgs.Log( false, 'Found no text to parse for event ', tab.Type ) return end
+  if not str then orgs.LogError( 'Found no text to parse for event ', tab.Type ) return end
   if isfunction( str ) then str = str( tab ) end
 
   if tab.OrgID and orgs.List[tab.OrgID] then
@@ -150,8 +156,8 @@ end
 function orgs.Has( ply, ... )
   if not ply or #{...} < 1 then return false end
 
-  ply = orgs.Members[isentity( ply ) and ply:SteamID64() or ply]
-  if not ply then return end
+  ply = istable( ply ) and ply or orgs.Members[isentity( ply ) and ply:SteamID64() or ply]
+  if not ply or not ply.Perms or not ply.RankID then return end
 
   plyPerms = TruthTable( string.Explode( ',', ply.Perms or '' ) )
   local hasPerms = true

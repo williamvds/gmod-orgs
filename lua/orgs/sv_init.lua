@@ -28,7 +28,7 @@ hook.Add( 'orgs.AfterLoadPlayer', 'orgs.StartSalaryTimer', function( ply, orgID 
       ply:addMoney( salary *( 1 -orgs.Types[org.Type].Tax ) )
       orgs.LogEvent( orgs.EVENT_SALARY,
         {OrgID= org.OrgID, ActionValue= salary, ActionAgainst= steamID} )
-      orgs.ChatLog( ply, 'You received a salary of '.. orgs.FormatCurrency( salary ) )
+      orgs.ChatLog( ply, 'You received a salary of %s after tax' %{orgs.FormatCurrency( salary )} )
     end )
 
   end )

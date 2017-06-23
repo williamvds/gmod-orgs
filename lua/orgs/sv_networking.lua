@@ -21,70 +21,76 @@ hook.Add( 'PlayerSay', 'orgs.ChatCommand', function( ply, text )
 
 end )
 
-netmsg.Receive( 'orgs.JoinMenu.Create', function( tab, ply )
+local function query( method, ply, msg, args )
+  local err = orgs[method]( unpack( args ) )
+
+  if not err then return end
+
+  orgs.DebugLog( 'Request from ', ply, ' failed: ', '%s (%s)' %{msg,method}, ' Error code ', err )
+  netmsg.Respond( err )
+  return err
+end
+
+netmsg.Receive( 'orgs.JoinMenu.Create', function( tab, ply, msg )
   if ply.orgs_GroupLock then return end
   ply.orgs_GroupLock = true
 
-  local err = orgs.addOrg( tab, ply, function()
+  local err = query( 'addOrg', ply, msg, {tab, ply, function()
     ply.orgs_GroupLock = nil
-  end )
+  end} )
 
-  if err then netmsg.Respond( err ) end
+  if err then ply.orgs_GroupLock = nil end
 end )
 
-netmsg.Receive( 'orgs.LeaveOrg', function( _, ply )
-  orgs.updatePlayer( ply, {OrgID= NULL}, nil, function()
+netmsg.Receive( 'orgs.LeaveOrg', function( _, ply, msg )
+  query( 'updatePlayer', ply, msg, {ply, {OrgID= NULL}, nil, function()
     if not IsValid( ply ) then return end
     netmsg.Call( ply, 'orgs.LeftOrg' )
-  end )
+  end} )
+
 end )
 
 -- BULLETIN
 
 netmsg.Receive( 'orgs.Menu.Bulletin', function( tab, ply, msg )
-  local err = orgs.updateOrg( ply:orgs_Org(0), {Bulletin= tab[1]}, ply, function()
+  query( 'updateOrg', ply, msg, {ply:orgs_Org(0), {Bulletin= tab[1]}, ply, function()
     netmsg.Send( msg, false, ply )
-  end )
+  end} )
 
-  if err then netmsg.Respond( err ) end
 end )
 
 -- MEMBERS
 
 netmsg.Receive( 'orgs.Menu.Members.Kick', function( tab, ply, msg )
-
-  local err = orgs.updatePlayer( tab[1], {OrgID= NULL}, ply, function()
+  query( 'updatePlayer', ply, msg, {tab[1], {OrgID= NULL}, ply, function()
     netmsg.Send( msg, false, ply )
-  end )
+  end} )
 
-  if err then netmsg.Respond( err ) end
 end )
 
 netmsg.Receive( 'orgs.Menu.Members.Manage', function( tab, ply, msg )
   local ply2 = tab.Player
   tab.Player = nil
 
-  local err = orgs.updatePlayer( ply2, tab, ply, function( data, err )
+  query( 'updatePlayer', ply, msg, {ply2, tab, ply, function( data, err )
     netmsg.Send( msg, err and true or false, ply )
-  end )
+  end} )
 
-  if err then netmsg.Respond( err ) end
 end )
 
 netmsg.Receive( 'orgs.Menu.Members.Invite', function( tab, ply, msg )
-  local err = orgs.addInvite( tab[1], ply, function( _, err )
+  query( 'addInvite', ply, msg, {tab[1], ply, function( _, err )
     netmsg.Send( msg, err and true or false, ply )
-  end )
+  end} )
 
-  if err then netmsg.Respond( err ) end
 end )
 
 netmsg.Receive( 'orgs.Menu.Members.RemoveInvite', function( tab, ply, msg )
-  local err = orgs.removeInvite( tab[1], ply, function( _, err )
+  query( 'removeInvite', ply, msg, {tab[1], ply, function( _, err )
     netmsg.Send( msg, err and true or false, ply )
-  end )
+  end} )
 
-  if err then netmsg.Respond( err ) end
+  logRespond( ply, msg ..' (removeInvite)', err )
 end )
 
 -- BANK
@@ -95,13 +101,12 @@ local bankHandler = function( tab, ply, msg )
     netmsg.Respond( true )
   return end
 
-  local err = orgs.updateOrg( orgID,
+  query( 'updateOrg', ply, msg, {orgID,
     {Balance= org.Balance +( msg:find('Deposit') and tab.Val or -tab.Val ) }, ply,
-  function( _, err, msg )
+  function( _, err )
     netmsg.Send( msg, err and true or false, ply )
-  end )
+  end} )
 
-  if err then netmsg.Respond( err ) end
 end
 
 netmsg.Receive( 'orgs.Menu.Bank.Deposit', bankHandler )
@@ -111,49 +116,45 @@ netmsg.Receive( 'orgs.Menu.Bank.Withdraw', bankHandler )
 
 netmsg.Receive( 'orgs.Menu.Manage.Edit', function( tab, ply, msg )
 
-  local err = orgs.updateOrg( ply:orgs_Org(0), tab, ply, function( _, err )
+  query( 'updateOrg', ply, msg, {ply:orgs_Org(0), tab, ply, function( _, err )
     netmsg.Send( msg, err or false, ply )
-  end )
+  end} )
 
-  if err then netmsg.Respond( err ) end
 end )
 
 netmsg.Receive( 'orgs.Menu.Manage.EditRank', function( tab, ply, msg )
 
   local rankID = tab.RankID
   tab.RankID = nil
-  local err = orgs.updateRank( rankID, tab, ply, function( _, err )
+  query( 'updateRank', ply, msg, {rankID, tab, ply, function( _, err )
     netmsg.Send( msg, err or false, ply )
-  end )
+  end} )
 
-  if err then netmsg.Respond( err ) end
 end )
 
 netmsg.Receive( 'orgs.Menu.Manage.RemoveRank', function( tab, ply, msg )
-  local err = orgs.removeRank( tab[1], ply, function( _, err )
+  query( 'removeRank', ply, msg, {tab[1], ply, function( _, err )
     netmsg.Send( msg, err or false, ply )
-  end )
+  end} )
 
-  if err then netmsg.Respond( err ) end
 end )
 
 netmsg.Receive( 'orgs.Menu.Manage.AddRank', function( tab, ply, msg )
-  local err = orgs.addRank( ply:orgs_Org(0), tab, ply, function( _, err )
+  query( 'addRank', ply, msg, {ply:orgs_Org(0), tab, ply, function( _, err )
     netmsg.Send( msg, err or false, ply )
-  end )
+  end} )
 
-  if err then netmsg.Respond( err ) end
 end )
 
 -- JOIN
 
-netmsg.Receive( 'orgs.JoinMenu_Join.Join', function( tab, ply )
+netmsg.Receive( 'orgs.JoinMenu_Join.Join', function( tab, ply, msg )
   if ply.orgs_GroupLock then return end
   ply.orgs_GroupLock = true
 
-  local err = orgs.updatePlayer( ply, {OrgID= tab[1]}, nil, function()
+  local err = query( 'updatePlayer', ply, msg, {ply, {OrgID= tab[1]}, nil, function()
     ply.orgs_GroupLock = nil
-  end )
+  end} )
 
-  if err then netmsg.Respond( err ) end
+  if err then ply.orgs_GroupLock = nil end
 end )

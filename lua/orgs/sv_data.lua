@@ -19,7 +19,14 @@ orgs.ProviderFailed = function() return provider.Failed end
 
 orgs.addEvent = function( type, tab, done )
   local copy = table.Copy( tab )
-  provider.addEvent( type, copy, function( id )
+  provider.addEvent( type, copy, function( id, err )
+    if err then
+      orgs.DebugLog( 'Query failed: addEvent\nRecord:' )
+
+      if not orgs.Debug then return end
+      PrintTable( copy )
+    return end
+
     tab.EventID = id
     orgs.Events[id] = tab
     if done then done( id ) end
@@ -76,7 +83,13 @@ orgs.addInvite = function( to, from, done )
   end
 
   provider.addInvite( steamID, steamID2, orgID, function( data, err, id )
-    if err then return end
+    if err then
+      orgs.DebugLog( 'Query failed: addInvite\nTo, From:' )
+
+      if not orgs.Debug then return end
+      print( to, from )
+    return end
+
 
     orgs.Invites[id] = {InviteID= id, To= steamID, From= steamID2, OrgID= orgID}
     orgs.LogEvent( orgs.EVENT_INVITE, {ActionBy= steamID2, ActionAgainst= steamID, OrgID= orgID} )
@@ -103,7 +116,13 @@ orgs.removeInvite = function( id, ply )
 
   local ply2 = orgs.Invites[id].To
   provider.removeInvite( id, function( _, err )
-    if err then return end
+    if err then
+      orgs.DebugLog( 'Query failed: removeInvite\nID, Actor:' )
+
+      if not orgs.Debug then return end
+      print( id, ply )
+    return end
+
 
     orgs.Invites[id] = nil
 
@@ -117,7 +136,12 @@ end
 
 orgs.getOrgInvites = function( id, done )
   provider.getOrgInvites( id, function( data, err )
-    if err then return end
+    if err then
+      orgs.DebugLog( 'Query failed: getOrgInvites\nID:' )
+
+      if not orgs.Debug then return end
+      print( id )
+    return end
 
     for k, inv in pairs( data ) do
       orgs.Invites[ inv.InviteID ] = inv
@@ -127,7 +151,12 @@ end
 
 orgs.getPlayerInvites = function( id, done )
   provider.getPlayerInvites( id, function( data, err )
-    if err then return end
+    if err then
+      orgs.DebugLog( 'Query failed: getPlayerInvites\nID:' )
+
+      if not orgs.Debug then return end
+      print( id )
+    return end
 
     for k, inv in pairs( data ) do
       orgs.Invites[ inv.InviteID ] = inv
@@ -143,15 +172,20 @@ orgs.getPlayer = function( ply, done )
 
   local steamID = getID( ply )
   if not provider.Failed then
-    orgs.Log( true, 'Fetching information for ', '%s [%s]' %{ ply:Nick(), steamID } )
+    orgs.DebugLog( 'Fetching information for ', '%s [%s]' %{ ply:Nick(), steamID } )
   end
 
   orgs.getPlayerInvites( steamID )
 
   provider.getPlayer( steamID, function( data, err )
-    if not data then orgs.addPlayer( IsValid( ply ) and ply or steamID ) return end
-    if err then return end -- TODO: Add an error message of some sort?
+    if err then
+      orgs.DebugLog( 'Query failed: getPlayer\nID:' )
 
+      if not orgs.Debug then return end
+      print( steamID )
+    return end
+
+    if not data then orgs.addPlayer( IsValid( ply ) and ply or steamID ) return end
     -- if not orgs.Members[steamID] and isentity( ply ) and IsValid( ply ) then
     --   orgs.Members[steamID] = {Nick=ply:Nick(),SteamID=steamID}
     -- end
@@ -169,7 +203,7 @@ orgs.getPlayer = function( ply, done )
       end
     end
 
-    if IsValid( ply ) and not data.Nick or data.Nick ~= ply:Nick() then
+    if IsValid( ply ) and ( not data.Nick or data.Nick ~= ply:Nick() ) then
       orgs.updatePlayer( steamID, {Nick= ply:Nick()} )
     end
 
@@ -184,13 +218,19 @@ hook.Add( 'PlayerInitialSpawn', 'orgs.GetPlayerInfo', orgs.getPlayer )
 orgs.addPlayer = function( ply, done )
 
   if not provider.Failed then
-    orgs.Log( true, 'Storing player info for ', isentity( ply )
+    orgs.DebugLog( 'Storing player info for ', isentity( ply )
     and '%s [%s]' %{ply:Nick(), ply:SteamID64()} or ply )
   end
 
-  provider.addPlayer( getID( ply ), isentity( ply ) and IsValid( ply )
-    and ply:Nick() or '???',
+  provider.addPlayer( getID( ply ), isentity( ply ) and IsValid( ply ) and ply:Nick() or '???',
   function( data, err )
+    if err then
+      orgs.DebugLog( 'Query failed: addPlayer\nID:' )
+
+      if not orgs.Debug then return end
+      print( getID( ply ) )
+    return end
+
     if done then done( data, err ) end
   end )
 
@@ -304,9 +344,13 @@ orgs.updatePlayer = function( ply, tab, ply2, done )
   provider.updatePlayer( steamID, tab, function( data, err )
     local ply = player.GetBySteamID64( steamID )
     if err then
-      orgs.Log( true, 'Failed to update player ', IsValid( ply ) and ply:Nick() or steamID )
-      return
-    end
+      orgs.DebugLog( 'Query failed: updatePlayer ', IsValid( ply ) and ply:Nick() or steamID,
+        '\nChanges, Current:' )
+
+      if not orgs.Debug then return end
+      PrintTable( tab )
+      PrintTable( member )
+    return end
 
     if tab.OrgID then
 
@@ -346,19 +390,22 @@ orgs.updatePlayer = function( ply, tab, ply2, done )
       orgs.Members[steamID] = {}
       member = orgs.Members[steamID]
     end
-    -- Clear NULL values
-    for k, v in pairs( tab ) do
-        member[k] = v ~= NULL and v or nil
-    end
 
     for k, v in pairs( tab ) do
-      if k == 'Name' or k == 'OrgID'
+      if k == 'Nick' or k == 'OrgID'
       or ( TruthTable{'RankID','Salary','Perms'}[k] and ( IsValid( ply ) and ply.orgs_GroupLock )
       or ( not orgs.List[member.OrgID] or orgs.List[member.OrgID].Forming ) ) then
       continue end
 
+      v = v == NULL and 'nothing' or v
+
       orgs.LogEvent( orgs.EVENT_MEMBER_EDIT, {ActionBy= steamID2, OrgID= member.OrgID,
         ActionAgainst= steamID, ActionValue= v, ActionAttribute= k } )
+    end
+
+    -- Clear NULL values
+    for k, v in pairs( tab ) do
+        member[k] = v ~= NULL and v or nil
     end
 
     -- Resync shared group tables for player
@@ -423,10 +470,17 @@ orgs.addOrg = function( tab, ply, done )
   end
 
   provider.addOrg( tab, function( orgID, err )
-    if err then return end
+    if err then
+      orgs.DebugLog( 'Query failed: addOrg\nCreator, Record:' )
+
+      if not orgs.Debug then return end
+      print( ply )
+      PrintTable( tab )
+    return end
+
 
     local new = {Balance= 0, Color= '255,255,255', Type= 1, OrgID= orgID, Public= false, Members= 0,
-      Rank= #netmsg.safeTable( orgs.List, true ), Forming= true, Loaded= true}
+      Rank= table.Count( netmsg.safeTable( orgs.List, true ) ) +1, Forming= true, Loaded= true}
     table.Merge( new, tab )
 
     orgs.List[orgID] = new
@@ -455,15 +509,20 @@ orgs.removeOrg = function( orgID, ply, force )
 
   org.Forming = true
 
-  provider.removeOrg( orgID, function()
+  provider.removeOrg( orgID, function( _, err )
+    if err then
+      orgs.DebugLog( 'Query failed: removeOrg\nID, Actor:' )
+
+      if not orgs.Debug then return end
+      print( orgID, ply )
+    return end
+
     orgs.LogEvent( orgs.EVENT_ORG_REMOVE, {ActionBy= getID( ply ),
       ActionValue= org.Name } )
 
     orgs.getOrgMembers( orgID, function( data )
       for k, ply in pairs( data ) do
         orgs.updatePlayer( data.SteamID, {OrgID= NULL} )
-
-        orgs.List[orgID] = nil
 
         for k, v in pairs( netmsg.safeTable( orgs.Events, true ) ) do
           if v.OrgID == orgID then orgs.Events[k] = nil end
@@ -475,6 +534,7 @@ orgs.removeOrg = function( orgID, ply, force )
       end
     end )
 
+    orgs.List[orgID] = nil
   end )
 
 end
@@ -524,9 +584,21 @@ orgs.addRank = function( orgID, tab, ply, done )
 
   tab.OrgID = orgID
 
+  -- Clear metadata
+  tab.__key = nil
+  tab.Default = nil
+  tab.Leader = nil
+
   local steamID = getID( ply )
   provider.addRank( orgID, tab, function( rankID, err )
-    if err then return end
+    if err then
+      orgs.DebugLog( 'Query failed: addRank\nOrgID, Record:' )
+
+      if not orgs.Debug then return end
+      print( orgID )
+      PrintTable( tab )
+      return
+    end
 
     tab.RankID = rankID
     orgs.Ranks[rankID] = tab
@@ -576,7 +648,13 @@ orgs.updateRank = function( rankID, tab, ply, done )
   end
 
   provider.updateRank( rankID, tab, function( _, err )
-    if err then return end
+    if err then
+      orgs.DebugLog( 'Query failed: updateRank\nChanges, Current:' )
+
+      if not orgs.Debug then return end
+      PrintTable( tab )
+      PrintTable( rank )
+    return end
 
     for k, v in pairs( tab ) do
       rank[k] = v ~= NULL and v or nil
@@ -615,16 +693,29 @@ orgs.removeRank = function( rankID, ply, done )
   end
 
   provider.removeRank( rankID, function( data, err )
+    if err then
+      orgs.DebugLog( 'Query failed: removeRank\nRank, Actor:' )
+
+      if not orgs.Debug then return end
+      print( rankID, ply )
+    return end
+
     orgs.LogEvent( orgs.EVENT_RANK_REMOVE,
       {ActionBy= steamID, OrgID= orgID, ActionValue= orgs.Ranks[rankID].Name} )
-      orgs.Ranks[rankID] = nil
+    orgs.Ranks[rankID] = nil
+
     if done then done( data, err ) end
   end )
 end
 
 orgs.getOrgRanks = function( orgID, done )
   provider.getOrgRanks( orgID, function( data, err )
-    if err then return end
+    if err then
+      orgs.DebugLog( 'Query failed: getOrgRanks\nID:' )
+
+      if not orgs.Debug then return end
+      print( orgID )
+    return end
 
     for k, rank in pairs( data ) do orgs.Ranks[rank.RankID] = rank end
 
@@ -771,11 +862,18 @@ orgs.updateOrg = function( orgID, tab, ply, done )
   provider.updateOrg( orgID, tab, function( data, err )
     if err then
       org.Balance = org.Balance -balanceDelta
+
       if balanceDelta > 0 then
         orgs.AddMoney( player.GetBySteamID64( steamID ), balanceDelta )
       end
 
+      orgs.DebugLog( 'Query failed: updateOrg\nChanges, Current:' )
+
+      if not orgs.Debug then return end
+      PrintTable( tab )
+      PrintTable( org )
     return end
+
 
     if tab.Balance then
 
@@ -815,6 +913,13 @@ end
 
 orgs.getOrgEvents = function( orgID, done )
   provider.getOrgEvents( orgID, function( data, err )
+    if err then
+      orgs.DebugLog( 'Query failed: getOrgEvents\nID:' )
+
+      if not orgs.Debug then return end
+      print( orgID )
+    return end
+
     for k, event in pairs( data ) do
       orgs.Events[event.EventID] = event
     end
@@ -823,7 +928,9 @@ end
 
 orgs.getAllOrgs = function( done )
   provider.getAllOrgs( function( data, err )
-    if err then LogError( false, 'Couldn\'t load organisation list!' ) return end
+    if err then
+      orgs.DebugLog( 'Query failed: getAllOrgs' )
+    return end
 
     for k, v in pairs( data ) do
       v.Rank = k

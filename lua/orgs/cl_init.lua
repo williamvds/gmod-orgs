@@ -184,12 +184,12 @@ local oldChatText = oldChatText or chat.AddText
 function chat.AddText( ... )
   local tab, ply = {...}, false
 
-  if lastChat and lastChatPly and tab[#tab] == ': '.. lastChat then
+  if lastChat and lastChatPly and lastChatPly != NULL and tab[#tab] == ': '.. lastChat then
     ply = lastChatPly
     lastChat, lastChatPly = nil, nil
   end
 
-  if not ply or not ply:orgs_Org(0) then
+  if not ply or not IsValid( ply ) or not ply:orgs_Org(0) then
     oldChatText( unpack( tab ) )
   return end
 

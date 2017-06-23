@@ -147,6 +147,7 @@ function PANEL:Update( org )
   self.Balance:SetText( orgs.FormatCurrency( org.Balance ) )
 
   local withdrawPerm = LocalPlayer():orgs_Has( orgs.PERM_WITHDRAW )
+  orgs.DebugLog( 'menu_bank: Local player PERM_WITHDRAW = ', tostring( withdrawPerm ) )
   self.Deposit:SetVisible( withdrawPerm )
   self.Withdraw:SetVisible( withdrawPerm )
   self.Transfer:SetVisible( withdrawPerm )
@@ -156,6 +157,7 @@ function PANEL:Update( org )
   end
 
   local eventPerm = LocalPlayer():orgs_Has( orgs.PERM_EVENTS )
+  orgs.DebugLog( 'menu_bank: Local player PERM_EVENTS = ', tostring( eventPerm ) )
   self.InLabel:SetVisible( eventPerm )
   self.In:SetVisible( eventPerm )
   self.OutLabel:SetVisible( eventPerm )

@@ -44,10 +44,10 @@ Enum( orgs, 'PERM_', {
 include 'CONFIG.lua'
 
 Msg( string.rep( '\n', 3 ) )
-orgs.Log( false, 'Loading Organisations...' )
+orgs.Log( 'Loading Organisations...' )
 
 if game.SinglePlayer() then
-  orgs.LogError( false, 'Organisations cannot run in a single-player game!' )
+  orgs.ErrorLog( 'Organisations cannot run in a single-player game!' )
   return
 end
 

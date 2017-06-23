@@ -24,8 +24,7 @@ orgs.DebugLog = function( ... )
   orgs.Log( ... )
 end
 
-orgs.LogError = function( debug, ... )
-  if debug and not orgs.Debug then return end
+orgs.ErrorLog = function( ... )
 
   local col, tab = orgs.Colors.Error, {}
   for k, str in pairs( {...} ) do
@@ -64,7 +63,7 @@ end
 
 orgs.EventToString = function( tab, explode )
   local str = orgs.EventStrings[ tab.Type ]
-  if not str then orgs.LogError( 'Found no text to parse for event ', tab.Type ) return end
+  if not str then orgs.ErrorLog( 'Found no text to parse for event ', tab.Type ) return end
   if isfunction( str ) then str = str( tab ) end
 
   if tab.OrgID and orgs.List[tab.OrgID] then
@@ -156,23 +155,30 @@ end
 function orgs.Has( ply, ... )
   if not ply or #{...} < 1 then return false end
 
+  -- 'ply' is either player data table, entity, or SteamID64
   ply = istable( ply ) and ply or orgs.Members[isentity( ply ) and ply:SteamID64() or ply]
-  if not ply or not ply.Perms or not ply.RankID then return end
+  if not ply or not ply.RankID or not orgs.Ranks[ ply.RankID ] then return false end
 
-  plyPerms = TruthTable( string.Explode( ',', ply.Perms or '' ) )
+  -- Combine player and rank permissions
+  plyPerms = TruthTable( string.Explode( ',',
+    ( ply.Perms or '' ) .. ( orgs.Ranks[ ply.RankID ].Perms or '' ) ) )
+  if not plyPerms then return false end
+
   local hasPerms = true
   for k, v in pairs( {...} ) do
-    if not v or not plyPerms[tostring(v)] then hasPerms = false end
+    if not v or not plyPerms[tostring(v)] then return false end
   end
 
-  return hasPerms or orgs.RankHas( ply.RankID, ... )
+  return true
 end
 
 function orgs.RankHas( rank, ... )
   local rank = orgs.Ranks[rank]
   if not rank or #{...} < 1 then return false end
 
-  rankPerms = TruthTable( string.Explode( ',', rank.Perms or '' ) )
+  rankPerms = rank.Perms and TruthTable( string.Explode( ',', rank.Perms ) )
+  if not rankPerms then return false end
+
   for k, v in pairs( {...} ) do
     if not v or not rankPerms[tostring(v)] then return false end
   end

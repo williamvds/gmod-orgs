@@ -1,5 +1,5 @@
 if not file.Exists( 'orgs/providers/'.. orgs.Provider ..'.lua', 'LUA' ) then
-  orgs.LogError( false, 'Invalid provider '.. orgs.Provider ..' specified - defaulting to SQLite' )
+  orgs.ErrorLog( 'Invalid provider '.. orgs.Provider ..' specified - defaulting to SQLite' )
   orgs.Provider = 'sqlite'
 end
 

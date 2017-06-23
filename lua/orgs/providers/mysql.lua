@@ -12,7 +12,7 @@ if not mysqloo then
   local res = pcall( require, 'mysqloo' )
 
   if not res then
-    orgs.LogError( false, 'Failed to load mysqloo - make sure it\'s installed!\n'
+    orgs.ErrorLog( 'Failed to load mysqloo - make sure it\'s installed!\n'
       ..'See https://facepunch.com/showthread.php?t=1515853 for more information' )
     PROVIDER.Failed = true
     return
@@ -134,7 +134,7 @@ PROVIDER._sendQuery = function( sql, tab, done )
   end
 
   q.onError = function( q, err, sql )
-    orgs.LogError( false, 'Error when running query\nError: ', err, '\nSQL: ', sql )
+    orgs.ErrorLog( 'Error when running query\nError: ', err, '\nSQL: ', sql )
     if done then done( nil, err, q ) end
   end
   q.onAborted = q.onError
@@ -152,7 +152,7 @@ PROVIDER.insert = function( name, tab, done )
 
   for k, v in pairs( tab ) do
     if not tables[name][k] then
-      orgs.LogError( false, 'Attempt to set value of unlisted field ', k, ' in ', name )
+      orgs.ErrorLog( 'Attempt to set value of unlisted field ', k, ' in ', name )
       tab[k] = nil
     end
   end
@@ -165,7 +165,7 @@ end
 PROVIDER.update = function( name, tab, where, whereParams, done )
   for k, v in pairs( tab ) do
     if not tables[name][k] then
-      orgs.LogError( false, 'Attempt to set value of unlisted field', k, 'in table', name )
+      orgs.ErrorLog( 'Attempt to set value of unlisted field', k, 'in table', name )
       tab[k] = nil
     end
   end
@@ -291,7 +291,7 @@ db.onConnected = function()
   PROVIDER.Failed = false
   if PROVIDER.DoneFirstConnect then return end
 
-  orgs.Log( true, 'Connected to database; running setup queries ...' )
+  orgs.DebugLog( 'Connected to database; running setup queries ...' )
   for k, sql in pairs( string.Explode( ';', setupQuery ) ) do
     PROVIDER._sendQuery( sql ..';' )
   end
@@ -303,7 +303,7 @@ db.onConnected = function()
 end
 
 db.onConnectionFailed = function( db, err )
-  orgs.LogError( false, 'Failed to connect to database %s@%s: ' %{user, database}, err )
+  orgs.ErrorLog( 'Failed to connect to database %s@%s: ' %{user, database}, err )
   PROVIDER.Failed = true
 end
 

@@ -160,7 +160,7 @@ function PANEL:Init()
   if not orgs._managePlayer then return end
   self.Player = orgs._managePlayer
 
-  self.Header.Title:SetText( 'Managing '.. self.Player.Nick )
+  self:SetTitle( 'Managing '.. self.Player.Nick )
 
   l = self:NewLine()
 

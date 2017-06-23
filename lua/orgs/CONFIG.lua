@@ -45,6 +45,7 @@ if CLIENT then
   orgs.Colors.MenuPrimary       = Color( 27, 201, 224 )       -- Theme main
   orgs.Colors.MenuPrimaryAlt    = Color( 8, 147, 166 )        -- Hover/highlight against primary
   orgs.Colors.MenuSecondary     = Color( 42, 42, 61 )         -- Secondary background (see below)
+  orgs.Colors.MenuSecondaryAlt  = Color( 29, 29, 46 )         -- Secondary background for menu
   orgs.Colors.MenuBackground    = Color( 14, 14, 24 )         -- Background
   orgs.Colors.MenuBackgroundAlt = Color( 22, 22, 34 )         -- Alternate background
   orgs.Colors.Close             = Color( 0, 0, 0, 0 )         -- Close buttons
@@ -58,6 +59,9 @@ if CLIENT then
 
   orgs.Colors.MenuIndicatorOn   = Color( 41, 235, 82 )        -- Online player indicator
   orgs.Colors.MenuIndicatorOff  = orgs.Colors.Error           -- Offline player indicator
+
+  orgs.Colors.MenuButtonWarn    = orgs.Colors.Error           -- Leave buttons
+  orgs.Colors.MenuButtonWarnAlt = Color( 207, 28, 27 )        -- Leave buttons hover
 
   orgs.Colors.MenuBank          = Color( 0, 40, 0 )           -- Bank background
   orgs.Colors.MenuBankAlt       = Color( 0, 203, 0 )          -- Bank background highlight

@@ -17,9 +17,9 @@
 - [ ] group hiding
 - [ ] alliances and allegiances
 - [ ] admin system
-- [ ] store default ranks only once?  
+- [ ] store default ranks only once?
 - [ ] vgui: Popup options, eg. with confirm/cancel (possibly VB.net style?)
-- [ ] providers: Adapt mysql provider for sqlite  
+- [ ] providers: Adapt mysql provider for sqlite
 - [ ] events: ability to filter by type
 - [ ] mysql: Use transactions for updating ranks?
 - [ ] ranks: Allow rank shorthand

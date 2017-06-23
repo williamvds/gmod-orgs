@@ -102,11 +102,13 @@ function PANEL:BuildStats()
       pnl:orgs_Dock( LEFT, {r=5} )
       pnl:SetWide( (statsWidth/#self.StatTab) -5 -(3/#self.StatTab) )
 
-      pnl.Label = pnl:orgs_AddLabel( stat.label, 'orgs.Small' )
+      pnl.Label = pnl:orgs_AddLabel( stat.label, 'orgs.Small', orgs.UsePrimaryInStats 
+        and orgs.Colors.MenuTextAlt or nil )
       pnl.Label:orgs_Dock( TOP, {u=9} )
       pnl.Label:SetContentAlignment( 5 )
 
-      pnl.Value = pnl:orgs_AddLabel( '', 'orgs.Medium' )
+      pnl.Value = pnl:orgs_AddLabel( '', 'orgs.Medium', orgs.UsePrimaryInStats 
+        and orgs.Colors.MenuTextAlt or nil  )
       pnl.Value:Dock( TOP )
       pnl.Value:SetContentAlignment( 5 )
       self.Stats[ stat.label ] = pnl
@@ -115,7 +117,7 @@ function PANEL:BuildStats()
 
   else
     for k, stat in pairs( self.StatTab ) do
-      self.Stats[ stat.label ].Value:orgs_SetText( stat.func() )
+      self.Stats[ stat.label ].Value:SetText( stat.func() or '' )
     end
   end
 

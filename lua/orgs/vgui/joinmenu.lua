@@ -1,22 +1,24 @@
 local PANEL = {}
 
 function PANEL:Init()
+  self:orgs_Frame()
+
   self:SetTitle( 'Organisations', 'orgs.Large' )
   self:SetSize( 600, 400 )
-  self:orgs_Dock( nil, nil, {l=5,r=5,d=5} )
+  self:DockPadding( 0, 0, 0, 5 )
   self:SetKeyboardInputEnabled( true )
   self:SetFocusTopLevel( true )
 
-  self.SubText = self:orgs_AddLabel( 'You don\'t currently belong to any group: you can join '
+  self.SubText = self:orgs_AddLabel( 'You don\'t currently belong to any group: you can join'
     ..' or create one',
     'orgs.Small', orgs.Colors.MenuText, true )
-  self.SubText:orgs_Dock( TOP, {l=15, r=15, d=5} )
+  self.SubText:orgs_Dock( TOP, {l=5,r=15, d=5} )
   self.SubText:SetAutoStretchVertical( true )
 
   self.Divider = self:Add( 'DPanel' )
   self.Divider:orgs_BGR( orgs.Colors.MenuPrimaryAlt )
   self.Divider:SetTall( 4 )
-  self.Divider:Dock( TOP )
+  self.Divider:orgs_Dock( TOP, {l=5,r=5} )
 
   self.Body = self:Add( 'DPanel' )
   self.Body:orgs_BGR( orgs.Colors.MenuBackground )
@@ -25,8 +27,7 @@ function PANEL:Init()
   self.Body:Dock( FILL )
 
   self.TabMenu = self.Body:Add( 'orgs.TabMenu' )
-  self.TabMenu:orgs_Dock( FILL, {u=0} )
-
+  self.TabMenu:orgs_Dock( FILL, {u=0,l=5,r=5} )
   self.Join = self.TabMenu:AddTab( 'JOIN', vgui.Create( 'orgs.JoinMenu_Join' ) )
   self.Create = self.TabMenu:AddTab( 'CREATE', vgui.Create( 'orgs.JoinMenu_Create' ) )
 
@@ -111,7 +112,7 @@ end
 
 function PANEL:Paint( w, h ) orgs.DrawRect( 0, 0, w, h, orgs.Colors.MenuBackground ) end
 
-vgui.Register( 'orgs.JoinMenu', PANEL, 'orgs.Frame' )
+vgui.Register( 'orgs.JoinMenu', PANEL, 'DFrame' )
 
 concommand.Add( 'orgs_newjoinmenu', function()
   orgs.JoinMenu = vgui.Create( 'orgs.JoinMenu' )

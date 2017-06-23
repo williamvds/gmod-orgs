@@ -5,7 +5,6 @@ function PANEL:Init()
   self:SetSize( 200, 150 )
   self:SetDrawOnTop( true )
   self:SetRemoveOnHide( true )
-  self:DoModal( true )
   self:SetBackgroundBlur( true )
 
   self.Body = self:Add( 'DPanel' )

@@ -97,7 +97,7 @@ function Panel:orgs_Frame()
   end
 
   self.btnClose:SetParent( self.Header )
-  self.btnClose:orgs_SetText( '✕', 'orgs.SmallLight', orgs.Colors.CloseText )
+  self.btnClose:orgs_SetText( '×', 'orgs.Medium', orgs.Colors.CloseText )
   self.btnClose:SetSize( 25, 20 )
   self.btnClose.DoClick = function() self:AnimateHide() end
 
@@ -200,23 +200,44 @@ local function createSkin()
   SKIN.PaintWindowMinimizeButton = function() end
 
   -- Menu
-  function SKIN:PaintMenu( p, w, h ) end
+  function SKIN:PaintMenu( p, w, h )
+    orgs.DrawRect( 0, 0, w, h, orgs.Colors.MenuSecondaryAlt )
+  end
 
   function SKIN:LayoutMenu( p )
-    for k, opt in pairs( p:GetCanvas():GetChildren() ) do
-      if opt.ThisClass ~= 'DMenuOption' then continue end
-      opt:orgs_SetText( nil, 'orgs.Small', orgs.Colors.MenuBackground )
-      opt:SetTextInset( 10, 0 )
+    local w, h = p:GetMinimumWidth(), 5
+
+    for k, pnl in pairs( p:GetCanvas():GetChildren() ) do
+      pnl:PerformLayout()
+      w = math.max( w, pnl:GetWide() )
+
+      if pnl.ThisClass ~= 'DMenuOption' then continue end
+      pnl:orgs_SetText( nil, 'orgs.Small', orgs.Colors.MenuText )
+      pnl:SetTextInset( 10, 2 )
     end
+
+    p:SetWide( w )
+
+    for k, pnl in pairs( p:GetCanvas():GetChildren() ) do
+      pnl:SetWide( w )
+      pnl:SetPos( 0, h )
+      pnl:InvalidateLayout( true )
+
+      h = h + pnl:GetTall()
+    end
+
+    h = math.min( h, p:GetMaxHeight() )
+    p:SetTall( h +5 )
+
+    DScrollPanel.PerformLayout( p )
+
   end
 
   function SKIN:PaintMenuOption( p, w, h )
     if not p.m_bBackground then return end
 
-    orgs.DrawRect( 0, 0, w, h, orgs.Colors.MenuText )
-
     if p:IsHovered() or p.Hovered or p.Highlight then
-      orgs.DrawRect( 0, 0, 5, h, orgs.Colors.MenuPrimary )
+      orgs.DrawRect( 5, 0, w -10, h, orgs.Colors.MenuSecondary )
     end
   end
 
@@ -269,12 +290,10 @@ local function createSkin()
 
   function SKIN:PaintButtonDown( p, w, h )
     self.tex.Input.UpDown.Down.Hover( 0, 0, w, h )
-    orgs.DrawRect( 0, 0, w, h, orgs.COLOR_NONE )
   end
 
   function SKIN:PaintButtonUp( p, w, h )
     self.tex.Input.UpDown.Up.Hover( 0, 0, w, h )
-    orgs.DrawRect( 0, 0, w, h, orgs.COLOR_NONE )
   end
 
   -- ComboBox
@@ -313,9 +332,15 @@ local function createSkin()
       or orgs.Colors.MenuText )
   end
 
-  created = true
+  -- Tooltip
+  SKIN.Colours.TooltipText = orgs.Colors.MenuTextAlt
+  function SKIN:PaintTooltip( p, w, h )
+    orgs.DrawRect( 0, 0, w, h, orgs.Colors.MenuText )
+  end
 
   derma.DefineSkin( 'orgs', '', SKIN )
+
+  created = true
 end
 hook.Add( 'Initialize', 'orgs.createSkin', createSkin )
 

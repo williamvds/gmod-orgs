@@ -5,9 +5,6 @@ AddCSLuaFile 'sh_util.lua'
 AddCSLuaFile 'cl_init.lua'
 
 for _, f in pairs( file.Find( 'orgs/vgui/*.lua', 'LUA' ) ) do AddCSLuaFile( 'orgs/vgui/' .. f ) end
-resource.AddFile( 'resource/fonts/Roboto-Medium.ttf' )
-resource.AddFile( 'resource/fonts/Roboto-Regular.ttf' )
-resource.AddFile( 'resource/fonts/Roboto-Thin.ttf' )
 
 hook.Add( 'orgs.AfterLoadPlayer', 'orgs.StartSalaryTimer', function( ply, orgID )
 

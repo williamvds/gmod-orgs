@@ -136,7 +136,7 @@ function PANEL:Init()
 
   self.Rank = orgs.Ranks[orgs._manageRank] or {}
 
-  self.Header.Title:SetText( self.Rank.RankID and 'Managing '.. self.Rank.Name
+  self:SetTitle( self.Rank.RankID and 'Managing '.. self.Rank.Name
     or 'Creating new rank')
 
   l = self:NewLine()

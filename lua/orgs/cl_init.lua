@@ -218,6 +218,6 @@ hook.Add( 'PreDrawHalos', 'orgs.MemberHalos', function()
 
   end
 
-  halo.Add( plys, Color( unpack( string.Explode( ',', org.Color ) ) ), 1, 1, 5, true, true )
+  halo.Add( plys, Color( unpack( string.Explode( ',', org.Color ) ) ), 1, 1, 5, true, false )
 
 end )

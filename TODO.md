@@ -12,6 +12,9 @@
 - [ ] org table not being removed once dissolved
 - [ ] don't log leave event when a player dissolves a group?
 - [ ] data: non-members receiving ranks from other created orgs
+- [ ] data: players remaining in orgs.Members even after leaving a group, need to resync
+- [ ] menu: confirmaton when kicking players
+- [ ] clientside options to disable halo, server and org settings to disable halo through wall
 
 ### Features to implement
 - [ ] upgrade: remove allegiances if necessary, warning if group is hidden

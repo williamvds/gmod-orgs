@@ -300,13 +300,13 @@ function PANEL:Init()
   self.Player:orgs_Dock( LEFT, {l=15} )
   self.Player:orgs_SetText( nil, 'orgs.Medium', orgs.Colors.MenuText )
   self.Player:SetWide( 185 )
-  self.Player:AddChoice( 'Send by Steam ID', -1 )
+  self.Player:AddChoice( 'Send by Steam ID', false, true )
   for k, ply in pairs( player.GetHumans() ) do
     if orgs.Members[ply:SteamID64()] then continue end
     self.Player:AddChoice( ply:Nick(), ply:SteamID64() )
   end
   self.Player.OnSelect = function( p, _, _, val )
-    self.SteamIDLine:SetVisible( val == -1 )
+    self.SteamIDLine:SetVisible( not val )
     local to = not isnumber( val ) and val or
       tonumber( self.SteamID:GetValue() ) and self.SteamID:GetValue()
       or util.SteamIDTo64( self.SteamID:GetValue() )
@@ -377,9 +377,8 @@ function PANEL:Init()
   self.Send.DoClick = function( p )
 
     local to = self.SteamID:IsVisible() and self.SteamID.Value
-      or self.Player.Value
+      or select( 2, self.Player:GetSelected() )
 
-    toPly = player.GetBySteamID64( to )
     netmsg.Send( 'orgs.Menu.Members.Invite', {to} ) ( function( tab )
       if tab[1] then
         orgs.Menu:SetError( 'Couldn\'t invite because ' ..orgs.InviteFails[tab[1]] )

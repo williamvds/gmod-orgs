@@ -391,10 +391,12 @@ orgs.updatePlayer = function( ply, tab, ply2, done )
       member = orgs.Members[steamID]
     end
 
+    -- Log events for changed attributes
     for k, v in pairs( tab ) do
-      if k == 'Nick' or k == 'OrgID'
-      or ( TruthTable{'RankID','Salary','Perms'}[k] and ( IsValid( ply ) and ply.orgs_GroupLock )
-      or ( not orgs.List[member.OrgID] or orgs.List[member.OrgID].Forming ) ) then
+      -- Don't log nick updates, org changes, or attribute changes during
+      if k == 'Nick' or k == 'OrgID' or tab.OrgID
+      or ( IsValid( ply ) and ply.orgs_GroupLock )
+      or ( not member.OrgID or orgs.List[member.OrgID].Forming ) then
       continue end
 
       v = v == NULL and 'nothing' or v
